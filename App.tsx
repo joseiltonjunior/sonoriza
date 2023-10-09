@@ -19,7 +19,7 @@ function App(): JSX.Element {
   return (
     <>
       <NavigationContainer>
-        <StatusBar backgroundColor={'#202022'} />
+        <StatusBar backgroundColor={'#202024'} />
         <Routes />
       </NavigationContainer>
     </>
