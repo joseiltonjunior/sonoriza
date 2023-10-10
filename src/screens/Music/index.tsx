@@ -1,19 +1,33 @@
-import { useNavigation, useRoute } from '@react-navigation/native'
-import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProps } from '@routes/routes'
+import { MusicProps } from '@utils/Types/musicProps'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
 import TrackPlayer from 'react-native-track-player'
 import Icon from 'react-native-vector-icons/AntDesign'
 
 export function Music() {
-  const { params } = useRoute<RouteParamsProps<'Music'>>()
   const [isPlaying, setPlaying] = useState(true)
-
-  const { title, artist, artwork } = params
+  const [music, setMusic] = useState<MusicProps>()
 
   const navigation = useNavigation<StackNavigationProps>()
+
+  const handleGetCurrentMusic = useCallback(async () => {
+    const trackIndex = await TrackPlayer.getCurrentTrack()
+    if (trackIndex) {
+      const trackObject = await TrackPlayer.getTrack(trackIndex)
+
+      const currentTrack = trackObject as MusicProps
+
+      setMusic(currentTrack)
+    }
+  }, [])
+
+  useEffect(() => {
+    handleGetCurrentMusic()
+  }, [handleGetCurrentMusic])
 
   return (
     <ScrollView className="p-2  flex-1 bg-gray-950">
@@ -31,12 +45,12 @@ export function Music() {
 
       <View className="flex-1 items-center mt-12">
         <Image
-          source={{ uri: artwork }}
+          source={{ uri: music?.artwork }}
           alt=""
           className="w-72 h-72 object-cover rounded-3xl"
         />
-        <Text className="font-bold text-2xl mt-4">{title}</Text>
-        <Text>{artist}</Text>
+        <Text className="font-bold text-2xl mt-4">{music?.title}</Text>
+        <Text>{music?.artist}</Text>
       </View>
       <View className="flex-1 h-1 bg-gray-500 mx-12 mt-8 rounded-2xl"></View>
       <View className="flex-row justify-around mt-4 items-center px-12">
