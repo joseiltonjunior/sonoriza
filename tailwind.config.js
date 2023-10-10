@@ -13,6 +13,13 @@ module.exports = {
           400: '#66a6ff',
         },
       },
+      fontFamily: {
+        'baloo-bold': ['Baloo2-Bold', 'sans'],
+        'baloo-medium': ['Baloo2-Medium', 'sans'],
+        'baloo-regular': ['Baloo2-Regular', 'sans'],
+        'baloo-extrabold': ['Baloo2-ExtraBold', 'sans'],
+        'baloo-semibold': ['Baloo2-SemiBold', 'sans'],
+      },
     },
   },
   plugins: [],

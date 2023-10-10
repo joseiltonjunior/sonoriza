@@ -82,8 +82,8 @@ export function Home() {
   return (
     <>
       <View className="p-2  flex-1 bg-gray-950">
-        <Text className="text-white font-bold text-2xl text-center mt-4">
-          Spotifree
+        <Text className="text-white text-2xl text-center mt-4 font-baloo-bold">
+          Sonorizando
         </Text>
 
         <View className="mt-8 px-3 ">
