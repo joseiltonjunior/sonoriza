@@ -2,7 +2,6 @@ import RNFS from 'react-native-fs'
 import { useCallback, useEffect } from 'react'
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
 
-import TrackPlayer from 'react-native-track-player'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { useNavigation } from '@react-navigation/native'
@@ -17,6 +16,9 @@ import {
   MusicPlayerSettingsProps,
   handleInitializedMusicPlayer,
 } from '@storage/modules/musicPlayerSettings/reducer'
+import { BottomMenu } from '@components/BottomMenu/Index'
+import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
+import { useTrackPlayer } from '@hooks/useTrackPlayer'
 
 export function Home() {
   const navigation = useNavigation<StackNavigationProps>()
@@ -30,6 +32,8 @@ export function Home() {
   const { trackList } = useSelector<ReduxProps, TrackListProps>(
     (state) => state.trackList,
   )
+
+  const { getCurrentMusic, TrackPlayer, currentMusic } = useTrackPlayer()
 
   const handleSearchMp3Music = useCallback(async () => {
     try {
@@ -67,7 +71,13 @@ export function Home() {
         dispatch(handleInitializedMusicPlayer({ isInitialized: true }))
       })
       .catch((err) => console.error(err))
-  }, [dispatch])
+  }, [TrackPlayer, dispatch])
+
+  useEffect(() => {
+    if (isInitialized) {
+      getCurrentMusic()
+    }
+  }, [getCurrentMusic, isInitialized])
 
   useEffect(() => {
     handleSearchMp3Music()
@@ -81,16 +91,16 @@ export function Home() {
 
   return (
     <>
-      <View className="p-2  flex-1 bg-gray-950">
-        <Text className="text-white text-2xl text-center mt-4 font-baloo-bold">
-          Sonorizando
-        </Text>
+      <View className="flex-1 bg-gray-950">
+        <View className="p-4">
+          <Text className="text-white text-2xl font-baloo-bold">Início</Text>
+        </View>
 
-        <View className="mt-8 px-3 ">
+        <View className="px-4">
           <FlatList
             showsVerticalScrollIndicator={false}
             data={trackList}
-            ItemSeparatorComponent={() => <View className="h-3" />}
+            ItemSeparatorComponent={() => <View className="h-2" />}
             renderItem={({ item, index }) => (
               <TouchableOpacity
                 key={index}
@@ -109,19 +119,16 @@ export function Home() {
                   className="w-16 h-16 bg-gray-500 rounded-xl"
                 />
                 <View>
-                  <Text>{item.title}</Text>
-                  <Text>{item.album}</Text>
+                  <Text className="font-baloo-bold">{item.title}</Text>
+                  <Text className="font-baloo-regular">{item.album}</Text>
                 </View>
               </TouchableOpacity>
             )}
           />
         </View>
       </View>
-      <View className="bg-purple-600 h-20">
-        <TouchableOpacity onPress={() => navigation.navigate('Music')}>
-          <Text>current music</Text>
-        </TouchableOpacity>
-      </View>
+      {currentMusic && <ControlCurrentMusic music={currentMusic} />}
+      <BottomMenu />
     </>
   )
 }
