@@ -1,24 +1,29 @@
-<h1 align="center">Apresentando o Spotifree: Sua Experiência Musical Sem Limites!</h1>
+<h1 align="center">Sonoriza</h1>
 
-<h3 align="center">Você ama música, e nós amamos proporcionar a melhor experiência musical possível! Conheça o Spotifree, o player de músicas definitivo que oferece uma experiência completamente gratuita, sem interrupções de anúncios.</h3>
+<p>Você já imaginou desfrutar das suas músicas favoritas sem interrupções e sem a necessidade de pagar por um plano para eliminar os anúncios? Com o Sonoriza, essa experiência é possível e muito mais. Apresentamos o Sonoriza, o seu player de músicas totalmente gratuito e livre de anúncios.</p>
 
-<h3 align="center">O Spotifree foi projetado pensando em você, amante da música, que merece total liberdade para desfrutar de sua trilha sonora sem complicações. Aguarde ansiosamente enquanto trabalhamos para tornar a sua experiência musical ainda mais incrível em todos os seus dispositivos. Venha conosco nesta jornada musical sem limites!</h3>
+<p>Com o Sonoriza, a música flui de forma ininterrupta, permitindo que você se envolva totalmente na sua playlist preferida. Não se preocupe com interrupções inconvenientes ou anúncios indesejados, pois criamos o Sonoriza pensando na sua experiência musical.</p>
+
+<p>Além disso, o Sonoriza oferece uma ampla gama de funcionalidades para aprimorar sua experiência musical. Personalize suas playlists, descubra novas músicas e crie um ambiente sonoro perfeito para cada momento do seu dia, sem qualquer custo.</p>
+
+<p>Experimente o Sonoriza agora e mergulhe em um universo musical sem limites, onde a música é a protagonista e sua experiência é nossa prioridade. Sonoriza: sua música, sem interrupções, sem anúncios, gratuitamente.</p>
+
 <br/>
 
 
-<div align="center">
-  <img src="https://i.ibb.co/bJR5Y5d/Spotifree.png" alt="spotifree" border="0">  
+<div>
+  <img src="https://i.ibb.co/tpdj7k6/sonoriza.png" alt="sonoriza" border="0">  
 </div>
 
 <br/>
 
 #### Step 1 (Clone the project)
 ```sh
-git clone https://github.com/joseiltonjunior/spotifree.git
+git clone https://github.com/joseiltonjunior/sonoriza.git
 ```
 #### Step 2 (Open a project)
 ```sh
-cd spotifree
+cd sonoriza
 ```
 #### Step 3 (Install yours dependencies)
 ```sh
@@ -28,7 +33,7 @@ npm i or yarn
 ```sh
 npm run start or yarn start
 ```
-#### Step 5 (Run android) 
+#### Step 5 (Open in android) 
 ```sh
 npm run android or yarn android
 ```
@@ -52,5 +57,5 @@ npm run test:coverage or yarn test:coverage
 
 ## Credits
 
-<a href="https://ferreirajr.tech/" target="_blank">Junior Ferreira</a> at Full-stack Developer JS
+<a href="https://ferreirajr.tech/" target="_blank">Junior Ferreira</a> at Full-stack Developer (Node | Next | React | Ract Native | Typescript)
 
