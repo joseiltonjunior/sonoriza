@@ -3,24 +3,24 @@ import { Alert, Dimensions, LogBox, View } from 'react-native'
 
 import splash from '@assets/splash.json'
 import { useCallback, useEffect } from 'react'
-import TrackPlayer from 'react-native-track-player'
+
 import { PERMISSIONS, request } from 'react-native-permissions'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
+
+import crashlytics from '@react-native-firebase/crashlytics'
 
 const size = Dimensions.get('window').width * 0.9
 
 export function SplashScreen() {
   const navigation = useNavigation<StackNavigationProps>()
 
-  const requestMusicPermission = useCallback(async () => {
+  const handleStoragePermission = useCallback(async () => {
     try {
       const result = await request(
         PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE &&
           PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
       )
-
-      await TrackPlayer.setupPlayer()
 
       setTimeout(() => {
         navigation.reset({
@@ -32,7 +32,7 @@ export function SplashScreen() {
             },
           ],
         })
-      }, 3000)
+      }, 2000)
 
       if (result !== 'granted') {
         Alert.alert(
@@ -41,14 +41,17 @@ export function SplashScreen() {
         )
       }
     } catch (error) {
+      const err = error as Error
+      crashlytics().recordError(err)
       console.error('Erro ao solicitar permissão:', error)
     }
   }, [navigation])
 
   useEffect(() => {
     LogBox.ignoreLogs(['new NativeEventEmitter'])
-    requestMusicPermission()
-  }, [requestMusicPermission])
+
+    handleStoragePermission()
+  }, [handleStoragePermission])
 
   return (
     <View className="flex-1 items-center justify-center bg-gray-950">

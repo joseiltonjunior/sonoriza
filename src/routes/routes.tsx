@@ -9,12 +9,11 @@ import { RouteProp } from '@react-navigation/native'
 import { Home } from '@screens/Home'
 import { SplashScreen } from '@screens/SplashScreen'
 import { Music } from '@screens/Music'
-import { MusicProps } from '@utils/Types/musicProps'
 
 type RootStackParamList = {
   Home: undefined
   SplashScreen: undefined
-  Music: MusicProps
+  Music: undefined
 }
 
 export type StackNavigationProps = StackNavigationProp<RootStackParamList>
