@@ -8,6 +8,9 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 
+import firestore from '@react-native-firebase/firestore'
+import crashlytics from '@react-native-firebase/crashlytics'
+
 import {
   TrackListProps,
   handleTrackList,
@@ -73,6 +76,24 @@ export function Home() {
       .catch((err) => console.error(err))
   }, [TrackPlayer, dispatch])
 
+  const handleGetMusicsDatabase = useCallback(async () => {
+    console.log('entrou')
+    await firestore()
+      .collection('musics')
+      .get()
+      .then((querySnapshot) => {
+        const musicsResponse = querySnapshot.docs.map((doc) => ({
+          url: doc.data().url,
+        }))
+
+        console.log(musicsResponse, 'uai')
+      })
+      .catch((err) => {
+        console.log(err)
+        crashlytics().recordError(err)
+      })
+  }, [])
+
   useEffect(() => {
     if (isInitialized) {
       getCurrentMusic()
@@ -80,8 +101,9 @@ export function Home() {
   }, [getCurrentMusic, isInitialized])
 
   useEffect(() => {
+    handleGetMusicsDatabase()
     handleSearchMp3Music()
-  }, [handleSearchMp3Music])
+  }, [handleGetMusicsDatabase, handleSearchMp3Music])
 
   useEffect(() => {
     if (!isInitialized) {

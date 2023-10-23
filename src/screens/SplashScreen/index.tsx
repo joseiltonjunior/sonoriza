@@ -27,7 +27,7 @@ export function SplashScreen() {
           index: 0,
           routes: [
             {
-              name: 'Home',
+              name: 'SignIn',
               params: undefined,
             },
           ],
