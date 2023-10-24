@@ -33,7 +33,7 @@ interface FormDataProps {
   confirmPassword: string
 }
 
-interface DataSaveDatabase {
+export interface DataSaveDatabase {
   email: string | null
   displayName: string | null
   photoURL: string | null
@@ -42,9 +42,7 @@ interface DataSaveDatabase {
 
 const schema = z
   .object({
-    name: z.string().refine((value) => /^[A-Za-z]+\s[A-Za-z]+$/i.test(value), {
-      message: '* deve ser um nome composto',
-    }),
+    name: z.string().min(6, '* mínimo 10 caracteres'),
     email: z.string().email('* e-mail inválido'),
     password: z
       .string()
@@ -111,8 +109,7 @@ export function Register() {
           ],
         })
       })
-      .catch((error) => {
-        console.log(error, 'err in save database')
+      .catch(() => {
         setModalError(true)
       })
       .finally(() => setIsLoading(false))
@@ -124,6 +121,7 @@ export function Register() {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
 
       const { idToken } = await GoogleSignin.signIn()
+      console.log(idToken)
       const googleCredential = auth.GoogleAuthProvider.credential(idToken)
       const response = await auth().signInWithCredential(googleCredential)
 

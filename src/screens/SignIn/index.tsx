@@ -1,6 +1,5 @@
 import { Input } from '@components/Input'
 import {
-  BackHandler,
   Image,
   Keyboard,
   ScrollView,
@@ -26,6 +25,7 @@ import firestore from '@react-native-firebase/firestore'
 import { ModalCustom } from '@components/Modal'
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
+import { DataSaveDatabase } from '@screens/Register'
 
 interface FormDataProps {
   email: string
@@ -57,6 +57,38 @@ export function SignIn() {
     webClientId: WEB_CLIENT_ID,
   })
 
+  async function handleSaveInDatabase({
+    email,
+    displayName,
+    photoURL,
+    uid,
+  }: DataSaveDatabase) {
+    firestore()
+      .collection('users')
+      .doc(uid)
+      .set({
+        email,
+        displayName,
+        photoURL,
+        uid,
+      })
+      .then(() => {
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'Home',
+              params: undefined,
+            },
+          ],
+        })
+      })
+      .catch(() => {
+        setModalError(true)
+      })
+      .finally(() => setIsLoading(false))
+  }
+
   async function handleSignInWithGoogle() {
     setIsLoading(true)
     try {
@@ -66,20 +98,19 @@ export function SignIn() {
       const googleCredential = auth.GoogleAuthProvider.credential(idToken)
       const response = await auth().signInWithCredential(googleCredential)
 
-      const { user } = response
+      const { email, displayName, uid, photoURL } = response.user
 
-      const userDocRef = firestore().collection('users').doc(user.uid)
+      const userDocRef = firestore().collection('users').doc(uid)
 
       const userDoc = await userDocRef.get()
 
-      setIsLoading(false)
       if (!userDoc.exists) {
-        setModalError(true)
-        await auth().signOut()
+        handleSaveInDatabase({ email, displayName, uid, photoURL })
 
         return
       }
 
+      setIsLoading(false)
       navigation.reset({
         index: 0,
         routes: [
@@ -100,8 +131,9 @@ export function SignIn() {
       .collection('users')
       .doc(userUid)
       .get()
-      .then(() => {
-        // const user = querySnapshot.data()
+      .then((querySnapshot) => {
+        const user = querySnapshot.data()
+        console.log(user)
         // dispatch(setSaveUser(user))
 
         navigation.reset({
@@ -114,9 +146,6 @@ export function SignIn() {
           ],
         })
       })
-      .catch((error) =>
-        console.log('Erro ao buscar os dados do usuário no Firestore:', error),
-      )
       .finally(() => setIsLoading(false))
   }
 
@@ -130,25 +159,23 @@ export function SignIn() {
 
         handleFetchDataUser(uid)
       })
-      .catch((err) => {
+      .catch(() => {
         setError('email', { message: '* credenciais inválidas' })
         setError('password', { message: '* credenciais inválidas' })
         setIsLoading(false)
-        console.log(err)
       })
   }
 
   return (
     <>
       <ModalCustom
-        title="Acesso restrito"
-        description="Apenas os usuários com planos ativos têm permissão. Por favor, entre em contato com o suporte para regularizar a sua assinatura."
+        title="Atenção"
+        description="Opss... não foi possível acessar a aplicação neste momento. Por favor, tente novamente."
         show={modalError}
         singleAction={{
           title: 'Sair',
           action() {
             setModalError(false)
-            BackHandler.exitApp()
           },
         }}
       />
