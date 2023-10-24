@@ -1,6 +1,5 @@
 import { Input } from '@components/Input'
 import {
-  BackHandler,
   Image,
   Keyboard,
   ScrollView,
@@ -28,16 +27,45 @@ import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
 
 interface FormDataProps {
+  name: string
   email: string
   password: string
+  confirmPassword: string
 }
 
-const schema = z.object({
-  email: z.string().email('* e-mail inválido'),
-  password: z.string().min(6, '* mínimo 6 caracteres'),
-})
+interface DataSaveDatabase {
+  email: string | null
+  displayName: string | null
+  photoURL: string | null
+  uid: string
+}
 
-export function SignIn() {
+const schema = z
+  .object({
+    name: z.string().refine((value) => /^[A-Za-z]+\s[A-Za-z]+$/i.test(value), {
+      message: '* deve ser um nome composto',
+    }),
+    email: z.string().email('* e-mail inválido'),
+    password: z
+      .string()
+      .min(6, '* mínimo 6 caracteres')
+      .refine(
+        (value) => /^(?=.*[A-Za-z])(?=.*\d)/.test(value),
+        '* deve conter letras e números',
+      ),
+    confirmPassword: z.string().min(6, '* mínimo 6 caracteres'),
+  })
+  .refine(
+    (values) => {
+      return values.password === values.confirmPassword
+    },
+    {
+      message: '* as senhas não coincidem',
+      path: ['confirmPassword'],
+    },
+  )
+
+export function Register() {
   const {
     control,
     setError,
@@ -57,53 +85,22 @@ export function SignIn() {
     webClientId: WEB_CLIENT_ID,
   })
 
-  async function handleSignInWithGoogle() {
-    setIsLoading(true)
-    try {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
-
-      const { idToken } = await GoogleSignin.signIn()
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken)
-      const response = await auth().signInWithCredential(googleCredential)
-
-      const { user } = response
-
-      const userDocRef = firestore().collection('users').doc(user.uid)
-
-      const userDoc = await userDocRef.get()
-
-      setIsLoading(false)
-      if (!userDoc.exists) {
-        setModalError(true)
-        await auth().signOut()
-
-        return
-      }
-
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'Home',
-            params: undefined,
-          },
-        ],
-      })
-    } catch (error) {
-      setModalError(true)
-      setIsLoading(false)
-    }
-  }
-
-  async function handleFetchDataUser(userUid: string) {
+  async function handleSaveInDatabase({
+    email,
+    displayName,
+    photoURL,
+    uid,
+  }: DataSaveDatabase) {
     firestore()
       .collection('users')
-      .doc(userUid)
-      .get()
+      .doc(uid)
+      .set({
+        email,
+        displayName,
+        photoURL,
+        uid,
+      })
       .then(() => {
-        // const user = querySnapshot.data()
-        // dispatch(setSaveUser(user))
-
         navigation.reset({
           index: 0,
           routes: [
@@ -114,41 +111,72 @@ export function SignIn() {
           ],
         })
       })
-      .catch((error) =>
-        console.log('Erro ao buscar os dados do usuário no Firestore:', error),
-      )
+      .catch((error) => {
+        console.log(error, 'err in save database')
+        setModalError(true)
+      })
       .finally(() => setIsLoading(false))
   }
 
-  function handleSignInWithEmail(data: FormDataProps) {
+  async function handleSignInWithGoogle() {
+    setIsLoading(true)
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
+
+      const { idToken } = await GoogleSignin.signIn()
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken)
+      const response = await auth().signInWithCredential(googleCredential)
+
+      const { uid, email, displayName, photoURL } = response.user
+
+      handleSaveInDatabase({ displayName, email, photoURL, uid })
+    } catch (error) {
+      setModalError(true)
+      setIsLoading(false)
+    }
+  }
+
+  function handleRegisterWithEmail(data: FormDataProps) {
     Keyboard.dismiss()
     setIsLoading(true)
-    auth()
-      .signInWithEmailAndPassword(data.email, data.password)
-      .then((result) => {
-        const { uid } = result.user
 
-        handleFetchDataUser(uid)
+    auth()
+      .createUserWithEmailAndPassword(data.email, data.password)
+      .then((result) => {
+        const { email, photoURL, uid } = result.user
+
+        const name = data.name
+
+        result.user
+          .updateProfile({
+            displayName: name,
+          })
+          .then(() => {
+            handleSaveInDatabase({ displayName: name, email, photoURL, uid })
+          })
       })
-      .catch((err) => {
-        setError('email', { message: '* credenciais inválidas' })
-        setError('password', { message: '* credenciais inválidas' })
+      .catch((error) => {
         setIsLoading(false)
-        console.log(err)
+        if (error.code === 'auth/email-already-in-use') {
+          setError('email', { message: '* E-mail já está em uso!' })
+        }
+
+        if (error.code === 'auth/invalid-email') {
+          setError('email', { message: '* E-mail inválido!' })
+        }
       })
   }
 
   return (
     <>
       <ModalCustom
-        title="Acesso restrito"
-        description="Apenas os usuários com planos ativos têm permissão. Por favor, entre em contato com o suporte para regularizar a sua assinatura."
+        title="Atenção"
+        description="Desculpe, não foi possível concluir o cadastro neste momento. Por favor, tente novamente."
         show={modalError}
         singleAction={{
-          title: 'Sair',
+          title: 'Fechar',
           action() {
             setModalError(false)
-            BackHandler.exitApp()
           },
         }}
       />
@@ -157,11 +185,11 @@ export function SignIn() {
           <Image
             source={logo}
             alt="logo"
-            className="items-center mt-14"
+            className="items-center mt-4"
             style={{ width: 200, objectFit: 'contain' }}
           />
 
-          <Text>Bem vindo(a), de volta!</Text>
+          <Text>Bem vindo(a)!</Text>
 
           <View className="w-full mt-12 px-4">
             <TouchableOpacity
@@ -187,6 +215,14 @@ export function SignIn() {
             </View>
 
             <Input
+              icon="user"
+              name="name"
+              keyboardType="default"
+              control={control}
+              error={errors.name}
+              placeholder="Nome"
+            />
+            <Input
               icon="mail"
               name="email"
               keyboardType="email-address"
@@ -204,24 +240,29 @@ export function SignIn() {
               placeholder="Senha"
               password
             />
+            <Input
+              icon="lock"
+              name="confirmPassword"
+              keyboardType="default"
+              control={control}
+              error={errors.confirmPassword}
+              placeholder="Confirme a senha"
+              password
+            />
 
             <Button
               isLoading={isLoading}
-              title="Entrar"
+              title="Cadastrar"
               className="w-full ml-auto mr-auto mt-6"
-              onPress={handleSubmit(handleSignInWithEmail)}
+              onPress={handleSubmit(handleRegisterWithEmail)}
             />
 
             <TouchableOpacity
               className="ml-auto mr-auto mt-6 flex-row"
-              onPress={() => navigation.navigate('Register')}
+              onPress={() => navigation.navigate('SignIn')}
             >
-              <Text>NÃO TEM UMA CONTA?</Text>
-              <Text className="font-bold ml-1 underline">INSCREVA-SE</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="ml-auto mr-auto mt-8">
-              <Text>REDEFINIR SENHA</Text>
+              <Text>JÁ POSSUI UMA CONTA?</Text>
+              <Text className="font-bold ml-1 underline">ENTRAR</Text>
             </TouchableOpacity>
           </View>
         </View>
