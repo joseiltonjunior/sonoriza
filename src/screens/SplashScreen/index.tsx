@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 
 import crashlytics from '@react-native-firebase/crashlytics'
+import auth from '@react-native-firebase/auth'
 
 const size = Dimensions.get('window').width * 0.9
 
@@ -21,17 +22,20 @@ export function SplashScreen() {
         PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE &&
           PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
       )
+      const user = auth().currentUser
 
       setTimeout(() => {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: 'Home',
-              params: undefined,
-            },
-          ],
-        })
+        if (user) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Home' }],
+          })
+        } else {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'SignIn' }],
+          })
+        }
       }, 2000)
 
       if (result !== 'granted') {

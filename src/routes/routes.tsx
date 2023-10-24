@@ -9,11 +9,15 @@ import { RouteProp } from '@react-navigation/native'
 import { Home } from '@screens/Home'
 import { SplashScreen } from '@screens/SplashScreen'
 import { Music } from '@screens/Music'
+import { SignIn } from '@screens/SignIn'
+import { Register } from '@screens/Register'
 
 type RootStackParamList = {
   Home: undefined
   SplashScreen: undefined
   Music: undefined
+  SignIn: undefined
+  Register: undefined
 }
 
 export type StackNavigationProps = StackNavigationProp<RootStackParamList>
@@ -47,6 +51,8 @@ export function Routes() {
       }}
     >
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
+      <Stack.Screen name="SignIn" component={SignIn} />
+      <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Music" component={Music} />
     </Stack.Navigator>

@@ -1,20 +1,35 @@
 import { MusicProps } from '@utils/Types/musicProps'
 import { useCallback, useState } from 'react'
-import TrackPlayer from 'react-native-track-player'
+import TrackPlayer, { State, useProgress } from 'react-native-track-player'
 
 export function useTrackPlayer() {
   const [currentMusic, setCurrentMusic] = useState<MusicProps>()
+  const [isPlaying, setIsPlaying] = useState(true)
 
   const getCurrentMusic = useCallback(async () => {
-    const trackIndex = await TrackPlayer.getCurrentTrack()
-    if (trackIndex) {
-      const trackObject = await TrackPlayer.getTrack(trackIndex)
+    const trackIndex = (await TrackPlayer.getCurrentTrack()) as number
 
-      const currentTrack = trackObject as MusicProps
+    const trackObject = (await TrackPlayer.getTrack(trackIndex)) as MusicProps
 
-      setCurrentMusic(currentTrack)
+    setCurrentMusic(trackObject)
+  }, [])
+
+  const getStatePlayer = useCallback(async () => {
+    const state = await TrackPlayer.getState()
+    if (state === State.Playing) {
+      setIsPlaying(true)
+    } else {
+      setIsPlaying(false)
     }
   }, [])
 
-  return { getCurrentMusic, currentMusic, TrackPlayer }
+  return {
+    getCurrentMusic,
+    currentMusic,
+    TrackPlayer,
+    isPlaying,
+    getStatePlayer,
+    setIsPlaying,
+    useProgress,
+  }
 }

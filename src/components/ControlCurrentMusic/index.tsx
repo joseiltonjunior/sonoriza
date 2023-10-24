@@ -7,18 +7,34 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 
 interface ControlCurrentMusicProps {
-  music: MusicProps
+  music?: MusicProps
 }
 
 export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
-  const { TrackPlayer } = useTrackPlayer()
+  const {
+    TrackPlayer,
+    isPlaying,
+    setIsPlaying,
+    currentMusic,
+    getCurrentMusic,
+  } = useTrackPlayer()
 
   const navigation = useNavigation<StackNavigationProps>()
 
   return (
     <View className="bg-purple-600 flex-row items-center justify-between py-2 px-6">
-      <TouchableOpacity onPress={() => TrackPlayer.pause()}>
-        <IconAntDesign name="caretright" size={22} />
+      <TouchableOpacity
+        onPress={() => {
+          if (isPlaying) {
+            TrackPlayer.pause()
+            setIsPlaying(false)
+          } else {
+            TrackPlayer.play()
+            setIsPlaying(true)
+          }
+        }}
+      >
+        <IconAntDesign name={isPlaying ? 'pause' : 'caretright'} size={25} />
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -27,9 +43,11 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
         onPress={() => navigation.navigate('Music')}
       >
         <Text numberOfLines={1} className="font-baloo-bold">
-          {music?.title}
+          {currentMusic?.title || music?.title}
         </Text>
-        <Text className="font-baloo-regular text-sm ">{music?.artist}</Text>
+        <Text className="font-baloo-regular text-sm ">
+          {currentMusic?.artist || music?.artist}
+        </Text>
       </TouchableOpacity>
 
       <View className="flex-row gap-4">
@@ -37,7 +55,12 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
           <IconAntDesign name="heart" size={22} />
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            TrackPlayer.skipToNext()
+            getCurrentMusic()
+          }}
+        >
           <IconAntDesign name="stepforward" size={22} />
         </TouchableOpacity>
       </View>
