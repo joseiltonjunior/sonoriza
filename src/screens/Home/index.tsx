@@ -23,6 +23,12 @@ import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 
+import Icon from 'react-native-vector-icons/AntDesign'
+import {
+  SideMenuProps,
+  handleIsVisibleSidemenu,
+} from '@storage/modules/sideMenu/reducer'
+
 export function Home() {
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -34,6 +40,10 @@ export function Home() {
 
   const { trackList } = useSelector<ReduxProps, TrackListProps>(
     (state) => state.trackList,
+  )
+
+  const { isVisible } = useSelector<ReduxProps, SideMenuProps>(
+    (state) => state.sideMenu,
   )
 
   const { getCurrentMusic, TrackPlayer, currentMusic } = useTrackPlayer()
@@ -77,16 +87,13 @@ export function Home() {
   }, [TrackPlayer, dispatch])
 
   const handleGetMusicsDatabase = useCallback(async () => {
-    console.log('entrou')
     await firestore()
       .collection('musics')
       .get()
-      .then((querySnapshot) => {
-        const musicsResponse = querySnapshot.docs.map((doc) => ({
-          url: doc.data().url,
-        }))
-
-        console.log(musicsResponse, 'uai')
+      .then(() => {
+        // const musicsResponse = querySnapshot.docs.map((doc) => ({
+        //   url: doc.data().url,
+        // }))
       })
       .catch((err) => {
         console.log(err)
@@ -114,8 +121,15 @@ export function Home() {
   return (
     <>
       <View className="flex-1 bg-gray-950">
-        <View className="p-4">
+        <View className="p-4 flex-row items-center justify-between">
           <Text className="text-white text-2xl font-baloo-bold">Início</Text>
+          <TouchableOpacity
+            onPress={() => {
+              dispatch(handleIsVisibleSidemenu({ isVisible: !isVisible }))
+            }}
+          >
+            <Icon name="setting" size={24} />
+          </TouchableOpacity>
         </View>
 
         <View className="px-4">

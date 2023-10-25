@@ -121,7 +121,7 @@ export function Register() {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
 
       const { idToken } = await GoogleSignin.signIn()
-      console.log(idToken)
+
       const googleCredential = auth.GoogleAuthProvider.credential(idToken)
       const response = await auth().signInWithCredential(googleCredential)
 

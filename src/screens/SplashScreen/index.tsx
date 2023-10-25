@@ -47,7 +47,6 @@ export function SplashScreen() {
     } catch (error) {
       const err = error as Error
       crashlytics().recordError(err)
-      console.error('Erro ao solicitar permissão:', error)
     }
   }, [navigation])
 

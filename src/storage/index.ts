@@ -13,16 +13,18 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { MusicPlayerSettingsProps } from './modules/musicPlayerSettings/reducer'
 import { TrackListProps } from './modules/trackList/reducer'
+import { SideMenuProps } from './modules/sideMenu/reducer'
 
 export interface ReduxProps {
   musicPlayerSettings: MusicPlayerSettingsProps
   trackList: TrackListProps
+  sideMenu: SideMenuProps
 }
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  blacklist: ['musicPlayerSettings'],
+  blacklist: ['musicPlayerSettings', 'sideMenu'],
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

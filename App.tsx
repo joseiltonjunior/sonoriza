@@ -18,6 +18,7 @@ import { StatusBar } from 'react-native'
 import { Routes } from '@routes/routes'
 
 import '@config/ReactotronConfig'
+import { SideMenu } from '@components/SideMenu'
 
 function App(): JSX.Element {
   return (
@@ -26,6 +27,7 @@ function App(): JSX.Element {
         <NavigationContainer>
           <StatusBar backgroundColor={'#202024'} />
           <Routes />
+          <SideMenu />
         </NavigationContainer>
       </PersistGate>
     </Provider>

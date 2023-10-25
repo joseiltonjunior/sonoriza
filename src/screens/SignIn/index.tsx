@@ -131,9 +131,9 @@ export function SignIn() {
       .collection('users')
       .doc(userUid)
       .get()
-      .then((querySnapshot) => {
-        const user = querySnapshot.data()
-        console.log(user)
+      .then(() => {
+        // const user = querySnapshot.data()
+        // console.log(user)
         // dispatch(setSaveUser(user))
 
         navigation.reset({
