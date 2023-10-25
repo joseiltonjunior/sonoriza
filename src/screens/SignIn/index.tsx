@@ -22,10 +22,11 @@ import { useState } from 'react'
 
 import auth from '@react-native-firebase/auth'
 import firestore from '@react-native-firebase/firestore'
-import { ModalCustom } from '@components/Modal'
+
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
 import { DataSaveDatabase } from '@screens/Register'
+import { useModal } from '@hooks/useModal'
 
 interface FormDataProps {
   email: string
@@ -51,7 +52,7 @@ export function SignIn() {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const [modalError, setModalError] = useState(false)
+  const { closeModal, openModal } = useModal()
 
   GoogleSignin.configure({
     webClientId: WEB_CLIENT_ID,
@@ -84,7 +85,17 @@ export function SignIn() {
         })
       })
       .catch(() => {
-        setModalError(true)
+        openModal({
+          title: 'Atenção',
+          description:
+            'Opss... não foi possível buscar os dados do usuário neste momento. Por favor, tente novamente.',
+          singleAction: {
+            action() {
+              closeModal()
+            },
+            title: 'OK',
+          },
+        })
       })
       .finally(() => setIsLoading(false))
   }
@@ -121,7 +132,17 @@ export function SignIn() {
         ],
       })
     } catch (error) {
-      setModalError(true)
+      openModal({
+        title: 'Atenção',
+        description:
+          'Opss... não foi possível acessar a aplicação neste momento. Por favor, tente novamente.',
+        singleAction: {
+          action() {
+            closeModal()
+          },
+          title: 'OK',
+        },
+      })
       setIsLoading(false)
     }
   }
@@ -168,17 +189,6 @@ export function SignIn() {
 
   return (
     <>
-      <ModalCustom
-        title="Atenção"
-        description="Opss... não foi possível acessar a aplicação neste momento. Por favor, tente novamente."
-        show={modalError}
-        singleAction={{
-          title: 'Sair',
-          action() {
-            setModalError(false)
-          },
-        }}
-      />
       <ScrollView>
         <View className="p-4 items-center h-full ">
           <Image

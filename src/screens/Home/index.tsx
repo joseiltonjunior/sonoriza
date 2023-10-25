@@ -24,10 +24,8 @@ import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 
 import Icon from 'react-native-vector-icons/AntDesign'
-import {
-  SideMenuProps,
-  handleIsVisibleSidemenu,
-} from '@storage/modules/sideMenu/reducer'
+
+import { useSideMenu } from '@hooks/useSideMenu'
 
 export function Home() {
   const navigation = useNavigation<StackNavigationProps>()
@@ -42,9 +40,7 @@ export function Home() {
     (state) => state.trackList,
   )
 
-  const { isVisible } = useSelector<ReduxProps, SideMenuProps>(
-    (state) => state.sideMenu,
-  )
+  const { handleIsVisible } = useSideMenu()
 
   const { getCurrentMusic, TrackPlayer, currentMusic } = useTrackPlayer()
 
@@ -123,12 +119,8 @@ export function Home() {
       <View className="flex-1 bg-gray-950">
         <View className="p-4 flex-row items-center justify-between">
           <Text className="text-white text-2xl font-baloo-bold">Início</Text>
-          <TouchableOpacity
-            onPress={() => {
-              dispatch(handleIsVisibleSidemenu({ isVisible: !isVisible }))
-            }}
-          >
-            <Icon name="setting" size={24} />
+          <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
+            <Icon name="setting" size={26} />
           </TouchableOpacity>
         </View>
 

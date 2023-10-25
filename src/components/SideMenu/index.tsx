@@ -1,29 +1,28 @@
-import { ReduxProps } from '@storage/index'
-import {
-  SideMenuProps,
-  handleIsVisibleSidemenu,
-} from '@storage/modules/sideMenu/reducer'
-
 import auth from '@react-native-firebase/auth'
 
 import { Text, TouchableOpacity, View } from 'react-native'
-import { useDispatch, useSelector } from 'react-redux'
+
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
+import { useModal } from '@hooks/useModal'
+import { useSideMenu } from '@hooks/useSideMenu'
+import { useTrackPlayer } from '@hooks/useTrackPlayer'
 
 export function SideMenu() {
-  const { isVisible } = useSelector<ReduxProps, SideMenuProps>(
-    (state) => state.sideMenu,
-  )
+  const { isVisible, handleIsVisible } = useSideMenu()
 
-  const dispatch = useDispatch()
+  const { openModal, closeModal } = useModal()
+  const { TrackPlayer } = useTrackPlayer()
+
   const navigation = useNavigation<StackNavigationProps>()
 
   const handleSignOutApp = () => {
+    TrackPlayer.reset()
     auth()
       .signOut()
       .then(() => {
-        dispatch(handleIsVisibleSidemenu({ isVisible: false }))
+        handleIsVisible()
+        closeModal()
         navigation.reset({
           index: 0,
           routes: [
@@ -45,7 +44,7 @@ export function SideMenu() {
         className="bg-black/70 absolute w-full h-full"
         activeOpacity={1}
         onPress={() => {
-          dispatch(handleIsVisibleSidemenu({ isVisible: false }))
+          handleIsVisible()
         }}
       />
       <View className="bg-gray-950 w-10/12 flex-1 ">
@@ -85,7 +84,22 @@ export function SideMenu() {
           <TouchableOpacity
             className="ml-auto mr-auto mt-auto bg-purple-600 h-14 items-center justify-center px-6 rounded-full"
             activeOpacity={0.6}
-            onPress={handleSignOutApp}
+            onPress={() => {
+              openModal({
+                title: 'Atenção',
+                description: 'Tem certeza de que deseja sair do aplicativo?',
+                twoActions: {
+                  actionCancel() {
+                    closeModal()
+                  },
+                  textCancel: 'Voltar',
+                  actionConfirm() {
+                    handleSignOutApp()
+                  },
+                  textConfirm: 'Sair',
+                },
+              })
+            }}
           >
             <Text className="font-bold">DESCONECTAR</Text>
           </TouchableOpacity>
