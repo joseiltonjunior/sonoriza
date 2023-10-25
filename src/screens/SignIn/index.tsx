@@ -27,6 +27,8 @@ import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
 import { DataSaveDatabase } from '@screens/Register'
 import { useModal } from '@hooks/useModal'
+import { useDispatch } from 'react-redux'
+import { handleSaveUser } from '@storage/modules/user/reducer'
 
 interface FormDataProps {
   email: string
@@ -54,6 +56,8 @@ export function SignIn() {
 
   const { closeModal, openModal } = useModal()
 
+  const dispatch = useDispatch()
+
   GoogleSignin.configure({
     webClientId: WEB_CLIENT_ID,
   })
@@ -74,6 +78,9 @@ export function SignIn() {
         uid,
       })
       .then(() => {
+        dispatch(
+          handleSaveUser({ user: { displayName, email, photoURL, uid } }),
+        )
         navigation.reset({
           index: 0,
           routes: [
@@ -122,6 +129,7 @@ export function SignIn() {
       }
 
       setIsLoading(false)
+      dispatch(handleSaveUser({ user: { displayName, email, photoURL, uid } }))
       navigation.reset({
         index: 0,
         routes: [
@@ -152,10 +160,12 @@ export function SignIn() {
       .collection('users')
       .doc(userUid)
       .get()
-      .then(() => {
-        // const user = querySnapshot.data()
-        // console.log(user)
-        // dispatch(setSaveUser(user))
+      .then((querySnapshot) => {
+        const user = querySnapshot.data() as DataSaveDatabase
+        const { displayName, email, photoURL, uid } = user
+        dispatch(
+          handleSaveUser({ user: { displayName, email, photoURL, uid } }),
+        )
 
         navigation.reset({
           index: 0,

@@ -13,10 +13,12 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { MusicPlayerSettingsProps } from './modules/musicPlayerSettings/reducer'
 import { TrackListProps } from './modules/trackList/reducer'
+import { UserProps } from './modules/user/reducer'
 
 export interface ReduxProps {
   musicPlayerSettings: MusicPlayerSettingsProps
   trackList: TrackListProps
+  user: UserProps
 }
 
 const persistConfig = {

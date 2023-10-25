@@ -26,6 +26,8 @@ import firestore from '@react-native-firebase/firestore'
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
 import { useModal } from '@hooks/useModal'
+import { useDispatch } from 'react-redux'
+import { handleSaveUser } from '@storage/modules/user/reducer'
 
 interface FormDataProps {
   name: string
@@ -80,6 +82,8 @@ export function Register() {
 
   const [isLoading, setIsLoading] = useState(false)
 
+  const dispatch = useDispatch()
+
   GoogleSignin.configure({
     webClientId: WEB_CLIENT_ID,
   })
@@ -100,6 +104,9 @@ export function Register() {
         uid,
       })
       .then(() => {
+        dispatch(
+          handleSaveUser({ user: { displayName, email, photoURL, uid } }),
+        )
         navigation.reset({
           index: 0,
           routes: [

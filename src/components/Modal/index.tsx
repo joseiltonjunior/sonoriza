@@ -9,12 +9,12 @@ export function Modal() {
 
   return (
     <ModalView animationType="slide" transparent visible={visible}>
-      <View className="flex-1 bg-gray-950/90 justify-center items-center p-4">
-        <View className="bg-gray-700 w-full rounded-lg p-4">
+      <View className="flex-1 bg-gray-950/80 justify-center items-center p-4">
+        <View className="bg-gray-100 w-full rounded-lg p-4">
           <Text className="font-bold text-purple-600 text-xl text-center">
             {title}
           </Text>
-          <Text className="text-white font-medium text-base mt-4 text-center">
+          <Text className="text-gray-700 font-medium text-base mt-4 text-center">
             {description}
           </Text>
 
@@ -24,9 +24,9 @@ export function Modal() {
                 <TouchableOpacity
                   activeOpacity={0.6}
                   onPress={twoActions.actionConfirm}
-                  className="flex-1 bg-white h-12 rounded-lg items-center justify-center"
+                  className="flex-1 border border-purple-600 h-12 rounded-lg items-center justify-center"
                 >
-                  <Text className="text-gray-950 font-bold">
+                  <Text className="text-purple-600 font-bold">
                     {twoActions.textConfirm.toUpperCase()}
                   </Text>
                 </TouchableOpacity>
