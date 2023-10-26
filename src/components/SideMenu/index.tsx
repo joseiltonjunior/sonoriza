@@ -7,12 +7,19 @@ import { StackNavigationProps } from '@routes/routes'
 import { useModal } from '@hooks/useModal'
 import { useSideMenu } from '@hooks/useSideMenu'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
 
 import Icon from 'react-native-vector-icons/FontAwesome'
 
 import { UserProps } from '@storage/modules/user/reducer'
+
+import { Switch } from './Switch'
+import { Button } from './Button'
+import {
+  ConfigProps,
+  handleChangeConfig,
+} from '@storage/modules/config/reducer'
 
 export function SideMenu() {
   const { isVisible, handleIsVisible } = useSideMenu()
@@ -23,6 +30,12 @@ export function SideMenu() {
   const navigation = useNavigation<StackNavigationProps>()
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+
+  const dispatch = useDispatch()
+
+  const { config } = useSelector<ReduxProps, ConfigProps>(
+    (state) => state.config,
+  )
 
   const handleSignOutApp = () => {
     TrackPlayer.reset()
@@ -77,36 +90,50 @@ export function SideMenu() {
           </View>
         </View>
 
-        <View className="p-4 pb-12 flex-1">
-          <TouchableOpacity
-            className="flex-row items-center"
-            activeOpacity={0.6}
-          >
-            <View className="bg-purple-600 w-8 h-8 rounded-full items-center justify-center">
-              <Icon name="gear" color={'#e5e7eb'} size={20} />
-            </View>
-            <Text className="ml-2 text-gray-300">Gerenciamento de conta</Text>
-          </TouchableOpacity>
+        <View className="p-4 pb-8 flex-1">
+          <Button icon="gear" title="Gerenciamento de conta" />
 
-          <TouchableOpacity
-            className="flex-row items-center mt-5"
-            activeOpacity={0.6}
-          >
-            <View className="bg-purple-600 w-8 h-8 rounded-full items-center justify-center">
-              <Icon name="thumbs-o-up" color={'#e5e7eb'} size={20} />
-            </View>
-            <Text className="ml-2 text-gray-300">Avaliar o aplicativo</Text>
-          </TouchableOpacity>
+          <Button
+            icon="thumbs-o-up"
+            title="Avaliar o aplicativo"
+            className="mt-5"
+          />
 
-          <TouchableOpacity
-            className="flex-row items-center mt-5"
-            activeOpacity={0.6}
-          >
-            <View className="bg-purple-600 w-8 h-8 rounded-full items-center justify-center">
-              <Icon name="question" color={'#e5e7eb'} size={20} />
-            </View>
-            <Text className="ml-2 text-gray-300">Sobre</Text>
-          </TouchableOpacity>
+          <Button icon="question" title="Sobre" className="mt-5" />
+
+          <Switch
+            icon="rss-square"
+            title="Modo Explorar"
+            onValueChange={() => {
+              dispatch(
+                handleChangeConfig({
+                  config: { ...config, isExplorer: !config.isExplorer },
+                }),
+              )
+            }}
+            value={config.isExplorer}
+          />
+          <Text className="mt-1 text-sm">
+            Este modo permite ao usuário descobrir e reproduzir músicas do
+            serviço de streaming.
+          </Text>
+
+          <Switch
+            icon="file"
+            title="Modo Local"
+            onValueChange={() => {
+              dispatch(
+                handleChangeConfig({
+                  config: { ...config, isLocal: !config.isLocal },
+                }),
+              )
+            }}
+            value={config.isLocal}
+          />
+          <Text className="mt-1 text-sm">
+            Este modo permite ao usuário reproduzir músicas armazenadas
+            localmente no dispositivo.
+          </Text>
 
           <TouchableOpacity
             className="ml-auto mr-auto mt-auto bg-purple-600 h-14 items-center justify-center px-6 rounded-full"

@@ -79,15 +79,17 @@ export function Music() {
       </View>
 
       <View className="flex-1 items-center mt-12">
-        {currentMusic?.artwork ? (
-          <Image
-            source={{ uri: currentMusic.artwork }}
-            alt=""
-            className="w-full h-[360px] object-cover rounded-lg"
-          />
-        ) : (
-          <Icon name="stepbackward" size={30} color="#fff" />
-        )}
+        <View className="w-full h-[360px] overflow-hidden rounded-lg bg-purple-600 items-center justify-center">
+          {currentMusic?.artwork ? (
+            <Image
+              source={{ uri: currentMusic.artwork }}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <FatherIcons name="music" size={200} color="#fff" />
+          )}
+        </View>
 
         <View className="pt-8 flex-row items-center gap-8">
           <TouchableOpacity activeOpacity={0.5} className="">
@@ -105,13 +107,17 @@ export function Music() {
             <Icon name="heart" size={22} color={'#fff'} />
           </TouchableOpacity>
         </View>
-        <Text>{formatTime(progress.position)}</Text>
-        <ProgressBar
-          styleAttr="Horizontal"
-          indeterminate={false}
-          progress={actualProgress}
-          style={{ width: '90%' }}
-        />
+
+        <View className="mt-4 w-full items-center">
+          <Text>{formatTime(progress.position)}</Text>
+          <ProgressBar
+            styleAttr="Horizontal"
+            indeterminate={false}
+            progress={actualProgress}
+            color="#fff"
+            style={{ width: '90%' }}
+          />
+        </View>
 
         <Text
           className="font-baloo-bold text-xl mt-4 px-4 text-center"
@@ -122,7 +128,7 @@ export function Music() {
         <Text className="font-baloo-regular">{currentMusic?.artist}</Text>
       </View>
 
-      <View className="flex-row justify-around mt-4 items-center px-12">
+      <View className="flex-row justify-around mt-8 items-center px-12">
         <TouchableOpacity
           onPress={() => {
             TrackPlayer.skipToPrevious()

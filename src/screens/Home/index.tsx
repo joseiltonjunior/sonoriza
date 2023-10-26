@@ -1,5 +1,5 @@
 import RNFS from 'react-native-fs'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
 
 import { useDispatch, useSelector } from 'react-redux'
@@ -23,9 +23,13 @@ import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 
-import Icon from 'react-native-vector-icons/AntDesign'
+import IconAnt from 'react-native-vector-icons/AntDesign'
+import IconFather from 'react-native-vector-icons/Feather'
 
 import { useSideMenu } from '@hooks/useSideMenu'
+import { MusicProps } from '@utils/Types/musicProps'
+import colors from 'tailwindcss/colors'
+import { ConfigProps } from '@storage/modules/config/reducer'
 
 export function Home() {
   const navigation = useNavigation<StackNavigationProps>()
@@ -39,6 +43,12 @@ export function Home() {
   const { trackList } = useSelector<ReduxProps, TrackListProps>(
     (state) => state.trackList,
   )
+
+  const { config } = useSelector<ReduxProps, ConfigProps>(
+    (state) => state.config,
+  )
+
+  const [musicDatabase, setMusicDatabase] = useState<MusicProps[]>([])
 
   const { handleIsVisible } = useSideMenu()
 
@@ -62,9 +72,9 @@ export function Home() {
         title: music.name.replace('.mp3', ''),
         artist: 'Artista Desconhecido',
         album: 'Álbum Desconhecido',
-        genre: 'Gênero Desconhecido',
-        date: 'Data Desconhecida',
-        artwork: 'https://avatars.githubusercontent.com/u/47725788?v=4',
+        genre: '',
+        date: '',
+        artwork: '',
         duration: 0,
       }))
 
@@ -86,16 +96,34 @@ export function Home() {
     await firestore()
       .collection('musics')
       .get()
-      .then(() => {
-        // const musicsResponse = querySnapshot.docs.map((doc) => ({
-        //   url: doc.data().url,
-        // }))
+      .then(async (querySnapshot) => {
+        const musicsResponse = querySnapshot.docs.map((doc) => ({
+          url: doc.data().url,
+          artwork: doc.data().artwork,
+          artist: doc.data().artist,
+          title: doc.data().title,
+        })) as MusicProps[]
+
+        setMusicDatabase(musicsResponse)
       })
       .catch((err) => {
-        console.log(err)
         crashlytics().recordError(err)
       })
   }, [])
+
+  const handleVerifyConfig = useMemo(() => {
+    let musicArray: MusicProps[] = []
+
+    if (config.isExplorer && config.isLocal) {
+      musicArray = [...musicDatabase, ...trackList]
+    } else if (config.isExplorer && !config.isLocal) {
+      musicArray = musicDatabase
+    } else if (!config.isExplorer && config.isLocal) {
+      musicArray = trackList
+    }
+
+    return musicArray
+  }, [config.isExplorer, config.isLocal, musicDatabase, trackList])
 
   useEffect(() => {
     if (isInitialized) {
@@ -104,6 +132,7 @@ export function Home() {
   }, [getCurrentMusic, isInitialized])
 
   useEffect(() => {
+    // handleVerifyConfig()
     handleGetMusicsDatabase()
     handleSearchMp3Music()
   }, [handleGetMusicsDatabase, handleSearchMp3Music])
@@ -120,35 +149,46 @@ export function Home() {
         <View className="p-4 flex-row items-center justify-between">
           <Text className="text-white text-2xl font-baloo-bold">Início</Text>
           <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
-            <Icon name="setting" size={26} />
+            <IconAnt name="setting" size={26} />
           </TouchableOpacity>
         </View>
 
         <View className="px-4">
           <FlatList
             showsVerticalScrollIndicator={false}
-            data={trackList}
+            data={handleVerifyConfig}
             ItemSeparatorComponent={() => <View className="h-2" />}
             renderItem={({ item, index }) => (
               <TouchableOpacity
                 key={index}
                 className="flex-row items-center gap-4 "
                 onPress={() => {
-                  TrackPlayer.add(trackList)
+                  TrackPlayer.reset()
+                  TrackPlayer.add(handleVerifyConfig)
                   TrackPlayer.skip(index)
                   TrackPlayer.play()
 
                   navigation.navigate('Music')
                 }}
               >
-                <Image
-                  source={{ uri: item.artwork }}
-                  alt="artwork"
-                  className="w-16 h-16 bg-gray-500 rounded-xl"
-                />
+                <View className="w-16 h-16 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
+                  {item.artwork ? (
+                    <Image
+                      source={{ uri: item.artwork }}
+                      alt="artwork"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <IconFather
+                      name="music"
+                      size={30}
+                      color={colors.gray[200]}
+                    />
+                  )}
+                </View>
                 <View>
                   <Text className="font-baloo-bold">{item.title}</Text>
-                  <Text className="font-baloo-regular">{item.album}</Text>
+                  <Text className="font-baloo-regular">{item.artist}</Text>
                 </View>
               </TouchableOpacity>
             )}
