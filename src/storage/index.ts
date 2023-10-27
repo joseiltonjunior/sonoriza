@@ -12,13 +12,15 @@ import {
 } from 'redux-persist'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { MusicPlayerSettingsProps } from './modules/musicPlayerSettings/reducer'
-import { TrackListProps } from './modules/trackList/reducer'
+import { TrackListLocalProps } from './modules/trackListLocal/reducer'
 import { UserProps } from './modules/user/reducer'
 import { ConfigProps } from './modules/config/reducer'
+import { TrackListRemoteProps } from './modules/trackListRemote/reducer'
 
 export interface ReduxProps {
   musicPlayerSettings: MusicPlayerSettingsProps
-  trackList: TrackListProps
+  trackListLocal: TrackListLocalProps
+  trackListRemote: TrackListRemoteProps
   user: UserProps
   config: ConfigProps
 }
