@@ -22,7 +22,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
   const navigation = useNavigation<StackNavigationProps>()
 
   return (
-    <View className="bg-purple-600 flex-row items-center justify-between py-2 px-6">
+    <View className="bg-purple-600 flex-row items-center justify-between py-2 px-6 ">
       <TouchableOpacity
         onPress={() => {
           if (isPlaying) {

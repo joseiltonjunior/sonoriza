@@ -1,7 +1,7 @@
 import Reactotron from 'reactotron-react-native'
 
 if (__DEV__) {
-  Reactotron.configure({ name: 'spotyfree' }).useReactNative().connect()
+  Reactotron.configure({ name: 'sonoriza' }).useReactNative().connect()
 
   const yeOldeConsoleLog = console.log
   console.log = (...args) => {

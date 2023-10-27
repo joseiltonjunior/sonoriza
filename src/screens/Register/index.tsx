@@ -22,9 +22,12 @@ import { useState } from 'react'
 
 import auth from '@react-native-firebase/auth'
 import firestore from '@react-native-firebase/firestore'
-import { ModalCustom } from '@components/Modal'
+
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
+import { useModal } from '@hooks/useModal'
+import { useDispatch } from 'react-redux'
+import { handleSaveUser } from '@storage/modules/user/reducer'
 
 interface FormDataProps {
   name: string
@@ -75,9 +78,11 @@ export function Register() {
 
   const navigation = useNavigation<StackNavigationProps>()
 
+  const { closeModal, openModal } = useModal()
+
   const [isLoading, setIsLoading] = useState(false)
 
-  const [modalError, setModalError] = useState(false)
+  const dispatch = useDispatch()
 
   GoogleSignin.configure({
     webClientId: WEB_CLIENT_ID,
@@ -99,6 +104,9 @@ export function Register() {
         uid,
       })
       .then(() => {
+        dispatch(
+          handleSaveUser({ user: { displayName, email, photoURL, uid } }),
+        )
         navigation.reset({
           index: 0,
           routes: [
@@ -110,7 +118,17 @@ export function Register() {
         })
       })
       .catch(() => {
-        setModalError(true)
+        openModal({
+          title: 'Atenção',
+          description:
+            'Desculpe, não foi possível concluir o cadastro neste momento. Por favor, tente novamente.',
+          singleAction: {
+            action() {
+              closeModal()
+            },
+            title: 'OK',
+          },
+        })
       })
       .finally(() => setIsLoading(false))
   }
@@ -121,7 +139,7 @@ export function Register() {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
 
       const { idToken } = await GoogleSignin.signIn()
-      console.log(idToken)
+
       const googleCredential = auth.GoogleAuthProvider.credential(idToken)
       const response = await auth().signInWithCredential(googleCredential)
 
@@ -129,7 +147,17 @@ export function Register() {
 
       handleSaveInDatabase({ displayName, email, photoURL, uid })
     } catch (error) {
-      setModalError(true)
+      openModal({
+        title: 'Atenção',
+        description:
+          'Desculpe, não foi possível acessar a aplicação nesse momento. Por favor, tente novamente.',
+        singleAction: {
+          action() {
+            closeModal()
+          },
+          title: 'OK',
+        },
+      })
       setIsLoading(false)
     }
   }
@@ -167,17 +195,6 @@ export function Register() {
 
   return (
     <>
-      <ModalCustom
-        title="Atenção"
-        description="Desculpe, não foi possível concluir o cadastro neste momento. Por favor, tente novamente."
-        show={modalError}
-        singleAction={{
-          title: 'Fechar',
-          action() {
-            setModalError(false)
-          },
-        }}
-      />
       <ScrollView>
         <View className="p-4 items-center h-full ">
           <Image

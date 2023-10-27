@@ -22,10 +22,13 @@ import { useState } from 'react'
 
 import auth from '@react-native-firebase/auth'
 import firestore from '@react-native-firebase/firestore'
-import { ModalCustom } from '@components/Modal'
+
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
 import { DataSaveDatabase } from '@screens/Register'
+import { useModal } from '@hooks/useModal'
+import { useDispatch } from 'react-redux'
+import { handleSaveUser } from '@storage/modules/user/reducer'
 
 interface FormDataProps {
   email: string
@@ -51,7 +54,9 @@ export function SignIn() {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const [modalError, setModalError] = useState(false)
+  const { closeModal, openModal } = useModal()
+
+  const dispatch = useDispatch()
 
   GoogleSignin.configure({
     webClientId: WEB_CLIENT_ID,
@@ -73,6 +78,9 @@ export function SignIn() {
         uid,
       })
       .then(() => {
+        dispatch(
+          handleSaveUser({ user: { displayName, email, photoURL, uid } }),
+        )
         navigation.reset({
           index: 0,
           routes: [
@@ -84,7 +92,17 @@ export function SignIn() {
         })
       })
       .catch(() => {
-        setModalError(true)
+        openModal({
+          title: 'Atenção',
+          description:
+            'Opss... não foi possível buscar os dados do usuário neste momento. Por favor, tente novamente.',
+          singleAction: {
+            action() {
+              closeModal()
+            },
+            title: 'OK',
+          },
+        })
       })
       .finally(() => setIsLoading(false))
   }
@@ -111,6 +129,7 @@ export function SignIn() {
       }
 
       setIsLoading(false)
+      dispatch(handleSaveUser({ user: { displayName, email, photoURL, uid } }))
       navigation.reset({
         index: 0,
         routes: [
@@ -121,7 +140,17 @@ export function SignIn() {
         ],
       })
     } catch (error) {
-      setModalError(true)
+      openModal({
+        title: 'Atenção',
+        description:
+          'Opss... não foi possível acessar a aplicação neste momento. Por favor, tente novamente.',
+        singleAction: {
+          action() {
+            closeModal()
+          },
+          title: 'OK',
+        },
+      })
       setIsLoading(false)
     }
   }
@@ -132,9 +161,11 @@ export function SignIn() {
       .doc(userUid)
       .get()
       .then((querySnapshot) => {
-        const user = querySnapshot.data()
-        console.log(user)
-        // dispatch(setSaveUser(user))
+        const user = querySnapshot.data() as DataSaveDatabase
+        const { displayName, email, photoURL, uid } = user
+        dispatch(
+          handleSaveUser({ user: { displayName, email, photoURL, uid } }),
+        )
 
         navigation.reset({
           index: 0,
@@ -168,17 +199,6 @@ export function SignIn() {
 
   return (
     <>
-      <ModalCustom
-        title="Atenção"
-        description="Opss... não foi possível acessar a aplicação neste momento. Por favor, tente novamente."
-        show={modalError}
-        singleAction={{
-          title: 'Sair',
-          action() {
-            setModalError(false)
-          },
-        }}
-      />
       <ScrollView>
         <View className="p-4 items-center h-full ">
           <Image

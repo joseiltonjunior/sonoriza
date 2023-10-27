@@ -1,9 +1,15 @@
 import { combineReducers } from '@reduxjs/toolkit'
 
 import musicPlayerSettings from './musicPlayerSettings/reducer'
-import trackList from './trackList/reducer'
+import trackListLocal from './trackListLocal/reducer'
+import trackListRemote from './trackListRemote/reducer'
+import user from './user/reducer'
+import config from './config/reducer'
 
 export default combineReducers({
   musicPlayerSettings,
-  trackList,
+  trackListLocal,
+  trackListRemote,
+  user,
+  config,
 })
