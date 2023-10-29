@@ -5,14 +5,42 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { MusicProps } from '@utils/Types/musicProps'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
+import { useCallback } from 'react'
+import { useDispatch } from 'react-redux'
+import {
+  handleChangeStateCurrentMusic,
+  handleSetCurrentMusic,
+} from '@storage/modules/currentMusic/reducer'
+import { State } from 'react-native-track-player'
 
 interface BoxCourselProps {
   musics: MusicProps[]
+  currentMusic?: MusicProps
 }
 
-export function BoxCarousel({ musics }: BoxCourselProps) {
+export function BoxCarousel({ musics, currentMusic }: BoxCourselProps) {
   const navigation = useNavigation<StackNavigationProps>()
   const { TrackPlayer } = useTrackPlayer()
+
+  const dispatch = useDispatch()
+
+  const handleMusicSelected = useCallback(
+    async (music: MusicProps, index: number) => {
+      if (currentMusic?.title === music.title) {
+        navigation.navigate('Music')
+        return
+      }
+
+      TrackPlayer.reset()
+      TrackPlayer.add(musics)
+      TrackPlayer.skip(index)
+      TrackPlayer.play()
+      navigation.navigate('Music')
+      dispatch(handleSetCurrentMusic({ isCurrentMusic: music }))
+      dispatch(handleChangeStateCurrentMusic(State.Playing))
+    },
+    [currentMusic?.title, TrackPlayer, musics, dispatch, navigation],
+  )
 
   return (
     <Carousel
@@ -27,14 +55,7 @@ export function BoxCarousel({ musics }: BoxCourselProps) {
           title={item.title}
           artist={item.artist}
           artwork={item.artwork}
-          onPress={() => {
-            TrackPlayer.reset()
-            TrackPlayer.add(musics)
-            TrackPlayer.skip(index)
-            TrackPlayer.play()
-
-            navigation.navigate('Music')
-          }}
+          onPress={() => handleMusicSelected(item, index)}
           className="mr-4"
         />
       )}

@@ -16,6 +16,7 @@ import { TrackListLocalProps } from './modules/trackListLocal/reducer'
 import { UserProps } from './modules/user/reducer'
 import { ConfigProps } from './modules/config/reducer'
 import { TrackListRemoteProps } from './modules/trackListRemote/reducer'
+import { CurrentMusicProps } from './modules/currentMusic/reducer'
 
 export interface ReduxProps {
   musicPlayerSettings: MusicPlayerSettingsProps
@@ -23,12 +24,13 @@ export interface ReduxProps {
   trackListRemote: TrackListRemoteProps
   user: UserProps
   config: ConfigProps
+  currentMusic: CurrentMusicProps
 }
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  blacklist: ['musicPlayerSettings'],
+  blacklist: ['musicPlayerSettings', 'currentMusic'],
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

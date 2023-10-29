@@ -10,7 +10,7 @@ export interface ConfigProps {
 
 const initialState: ConfigProps = {
   config: {
-    isLocal: true,
+    isLocal: false,
     isExplorer: false,
   },
 }

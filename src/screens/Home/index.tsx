@@ -28,6 +28,7 @@ import {
   TrackListRemoteProps,
   handleTrackListRemote,
 } from '@storage/modules/trackListRemote/reducer'
+import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 
 export function Home() {
   const dispatch = useDispatch()
@@ -40,6 +41,10 @@ export function Home() {
     (state) => state.trackListLocal,
   )
 
+  const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
+    (state) => state.currentMusic,
+  )
+
   const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
     (state) => state.trackListRemote,
   )
@@ -50,7 +55,7 @@ export function Home() {
 
   const { handleIsVisible } = useSideMenu()
 
-  const { getCurrentMusic, TrackPlayer, currentMusic } = useTrackPlayer()
+  const { getCurrentMusic, TrackPlayer } = useTrackPlayer()
 
   const handleInitializePlayer = useCallback(async () => {
     await TrackPlayer.setupPlayer()
@@ -118,7 +123,10 @@ export function Home() {
                   <Text className="text-gray-300">Ver mais</Text>
                 </TouchableOpacity>
               </View>
-              <BoxCarousel musics={trackListRemote} />
+              <BoxCarousel
+                musics={trackListRemote}
+                currentMusic={isCurrentMusic}
+              />
             </>
           )}
 
@@ -133,12 +141,15 @@ export function Home() {
                 </TouchableOpacity>
               </View>
 
-              <BoxCarousel musics={trackListLocal} />
+              <BoxCarousel
+                musics={trackListLocal}
+                currentMusic={isCurrentMusic}
+              />
             </>
           )}
         </View>
       </View>
-      {currentMusic && <ControlCurrentMusic music={currentMusic} />}
+      {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
       <BottomMenu />
     </>
   )
