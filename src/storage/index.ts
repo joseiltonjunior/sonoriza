@@ -17,6 +17,8 @@ import { UserProps } from './modules/user/reducer'
 import { ConfigProps } from './modules/config/reducer'
 import { TrackListRemoteProps } from './modules/trackListRemote/reducer'
 import { CurrentMusicProps } from './modules/currentMusic/reducer'
+import { MusicalGenresProps } from './modules/musicalGenres/reducer'
+import { ArtistsProps } from './modules/artists/reducer'
 
 export interface ReduxProps {
   musicPlayerSettings: MusicPlayerSettingsProps
@@ -25,6 +27,8 @@ export interface ReduxProps {
   user: UserProps
   config: ConfigProps
   currentMusic: CurrentMusicProps
+  musicalGenres: MusicalGenresProps
+  artists: ArtistsProps
 }
 
 const persistConfig = {

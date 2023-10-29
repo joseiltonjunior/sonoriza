@@ -11,6 +11,9 @@ import { SplashScreen } from '@screens/SplashScreen'
 import { Music } from '@screens/Music'
 import { SignIn } from '@screens/SignIn'
 import { Register } from '@screens/Register'
+import { MoreMusic } from '@screens/MoreMusic'
+
+import { MusicProps } from '@utils/Types/musicProps'
 
 type RootStackParamList = {
   Home: undefined
@@ -18,6 +21,10 @@ type RootStackParamList = {
   Music: undefined
   SignIn: undefined
   Register: undefined
+  MoreMusic: {
+    musics: MusicProps[]
+    title: string
+  }
 }
 
 export type StackNavigationProps = StackNavigationProp<RootStackParamList>
@@ -55,6 +62,7 @@ export function Routes() {
       <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Music" component={Music} />
+      <Stack.Screen name="MoreMusic" component={MoreMusic} />
     </Stack.Navigator>
   )
 }

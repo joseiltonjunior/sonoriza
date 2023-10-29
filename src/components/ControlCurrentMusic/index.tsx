@@ -12,6 +12,7 @@ import {
   handleChangeStateCurrentMusic,
 } from '@storage/modules/currentMusic/reducer'
 import { State } from 'react-native-track-player'
+import colors from 'tailwindcss/colors'
 
 interface ControlCurrentMusicProps {
   music?: MusicProps
@@ -28,7 +29,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
   const navigation = useNavigation<StackNavigationProps>()
 
   return (
-    <View className="bg-purple-600 flex-row items-center justify-between py-2 px-6 ">
+    <View className="bg-purple-600 flex-row items-center justify-between py-3 px-6">
       <TouchableOpacity
         onPress={() => {
           if (state === State.Playing) {
@@ -43,6 +44,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
         <IconAntDesign
           name={state === State.Playing ? 'pause' : 'caretright'}
           size={25}
+          color={colors.white}
         />
       </TouchableOpacity>
 
@@ -51,17 +53,17 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
         className="w-8/12"
         onPress={() => navigation.navigate('Music')}
       >
-        <Text numberOfLines={1} className="font-baloo-bold">
+        <Text numberOfLines={1} className="font-bold text-white">
           {isCurrentMusic?.title || music?.title}
         </Text>
-        <Text className="font-baloo-regular text-sm ">
+        <Text className="font-regular text-sm">
           {isCurrentMusic?.artist || music?.artist}
         </Text>
       </TouchableOpacity>
 
-      <View className="flex-row gap-4">
+      <View className="flex-row gap-6">
         <TouchableOpacity>
-          <IconAntDesign name="heart" size={22} />
+          <IconAntDesign name="heart" size={22} color={colors.white} />
         </TouchableOpacity>
 
         <TouchableOpacity
