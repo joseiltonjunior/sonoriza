@@ -13,7 +13,7 @@ import RNFS from 'react-native-fs'
 
 import Icon from 'react-native-vector-icons/FontAwesome'
 
-import { UserProps } from '@storage/modules/user/reducer'
+import { UserProps, handleSaveUser } from '@storage/modules/user/reducer'
 
 import { Switch } from './Switch'
 import { Button } from './Button'
@@ -47,7 +47,21 @@ export function SideMenu() {
       .signOut()
       .then(() => {
         handleIsVisible()
+        dispatch(
+          handleSaveUser({
+            user: {
+              displayName: '',
+              email: '',
+              photoURL: '',
+              plain: '',
+              uid: '',
+            },
+          }),
+        )
+        dispatch(handleChangeConfig({ config: { isLocal: false } }))
+        dispatch(handleTrackListLocal({ trackListLocal: [] }))
         closeModal()
+
         navigation.reset({
           index: 0,
           routes: [
@@ -178,7 +192,9 @@ export function SideMenu() {
             <Text className="font-bold text-xl text-white">
               {user.displayName}
             </Text>
-            <Text className="text-xs text-gray-300">Sonoriza Premium</Text>
+            <Text className="text-xs text-gray-300">
+              Sonoriza {user.plain === 'premium' ? 'Premium' : 'Free'}
+            </Text>
           </View>
         </View>
 
@@ -192,23 +208,6 @@ export function SideMenu() {
           />
 
           <Button icon="question" title="Sobre" className="mt-5" />
-
-          <Switch
-            icon="rss-square"
-            title="Modo Explorar"
-            onValueChange={() => {
-              dispatch(
-                handleChangeConfig({
-                  config: { ...config, isExplorer: !config.isExplorer },
-                }),
-              )
-            }}
-            value={config.isExplorer}
-          />
-          <Text className="mt-1 text-sm">
-            Este modo permite ao usuário descobrir e reproduzir músicas do
-            serviço de streaming.
-          </Text>
 
           <Switch
             icon="file"

@@ -1,9 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import { DataSaveDatabase } from '@screens/Register'
+import { UserDataProps } from '@screens/Register'
 
 export interface UserProps {
-  user: DataSaveDatabase
+  user: UserDataProps
 }
 
 const initialState: UserProps = {
@@ -12,6 +12,7 @@ const initialState: UserProps = {
     displayName: '',
     photoURL: '',
     uid: '',
+    plain: '',
   },
 }
 

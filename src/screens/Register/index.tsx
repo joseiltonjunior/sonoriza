@@ -36,11 +36,12 @@ interface FormDataProps {
   confirmPassword: string
 }
 
-export interface DataSaveDatabase {
+export interface UserDataProps {
   email: string | null
   displayName: string | null
   photoURL: string | null
   uid: string
+  plain: string | null
 }
 
 const schema = z
@@ -93,31 +94,74 @@ export function Register() {
     displayName,
     photoURL,
     uid,
-  }: DataSaveDatabase) {
-    firestore()
-      .collection('users')
-      .doc(uid)
-      .set({
-        email,
-        displayName,
-        photoURL,
-        uid,
-      })
-      .then(() => {
-        dispatch(
-          handleSaveUser({ user: { displayName, email, photoURL, uid } }),
-        )
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: 'Home',
-              params: undefined,
+    plain,
+  }: UserDataProps) {
+    const userRef = firestore().collection('users').doc(uid)
+
+    userRef
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          setIsLoading(false)
+          openModal({
+            title: 'Atenção',
+            description:
+              'Você já possui uma conta cadastrada. Por favor, faça login.',
+            singleAction: {
+              action() {
+                closeModal()
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: 'SignIn',
+                      params: undefined,
+                    },
+                  ],
+                })
+              },
+              title: 'OK',
             },
-          ],
-        })
+          })
+        } else {
+          firestore()
+            .collection('users')
+            .doc(uid)
+            .set({
+              email,
+              displayName,
+              photoURL,
+              uid,
+              plain,
+            })
+            .then(() => {
+              dispatch(
+                handleSaveUser({
+                  user: {
+                    displayName,
+                    email,
+                    photoURL,
+                    uid,
+                    plain,
+                  },
+                }),
+              )
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: 'Home',
+                    params: undefined,
+                  },
+                ],
+              })
+            })
+
+          setIsLoading(false)
+        }
       })
       .catch(() => {
+        setIsLoading(false)
         openModal({
           title: 'Atenção',
           description:
@@ -130,7 +174,6 @@ export function Register() {
           },
         })
       })
-      .finally(() => setIsLoading(false))
   }
 
   async function handleSignInWithGoogle() {
@@ -145,7 +188,7 @@ export function Register() {
 
       const { uid, email, displayName, photoURL } = response.user
 
-      handleSaveInDatabase({ displayName, email, photoURL, uid })
+      handleSaveInDatabase({ displayName, email, photoURL, uid, plain: 'free' })
     } catch (error) {
       openModal({
         title: 'Atenção',
@@ -178,7 +221,13 @@ export function Register() {
             displayName: name,
           })
           .then(() => {
-            handleSaveInDatabase({ displayName: name, email, photoURL, uid })
+            handleSaveInDatabase({
+              displayName: name,
+              email,
+              photoURL,
+              uid,
+              plain: 'free',
+            })
           })
       })
       .catch((error) => {

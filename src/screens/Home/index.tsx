@@ -5,9 +5,6 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import { ReduxProps } from '@storage/index'
 
-import firestore from '@react-native-firebase/firestore'
-import crashlytics from '@react-native-firebase/crashlytics'
-
 import {
   MusicPlayerSettingsProps,
   handleInitializedMusicPlayer,
@@ -19,28 +16,19 @@ import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import IconAnt from 'react-native-vector-icons/AntDesign'
 
 import { useSideMenu } from '@hooks/useSideMenu'
-import { MusicProps } from '@utils/Types/musicProps'
 
 import { ConfigProps } from '@storage/modules/config/reducer'
 import { BoxCarousel } from '@components/BoxCarousel'
 import { TrackListLocalProps } from '@storage/modules/trackListLocal/reducer'
-import {
-  TrackListRemoteProps,
-  handleTrackListRemote,
-} from '@storage/modules/trackListRemote/reducer'
+import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 import { MusicalGenres } from '@components/MusicalGenres'
-import {
-  MusicalGenresProps,
-  handleSetMusicalGenres,
-} from '@storage/modules/musicalGenres/reducer'
+import { MusicalGenresProps } from '@storage/modules/musicalGenres/reducer'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
-import {
-  ArtistsProps,
-  handleSetArtists,
-} from '@storage/modules/artists/reducer'
+import { ArtistsProps } from '@storage/modules/artists/reducer'
 import { RoundedCarousel } from '@components/RoundedCarousel'
+import { UserProps } from '@storage/modules/user/reducer'
 
 export function Home() {
   const dispatch = useDispatch()
@@ -53,6 +41,7 @@ export function Home() {
   const { artists } = useSelector<ReduxProps, ArtistsProps>(
     (state) => state.artists,
   )
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
   const { isInitialized } = useSelector<ReduxProps, MusicPlayerSettingsProps>(
     (state) => state.musicPlayerSettings,
   )
@@ -81,79 +70,11 @@ export function Home() {
       .catch((err) => console.error(err))
   }, [TrackPlayer, dispatch])
 
-  const handleGetMusicsDatabase = useCallback(async () => {
-    await firestore()
-      .collection('musics')
-      .get()
-      .then(async (querySnapshot) => {
-        const musicsResponse = querySnapshot.docs.map((doc) => ({
-          url: doc.data().url,
-          artwork: doc.data().artwork,
-          artist: doc.data().artist,
-          title: doc.data().title,
-        })) as MusicProps[]
-
-        dispatch(handleTrackListRemote({ trackListRemote: musicsResponse }))
-      })
-      .catch((err) => {
-        crashlytics().recordError(err)
-      })
-  }, [dispatch])
-
-  const handleGetMusicalGenres = useCallback(async () => {
-    await firestore()
-      .collection('musicalGenres')
-      .get()
-      .then(async (querySnapshot) => {
-        const musicalGenresResponse = querySnapshot.docs.map((doc) => ({
-          name: doc.data().name as string,
-        }))
-
-        dispatch(
-          handleSetMusicalGenres({ musicalGenres: musicalGenresResponse }),
-        )
-      })
-      .catch((err) => {
-        crashlytics().recordError(err)
-      })
-  }, [dispatch])
-
-  const handleGetArtists = useCallback(async () => {
-    await firestore()
-      .collection('artists')
-      .get()
-      .then(async (querySnapshot) => {
-        const artistsResponse = querySnapshot.docs.map((doc) => ({
-          name: doc.data().name as string,
-          photoURL: doc.data().photoURL as string,
-        }))
-
-        dispatch(handleSetArtists({ artists: artistsResponse }))
-      })
-      .catch((err) => {
-        crashlytics().recordError(err)
-      })
-  }, [dispatch])
-
   useEffect(() => {
     if (isInitialized) {
       getCurrentMusic()
     }
   }, [getCurrentMusic, isInitialized])
-
-  useEffect(() => {
-    if (config.isExplorer && trackListRemote.length === 0) {
-      handleGetMusicsDatabase()
-      handleGetMusicalGenres()
-      handleGetArtists()
-    }
-  }, [
-    config.isExplorer,
-    handleGetArtists,
-    handleGetMusicalGenres,
-    handleGetMusicsDatabase,
-    trackListRemote.length,
-  ])
 
   useEffect(() => {
     if (!isInitialized) {
@@ -171,70 +92,83 @@ export function Home() {
           </TouchableOpacity>
         </View>
 
-        {musicalGenres.length > 0 && (
-          <View className="mt-2 pl-4">
-            <Text className="text-lg font-bold text-white mb-2">
-              Explore por gêneros musicais
-            </Text>
-            <MusicalGenres musicalGenres={musicalGenres} />
+        {user.plain === 'premium' && (
+          <View className="pl-4">
+            {musicalGenres.length > 0 && (
+              <View className="mt-2">
+                <View className="flex-row items-center mr-4 justify-between mb-3">
+                  <Text className="text-lg font-bold text-white">
+                    Explore por gêneros musicais
+                  </Text>
+                  <TouchableOpacity activeOpacity={0.6}>
+                    <Text className="text-gray-300">Ver mais</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <MusicalGenres musicalGenres={musicalGenres} />
+              </View>
+            )}
+
+            {trackListRemote.length > 0 && (
+              <>
+                <View className="flex-row items-center justify-between mb-3 mr-4 mt-12">
+                  <Text className="text-lg font-bold text-white">
+                    Explore novas possibilidades
+                  </Text>
+                  <TouchableOpacity
+                    activeOpacity={0.6}
+                    onPress={() =>
+                      navigation.navigate('MoreMusic', {
+                        musics: trackListRemote,
+                        title: 'Explore novas possibilidades',
+                      })
+                    }
+                  >
+                    <Text className="text-gray-300">Ver mais</Text>
+                  </TouchableOpacity>
+                </View>
+                <BoxCarousel musics={trackListRemote} />
+              </>
+            )}
+
+            {artists.length > 0 && (
+              <View className="mt-12">
+                <View className="flex-row items-center justify-between mb-3">
+                  <Text className="text-lg font-bold text-white">
+                    Explore por artistas
+                  </Text>
+                  <TouchableOpacity activeOpacity={0.6}>
+                    <Text className="text-gray-300 mr-4">Ver mais</Text>
+                  </TouchableOpacity>
+                </View>
+                <RoundedCarousel artists={artists} />
+              </View>
+            )}
           </View>
         )}
 
-        <View className="pl-4 mt-12">
-          {config.isExplorer && trackListRemote.length > 0 && (
-            <>
-              <View className="flex-row items-center justify-between mb-3">
-                <Text className="text-lg font-bold text-white">
-                  Explore novas possibilidades
-                </Text>
-                <TouchableOpacity
-                  activeOpacity={0.6}
-                  onPress={() =>
-                    navigation.navigate('MoreMusic', {
-                      musics: trackListRemote,
-                      title: 'Explore novas possibilidades',
-                    })
-                  }
-                >
-                  <Text className="text-gray-300">Ver mais</Text>
-                </TouchableOpacity>
-              </View>
-              <BoxCarousel musics={trackListRemote} />
-            </>
-          )}
-
-          {artists.length > 0 && (
-            <View className="mt-12">
-              <Text className="text-lg font-bold text-white mb-3">
-                Explore por artistas
+        {config.isLocal && trackListLocal.length > 0 && (
+          <View className={`pl-4 ${user.plain !== 'free' && 'mt-12'}`}>
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-lg font-bold text-white">
+                Suas músicas locais
               </Text>
-              <RoundedCarousel artists={artists} />
+              <TouchableOpacity
+                activeOpacity={0.6}
+                onPress={() =>
+                  navigation.navigate('MoreMusic', {
+                    musics: trackListLocal,
+                    title: 'Suas músicas locais',
+                  })
+                }
+              >
+                <Text className="text-gray-300 mr-4">Ver mais</Text>
+              </TouchableOpacity>
             </View>
-          )}
 
-          {config.isLocal && trackListLocal.length > 0 && (
-            <>
-              <View className="flex-row items-center justify-between mt-12 mb-3">
-                <Text className="text-lg font-bold text-white">
-                  Suas músicas locais
-                </Text>
-                <TouchableOpacity
-                  activeOpacity={0.6}
-                  onPress={() =>
-                    navigation.navigate('MoreMusic', {
-                      musics: trackListLocal,
-                      title: 'Suas músicas locais',
-                    })
-                  }
-                >
-                  <Text className="text-gray-300">Ver mais</Text>
-                </TouchableOpacity>
-              </View>
-
-              <BoxCarousel musics={trackListLocal} />
-            </>
-          )}
-        </View>
+            <BoxCarousel musics={trackListLocal} />
+          </View>
+        )}
       </ScrollView>
       {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
       <BottomMenu />

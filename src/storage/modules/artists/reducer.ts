@@ -1,11 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
+export interface ArtistsDataProps {
+  name: string
+  photoURL: string
+}
+
 export interface ArtistsProps {
-  artists: {
-    name: string
-    photoURL: string
-  }[]
+  artists: ArtistsDataProps[]
 }
 
 const initialState: ArtistsProps = {

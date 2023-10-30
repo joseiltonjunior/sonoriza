@@ -34,7 +34,13 @@ export interface ReduxProps {
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  blacklist: ['musicPlayerSettings', 'currentMusic'],
+  blacklist: [
+    'musicPlayerSettings',
+    'currentMusic',
+    'artists',
+    'musicalGenres',
+    'trackListRemote',
+  ],
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
