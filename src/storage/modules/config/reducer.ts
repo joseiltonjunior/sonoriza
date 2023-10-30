@@ -4,14 +4,12 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 export interface ConfigProps {
   config: {
     isLocal?: boolean
-    isExplorer?: boolean
   }
 }
 
 const initialState: ConfigProps = {
   config: {
-    isLocal: true,
-    isExplorer: false,
+    isLocal: false,
   },
 }
 

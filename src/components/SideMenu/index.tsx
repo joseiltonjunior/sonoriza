@@ -9,10 +9,11 @@ import { useSideMenu } from '@hooks/useSideMenu'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useDispatch, useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
+import RNFS from 'react-native-fs'
 
 import Icon from 'react-native-vector-icons/FontAwesome'
 
-import { UserProps } from '@storage/modules/user/reducer'
+import { UserProps, handleSaveUser } from '@storage/modules/user/reducer'
 
 import { Switch } from './Switch'
 import { Button } from './Button'
@@ -20,6 +21,9 @@ import {
   ConfigProps,
   handleChangeConfig,
 } from '@storage/modules/config/reducer'
+import { useCallback } from 'react'
+import { handleTrackListLocal } from '@storage/modules/trackListLocal/reducer'
+import { PERMISSIONS, request } from 'react-native-permissions'
 
 export function SideMenu() {
   const { isVisible, handleIsVisible } = useSideMenu()
@@ -43,7 +47,21 @@ export function SideMenu() {
       .signOut()
       .then(() => {
         handleIsVisible()
+        dispatch(
+          handleSaveUser({
+            user: {
+              displayName: '',
+              email: '',
+              photoURL: '',
+              plain: '',
+              uid: '',
+            },
+          }),
+        )
+        dispatch(handleChangeConfig({ config: { isLocal: false } }))
+        dispatch(handleTrackListLocal({ trackListLocal: [] }))
         closeModal()
+
         navigation.reset({
           index: 0,
           routes: [
@@ -55,6 +73,94 @@ export function SideMenu() {
         })
       })
   }
+
+  const handleSearchMp3Music = useCallback(async () => {
+    try {
+      const downloadFolder = await RNFS.readDir(RNFS.DownloadDirectoryPath)
+      const musicFolder = await RNFS.readDir(
+        `${RNFS.ExternalStorageDirectoryPath}/Music`,
+      )
+
+      const allTracks = [...downloadFolder, ...musicFolder]
+
+      const filterMp3 = allTracks.filter((arquivo) => {
+        return arquivo.isFile() && arquivo.name.endsWith('.mp3')
+      })
+
+      const tracksFormatted = filterMp3.map((music) => ({
+        url: `file://${music.path}`,
+        title: music.name.replace('.mp3', ''),
+        artist: 'Artista Desconhecido',
+        album: 'Álbum Desconhecido',
+        genre: '',
+        date: '',
+        artwork: '',
+        duration: 0,
+      }))
+
+      dispatch(handleTrackListLocal({ trackListLocal: tracksFormatted }))
+    } catch (error) {
+      openModal({
+        title: 'Atenção',
+        description: 'Ocorreu um erro ao tentar buscar músicas locais.',
+        singleAction: {
+          title: 'OK',
+          action() {
+            closeModal()
+          },
+        },
+      })
+    }
+  }, [closeModal, dispatch, openModal])
+
+  const handleStoragePermission = useCallback(async () => {
+    try {
+      const result = await request(
+        PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE &&
+          PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
+      )
+
+      if (result !== 'granted') {
+        openModal({
+          title: 'Permissão necessária',
+          description:
+            'Por favor, conceda permissão para acessar suas músicas locais.',
+          twoActions: {
+            textCancel: 'CANCELAR',
+            actionCancel() {
+              closeModal()
+            },
+            textConfirm: 'PERMITIR',
+            actionConfirm() {
+              handleStoragePermission()
+            },
+          },
+        })
+
+        return
+      }
+
+      dispatch(
+        handleChangeConfig({
+          config: { ...config, isLocal: true },
+        }),
+      )
+
+      handleSearchMp3Music()
+    } catch (error) {
+      openModal({
+        title: 'Atenção',
+        description:
+          'O aplicativo não consegue acessar suas músicas locais no momento. Por favor, tente novamente mais tarde.',
+        singleAction: {
+          title: 'OK',
+          action() {
+            closeModal()
+          },
+        },
+      })
+    }
+  }, [closeModal, config, dispatch, handleSearchMp3Music, openModal])
 
   return (
     <View
@@ -86,7 +192,9 @@ export function SideMenu() {
             <Text className="font-bold text-xl text-white">
               {user.displayName}
             </Text>
-            <Text className="text-xs text-gray-300">Sonoriza Premium</Text>
+            <Text className="text-xs text-gray-300">
+              Sonoriza {user.plain === 'premium' ? 'Premium' : 'Free'}
+            </Text>
           </View>
         </View>
 
@@ -102,31 +210,19 @@ export function SideMenu() {
           <Button icon="question" title="Sobre" className="mt-5" />
 
           <Switch
-            icon="rss-square"
-            title="Modo Explorar"
-            onValueChange={() => {
-              dispatch(
-                handleChangeConfig({
-                  config: { ...config, isExplorer: !config.isExplorer },
-                }),
-              )
-            }}
-            value={config.isExplorer}
-          />
-          <Text className="mt-1 text-sm">
-            Este modo permite ao usuário descobrir e reproduzir músicas do
-            serviço de streaming.
-          </Text>
-
-          <Switch
             icon="file"
             title="Modo Local"
             onValueChange={() => {
-              dispatch(
-                handleChangeConfig({
-                  config: { ...config, isLocal: !config.isLocal },
-                }),
-              )
+              if (config.isLocal) {
+                dispatch(
+                  handleChangeConfig({
+                    config: { ...config, isLocal: false },
+                  }),
+                )
+
+                return
+              }
+              handleStoragePermission()
             }}
             value={config.isLocal}
           />

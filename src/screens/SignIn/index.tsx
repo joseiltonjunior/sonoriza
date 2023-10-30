@@ -25,10 +25,14 @@ import firestore from '@react-native-firebase/firestore'
 
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
-import { DataSaveDatabase } from '@screens/Register'
+import { UserDataProps } from '@screens/Register'
 import { useModal } from '@hooks/useModal'
 import { useDispatch } from 'react-redux'
 import { handleSaveUser } from '@storage/modules/user/reducer'
+import { handleSetArtists } from '@storage/modules/artists/reducer'
+import { handleSetMusicalGenres } from '@storage/modules/musicalGenres/reducer'
+import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 interface FormDataProps {
   email: string
@@ -52,6 +56,9 @@ export function SignIn() {
 
   const navigation = useNavigation<StackNavigationProps>()
 
+  const { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase } =
+    useFirebaseServices()
+
   const [isLoading, setIsLoading] = useState(false)
 
   const { closeModal, openModal } = useModal()
@@ -62,25 +69,30 @@ export function SignIn() {
     webClientId: WEB_CLIENT_ID,
   })
 
-  async function handleSaveInDatabase({
-    email,
-    displayName,
-    photoURL,
-    uid,
-  }: DataSaveDatabase) {
+  async function handleFetchDataUser(userUid: string) {
     firestore()
       .collection('users')
-      .doc(uid)
-      .set({
-        email,
-        displayName,
-        photoURL,
-        uid,
-      })
-      .then(() => {
+      .doc(userUid)
+      .get()
+      .then(async (querySnapshot) => {
+        const user = querySnapshot.data() as UserDataProps
+        const { displayName, email, photoURL, uid, plain } = user
         dispatch(
-          handleSaveUser({ user: { displayName, email, photoURL, uid } }),
+          handleSaveUser({
+            user: { displayName, email, photoURL, uid, plain },
+          }),
         )
+
+        if (plain === 'premium') {
+          const responseArtists = await handleGetArtists()
+          const responseGenres = await handleGetMusicalGenres()
+          const responseMusics = await handleGetMusicsDatabase()
+
+          dispatch(handleSetArtists({ artists: responseArtists }))
+          dispatch(handleSetMusicalGenres({ musicalGenres: responseGenres }))
+          dispatch(handleTrackListRemote({ trackListRemote: responseMusics }))
+        }
+
         navigation.reset({
           index: 0,
           routes: [
@@ -91,20 +103,9 @@ export function SignIn() {
           ],
         })
       })
-      .catch(() => {
-        openModal({
-          title: 'Atenção',
-          description:
-            'Opss... não foi possível buscar os dados do usuário neste momento. Por favor, tente novamente.',
-          singleAction: {
-            action() {
-              closeModal()
-            },
-            title: 'OK',
-          },
-        })
+      .finally(() => {
+        setIsLoading(false)
       })
-      .finally(() => setIsLoading(false))
   }
 
   async function handleSignInWithGoogle() {
@@ -116,68 +117,26 @@ export function SignIn() {
       const googleCredential = auth.GoogleAuthProvider.credential(idToken)
       const response = await auth().signInWithCredential(googleCredential)
 
-      const { email, displayName, uid, photoURL } = response.user
-
-      const userDocRef = firestore().collection('users').doc(uid)
-
-      const userDoc = await userDocRef.get()
-
-      if (!userDoc.exists) {
-        handleSaveInDatabase({ email, displayName, uid, photoURL })
-
-        return
-      }
-
-      setIsLoading(false)
-      dispatch(handleSaveUser({ user: { displayName, email, photoURL, uid } }))
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'Home',
-            params: undefined,
-          },
-        ],
-      })
+      const { uid } = response.user
+      handleFetchDataUser(uid)
     } catch (error) {
+      setIsLoading(false)
       openModal({
         title: 'Atenção',
         description:
-          'Opss... não foi possível acessar a aplicação neste momento. Por favor, tente novamente.',
-        singleAction: {
-          action() {
+          'Para acessar o Sonoriza, basta realizar um rápido cadastro, que levará menos de 1 minuto.',
+        twoActions: {
+          actionCancel() {
             closeModal()
           },
-          title: 'OK',
+          textCancel: 'AGORA NÃO',
+          actionConfirm() {
+            navigation.navigate('Register')
+          },
+          textConfirm: 'VAMOS LÁ',
         },
       })
-      setIsLoading(false)
     }
-  }
-
-  async function handleFetchDataUser(userUid: string) {
-    firestore()
-      .collection('users')
-      .doc(userUid)
-      .get()
-      .then((querySnapshot) => {
-        const user = querySnapshot.data() as DataSaveDatabase
-        const { displayName, email, photoURL, uid } = user
-        dispatch(
-          handleSaveUser({ user: { displayName, email, photoURL, uid } }),
-        )
-
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: 'Home',
-              params: undefined,
-            },
-          ],
-        })
-      })
-      .finally(() => setIsLoading(false))
   }
 
   function handleSignInWithEmail(data: FormDataProps) {
@@ -185,9 +144,8 @@ export function SignIn() {
     setIsLoading(true)
     auth()
       .signInWithEmailAndPassword(data.email, data.password)
-      .then((result) => {
+      .then(async (result) => {
         const { uid } = result.user
-
         handleFetchDataUser(uid)
       })
       .catch(() => {

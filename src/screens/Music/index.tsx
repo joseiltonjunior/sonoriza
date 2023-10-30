@@ -4,26 +4,41 @@ import { StackNavigationProps } from '@routes/routes'
 import { ProgressBar } from '@react-native-community/progress-bar-android'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+
+import AnimatedLottieView from 'lottie-react-native'
+import animation from '@assets/music-loading.json'
+
+import {
+  ImageBackground,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 
 import Icon from 'react-native-vector-icons/AntDesign'
 import FatherIcons from 'react-native-vector-icons/Feather'
+import { useDispatch, useSelector } from 'react-redux'
+import { ReduxProps } from '@storage/index'
+import {
+  CurrentMusicProps,
+  handleChangeStateCurrentMusic,
+} from '@storage/modules/currentMusic/reducer'
+import { State } from 'react-native-track-player'
 
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
 
-  const {
-    getCurrentMusic,
-    TrackPlayer,
-    currentMusic,
-    isPlaying,
-    setIsPlaying,
-    useProgress,
-  } = useTrackPlayer()
+  const { getCurrentMusic, TrackPlayer, useProgress } = useTrackPlayer()
 
   const progress = useProgress()
+  const dispatch = useDispatch()
 
-  const [actualProgress, setActualProgress] = useState<number>()
+  const [actualProgress, setActualProgress] = useState<number>(0)
+
+  const { isCurrentMusic, state } = useSelector<ReduxProps, CurrentMusicProps>(
+    (state) => state.currentMusic,
+  )
 
   const calculateProgressPercentage = useCallback(() => {
     if (progress.duration > 0) {
@@ -44,10 +59,6 @@ export function Music() {
   useEffect(() => {
     calculateProgressPercentage()
   }, [calculateProgressPercentage])
-
-  useEffect(() => {
-    getCurrentMusic()
-  }, [getCurrentMusic])
 
   return (
     <ScrollView className="p-2  flex-1 bg-gray-950 px-4">
@@ -73,19 +84,28 @@ export function Music() {
             Tocando do artista
           </Text>
           <Text className="text-white font-baloo-bold">
-            {currentMusic?.artist}
+            {isCurrentMusic?.artist}
           </Text>
         </View>
       </View>
 
       <View className="flex-1 items-center mt-12">
         <View className="w-full h-[360px] overflow-hidden rounded-lg bg-purple-600 items-center justify-center">
-          {currentMusic?.artwork ? (
-            <Image
-              source={{ uri: currentMusic.artwork }}
+          {isCurrentMusic?.artwork ? (
+            <ImageBackground
+              source={{ uri: isCurrentMusic.artwork }}
               alt=""
-              className="w-full h-full object-cover"
-            />
+              className="w-full h-full object-cover items-center justify-center"
+            >
+              {actualProgress === 0 && (
+                <AnimatedLottieView
+                  source={animation}
+                  autoPlay
+                  loop
+                  style={{ width: 150, height: 150 }}
+                />
+              )}
+            </ImageBackground>
           ) : (
             <FatherIcons name="music" size={200} color="#fff" />
           )}
@@ -123,9 +143,9 @@ export function Music() {
           className="font-baloo-bold text-xl mt-4 px-4 text-center"
           numberOfLines={1}
         >
-          {currentMusic?.title}
+          {isCurrentMusic?.title}
         </Text>
-        <Text className="font-baloo-regular">{currentMusic?.artist}</Text>
+        <Text className="font-baloo-regular">{isCurrentMusic?.artist}</Text>
       </View>
 
       <View className="flex-row justify-around mt-8 items-center px-12">
@@ -133,6 +153,9 @@ export function Music() {
           onPress={() => {
             TrackPlayer.skipToPrevious()
             getCurrentMusic()
+            setActualProgress(0)
+            TrackPlayer.play()
+            dispatch(handleChangeStateCurrentMusic(State.Playing))
           }}
           className=" p-2 rounded-full "
         >
@@ -140,17 +163,21 @@ export function Music() {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
-            if (isPlaying) {
+            if (state === State.Playing) {
               TrackPlayer.pause()
-              setIsPlaying(false)
+              dispatch(handleChangeStateCurrentMusic(State.Paused))
             } else {
               TrackPlayer.play()
-              setIsPlaying(true)
+              dispatch(handleChangeStateCurrentMusic(State.Playing))
             }
           }}
         >
           <Icon
-            name={isPlaying ? 'pause' : 'caretright'}
+            name={
+              actualProgress > 0 && state === State.Playing
+                ? 'pause'
+                : 'caretright'
+            }
             size={40}
             color={'#fff'}
           />
@@ -158,7 +185,10 @@ export function Music() {
         <TouchableOpacity
           onPress={() => {
             TrackPlayer.skipToNext()
+            TrackPlayer.play()
             getCurrentMusic()
+            setActualProgress(0)
+            dispatch(handleChangeStateCurrentMusic(State.Playing))
           }}
           className=" p-2 rounded-full "
         >
