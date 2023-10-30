@@ -12,6 +12,9 @@ import {
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
+import AnimatedLottieView from 'lottie-react-native'
+
+import notFiles from '@assets/not-files.json'
 
 import IconAnt from 'react-native-vector-icons/AntDesign'
 
@@ -29,11 +32,15 @@ import { StackNavigationProps } from '@routes/routes'
 import { ArtistsProps } from '@storage/modules/artists/reducer'
 import { RoundedCarousel } from '@components/RoundedCarousel'
 import { UserProps } from '@storage/modules/user/reducer'
+import { useLocalMusic } from '@hooks/useLocalMusic'
+import { Button } from '@components/Button'
 
 export function Home() {
   const dispatch = useDispatch()
 
   const navigation = useNavigation<StackNavigationProps>()
+
+  const { handleStoragePermission } = useLocalMusic()
 
   const { musicalGenres } = useSelector<ReduxProps, MusicalGenresProps>(
     (state) => state.musicalGenres,
@@ -87,6 +94,7 @@ export function Home() {
       <ScrollView className="flex-1 bg-gray-950">
         <View className="p-4 flex-row items-center justify-between">
           <Text className="text-white text-2xl font-bold">Início</Text>
+
           <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
             <IconAnt name="setting" size={26} />
           </TouchableOpacity>
@@ -144,6 +152,28 @@ export function Home() {
                 <RoundedCarousel artists={artists} />
               </View>
             )}
+          </View>
+        )}
+
+        {user.plain === 'free' && !config.isLocal && (
+          <View className="p-4 items-center justify-center">
+            <AnimatedLottieView
+              source={notFiles}
+              autoPlay
+              loop
+              resizeMode="contain"
+              style={{ width: 300, height: 300 }}
+            />
+            <Text className="text-center text-xl text-white mt-8">
+              Permita o acesso às suas músicas locais e desfrute dos serviços
+              gratuitos.
+            </Text>
+
+            <Button
+              title="PERMITIR ACESSO"
+              onPress={handleStoragePermission}
+              className="mt-8 w-full"
+            />
           </View>
         )}
 
