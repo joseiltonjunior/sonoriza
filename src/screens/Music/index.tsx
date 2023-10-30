@@ -80,10 +80,10 @@ export function Music() {
           <Icon name="back" size={30} color="#fff" />
         </TouchableOpacity>
         <View className="flex-col items-center">
-          <Text className="text-white font-baloo-regular">
+          <Text className="text-gray-300 font-nunito-light">
             Tocando do artista
           </Text>
-          <Text className="text-white font-baloo-bold">
+          <Text className="text-white font-nunito-bold">
             {isCurrentMusic?.artist}
           </Text>
         </View>
@@ -140,12 +140,14 @@ export function Music() {
         </View>
 
         <Text
-          className="font-baloo-bold text-xl mt-4 px-4 text-center"
+          className="font-nunito-bold text-white text-xl mt-4 px-4 text-center"
           numberOfLines={1}
         >
           {isCurrentMusic?.title}
         </Text>
-        <Text className="font-baloo-regular">{isCurrentMusic?.artist}</Text>
+        <Text className="font-nunito-regular text-gray-300">
+          {isCurrentMusic?.artist}
+        </Text>
       </View>
 
       <View className="flex-row justify-around mt-8 items-center px-12">

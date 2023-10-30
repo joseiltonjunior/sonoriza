@@ -12,8 +12,11 @@ import { Music } from '@screens/Music'
 import { SignIn } from '@screens/SignIn'
 import { Register } from '@screens/Register'
 import { MoreMusic } from '@screens/MoreMusic'
+import { MoreArtists } from '@screens/MoreArtists'
+import { Artist } from '@screens/Artist'
 
 import { MusicProps } from '@utils/Types/musicProps'
+import { ArtistsDataProps } from '@storage/modules/artists/reducer'
 
 type RootStackParamList = {
   Home: undefined
@@ -21,8 +24,14 @@ type RootStackParamList = {
   Music: undefined
   SignIn: undefined
   Register: undefined
+  Artist: {
+    artist: ArtistsDataProps
+  }
+  MoreArtists: {
+    listArtists: ArtistsDataProps[]
+  }
   MoreMusic: {
-    musics: MusicProps[]
+    listMusics: MusicProps[]
     title: string
   }
 }
@@ -63,6 +72,8 @@ export function Routes() {
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Music" component={Music} />
       <Stack.Screen name="MoreMusic" component={MoreMusic} />
+      <Stack.Screen name="MoreArtists" component={MoreArtists} />
+      <Stack.Screen name="Artist" component={Artist} />
     </Stack.Navigator>
   )
 }

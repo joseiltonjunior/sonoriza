@@ -1,6 +1,8 @@
 import Carousel from 'react-native-reanimated-carousel'
 
 import { Rounded } from '@components/Rounded'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProps } from '@routes/routes'
 
 interface RoundedCourselProps {
   artists: {
@@ -10,6 +12,8 @@ interface RoundedCourselProps {
 }
 
 export function RoundedCarousel({ artists }: RoundedCourselProps) {
+  const navigation = useNavigation<StackNavigationProps>()
+
   return (
     <Carousel
       loop={false}
@@ -22,7 +26,9 @@ export function RoundedCarousel({ artists }: RoundedCourselProps) {
         <Rounded
           artist={item.name}
           artwork={item.photoURL}
-          //   onPress={() => console.log(item)}
+          onPress={() => {
+            navigation.navigate('Artist', { artist: item })
+          }}
           className="mr-4"
         />
       )}

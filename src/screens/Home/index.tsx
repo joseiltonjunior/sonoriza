@@ -34,6 +34,7 @@ import { RoundedCarousel } from '@components/RoundedCarousel'
 import { UserProps } from '@storage/modules/user/reducer'
 import { useLocalMusic } from '@hooks/useLocalMusic'
 import { Button } from '@components/Button'
+import { Section } from '@components/Section'
 
 export function Home() {
   const dispatch = useDispatch()
@@ -93,7 +94,7 @@ export function Home() {
     <>
       <ScrollView className="flex-1 bg-gray-950">
         <View className="p-4 flex-row items-center justify-between">
-          <Text className="text-white text-2xl font-bold">Início</Text>
+          <Text className="text-white text-3xl font-nunito-bold">Início</Text>
 
           <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
             <IconAnt name="setting" size={26} />
@@ -103,54 +104,41 @@ export function Home() {
         {user.plain === 'premium' && (
           <View className="pl-4">
             {musicalGenres.length > 0 && (
-              <View className="mt-2">
-                <View className="flex-row items-center mr-4 justify-between mb-3">
-                  <Text className="text-lg font-bold text-white">
-                    Explore por gêneros musicais
-                  </Text>
-                  <TouchableOpacity activeOpacity={0.6}>
-                    <Text className="text-gray-300">Ver mais</Text>
-                  </TouchableOpacity>
-                </View>
-
+              <Section
+                onPress={() => console.log('falta')}
+                title="Explore por gêneros musicais"
+              >
                 <MusicalGenres musicalGenres={musicalGenres} />
-              </View>
+              </Section>
             )}
 
             {trackListRemote.length > 0 && (
-              <>
-                <View className="flex-row items-center justify-between mb-3 mr-4 mt-12">
-                  <Text className="text-lg font-bold text-white">
-                    Explore novas possibilidades
-                  </Text>
-                  <TouchableOpacity
-                    activeOpacity={0.6}
-                    onPress={() =>
-                      navigation.navigate('MoreMusic', {
-                        musics: trackListRemote,
-                        title: 'Explore novas possibilidades',
-                      })
-                    }
-                  >
-                    <Text className="text-gray-300">Ver mais</Text>
-                  </TouchableOpacity>
-                </View>
+              <Section
+                title="Explore novas possibilidades"
+                className="mt-12"
+                onPress={() =>
+                  navigation.navigate('MoreMusic', {
+                    listMusics: trackListRemote,
+                    title: 'Explore novas possibilidades',
+                  })
+                }
+              >
                 <BoxCarousel musics={trackListRemote} />
-              </>
+              </Section>
             )}
 
             {artists.length > 0 && (
-              <View className="mt-12">
-                <View className="flex-row items-center justify-between mb-3">
-                  <Text className="text-lg font-bold text-white">
-                    Explore por artistas
-                  </Text>
-                  <TouchableOpacity activeOpacity={0.6}>
-                    <Text className="text-gray-300 mr-4">Ver mais</Text>
-                  </TouchableOpacity>
-                </View>
+              <Section
+                title="Explore por artistas"
+                className="mt-12"
+                onPress={() =>
+                  navigation.navigate('MoreArtists', {
+                    listArtists: artists,
+                  })
+                }
+              >
                 <RoundedCarousel artists={artists} />
-              </View>
+              </Section>
             )}
           </View>
         )}
@@ -178,26 +166,18 @@ export function Home() {
         )}
 
         {config.isLocal && trackListLocal.length > 0 && (
-          <View className={`pl-4 ${user.plain !== 'free' && 'mt-12'}`}>
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-lg font-bold text-white">
-                Suas músicas locais
-              </Text>
-              <TouchableOpacity
-                activeOpacity={0.6}
-                onPress={() =>
-                  navigation.navigate('MoreMusic', {
-                    musics: trackListLocal,
-                    title: 'Suas músicas locais',
-                  })
-                }
-              >
-                <Text className="text-gray-300 mr-4">Ver mais</Text>
-              </TouchableOpacity>
-            </View>
-
+          <Section
+            title="Suas músicas locais"
+            className={`pl-4 ${user.plain !== 'free' && 'mt-12'}`}
+            onPress={() =>
+              navigation.navigate('MoreMusic', {
+                listMusics: trackListLocal,
+                title: 'Suas músicas locais',
+              })
+            }
+          >
             <BoxCarousel musics={trackListLocal} />
-          </View>
+          </Section>
         )}
       </ScrollView>
       {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}

@@ -53,10 +53,10 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
         className="w-8/12"
         onPress={() => navigation.navigate('Music')}
       >
-        <Text numberOfLines={1} className="font-bold text-white">
+        <Text numberOfLines={1} className="font-nunito-bold text-white">
           {isCurrentMusic?.title || music?.title}
         </Text>
-        <Text className="font-regular text-sm">
+        <Text className="font-nunito-regular text-white text-xs">
           {isCurrentMusic?.artist || music?.artist}
         </Text>
       </TouchableOpacity>

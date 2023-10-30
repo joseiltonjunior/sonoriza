@@ -18,7 +18,7 @@ export function Switch({ icon, title, value, ...rest }: CustomSwitchProps) {
       <View className="bg-purple-600 w-8 h-8 rounded-full items-center justify-center">
         <Icon name={icon} color={colors.gray[200]} size={20} />
       </View>
-      <Text className="ml-2 text-gray-300">{title}</Text>
+      <Text className="ml-2 font-nunito-bold text-white">{title}</Text>
       <SwitchComponent
         {...rest}
         trackColor={{ false: colors.gray[500], true: colors.purple[200] }}

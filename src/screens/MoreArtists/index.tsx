@@ -1,6 +1,6 @@
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
-import { useTrackPlayer } from '@hooks/useTrackPlayer'
+
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
@@ -8,15 +8,12 @@ import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 import { Text, TouchableOpacity, View, Image } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { useSelector } from 'react-redux'
-import IconFather from 'react-native-vector-icons/Feather'
+
 import Icon from 'react-native-vector-icons/AntDesign'
-import colors from 'tailwindcss/colors'
 
-export function MoreMusic() {
-  const { params } = useRoute<RouteParamsProps<'MoreMusic'>>()
-  const { listMusics, title } = params
-
-  const { handleMusicSelected } = useTrackPlayer()
+export function MoreArtists() {
+  const { params } = useRoute<RouteParamsProps<'MoreArtists'>>()
+  const { listArtists } = params
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -36,41 +33,31 @@ export function MoreMusic() {
           >
             <Icon name="back" size={30} color="#fff" />
           </TouchableOpacity>
-          <Text className="text-base font-bold text-white">{title}</Text>
+          <Text className="text-base font-bold text-white">
+            Explore por artistas
+          </Text>
         </View>
 
         <FlatList
           className="mt-4"
           showsVerticalScrollIndicator={false}
-          data={listMusics}
+          data={listArtists}
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item, index }) => (
             <TouchableOpacity
               key={index}
-              className="flex-row items-center gap-2 "
-              onPress={() => {
-                handleMusicSelected({
-                  indexSelected: index,
-                  listMusics,
-                  musicSelected: item,
-                })
-              }}
+              className="flex-row items-center gap-4"
             >
-              <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
-                {item.artwork ? (
-                  <Image
-                    source={{ uri: item.artwork }}
-                    alt="artwork"
-                    className="h-full w-full"
-                  />
-                ) : (
-                  <IconFather name="music" size={28} color={colors.white} />
-                )}
+              <View className="w-20 h-20 bg-purple-600 rounded-full overflow-hidden items-center justify-center">
+                <Image
+                  source={{ uri: item.photoURL }}
+                  alt="artwork"
+                  className="h-full w-full"
+                />
               </View>
               <View>
-                <Text className="font-bold text-white">{item.title}</Text>
-                <Text className="font-regular text-gray-300">
-                  {item.artist}
+                <Text className="font-bold text-white text-base">
+                  {item.name}
                 </Text>
               </View>
             </TouchableOpacity>

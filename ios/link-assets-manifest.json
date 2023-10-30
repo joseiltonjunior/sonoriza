@@ -2,24 +2,24 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "assets/fonts/Baloo2-Bold.ttf",
-      "sha1": "85215f8711d06ac253f5c5daccb7873f3d593ace"
+      "path": "assets/fonts/Nunito-Bold.ttf",
+      "sha1": "d8091536d0fab37a3239067f708a0221070835da"
     },
     {
-      "path": "assets/fonts/Baloo2-ExtraBold.ttf",
-      "sha1": "6bda11fd73c22976ca1915b3502cbc8fd0d681fa"
+      "path": "assets/fonts/Nunito-Light.ttf",
+      "sha1": "c570f483013f57db1a325ae1ddc2e11c115bb441"
     },
     {
-      "path": "assets/fonts/Baloo2-Medium.ttf",
-      "sha1": "346930c1a85c509907818bb0c424f01463041f25"
+      "path": "assets/fonts/Nunito-Medium.ttf",
+      "sha1": "941255b6a8c1e2d286ed9613bd6b354e2423dad9"
     },
     {
-      "path": "assets/fonts/Baloo2-Regular.ttf",
-      "sha1": "4a1fc0d6f7607f9595d9f3b1b89abbd342c7c25b"
+      "path": "assets/fonts/Nunito-Regular.ttf",
+      "sha1": "465c464793593babb53e51e2a56562cdd79c237d"
     },
     {
-      "path": "assets/fonts/Baloo2-SemiBold.ttf",
-      "sha1": "88bbd7663a3efb4f6bdd76fa488c27a9ea8497eb"
+      "path": "assets/fonts/Nunito-SemiBold.ttf",
+      "sha1": "047ca2a59c253520cc46b3506744fad6ef8192c6"
     }
   ]
 }

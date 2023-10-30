@@ -102,10 +102,10 @@ export function SideMenu() {
           </View>
 
           <View className="ml-4">
-            <Text className="font-bold text-xl text-white">
+            <Text className="font-nunito-bold text-xl text-white">
               {user.displayName}
             </Text>
-            <Text className="text-xs text-gray-300">
+            <Text className="text-xs font-nunito-regular text-gray-300">
               Sonoriza {user.plain === 'premium' ? 'Premium' : 'Free'}
             </Text>
           </View>
@@ -141,7 +141,7 @@ export function SideMenu() {
             }}
             value={config.isLocal}
           />
-          <Text className="mt-1 text-sm">
+          <Text className="mt-1 text-sm text-gray-300 font-nunito-regular">
             Este modo permite ao usuário reproduzir músicas armazenadas
             localmente no dispositivo.
           </Text>
@@ -166,7 +166,7 @@ export function SideMenu() {
               })
             }}
           >
-            <Text className="font-bold text-white">DESCONECTAR</Text>
+            <Text className="font-nunito-bold text-white">DESCONECTAR</Text>
           </TouchableOpacity>
         </View>
       </View>

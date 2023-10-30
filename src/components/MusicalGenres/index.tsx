@@ -17,7 +17,7 @@ export function MusicalGenres({ musicalGenres }: MusicalGenresProps) {
             className="bg-purple-600 mr-4 px-6 rounded-lg items-center justify-center h-full"
             activeOpacity={0.6}
           >
-            <Text className="font-bold text-center text-white text-base leading-5">
+            <Text className="font-nunito-bold text-center text-white text-base leading-5">
               {item.name}
             </Text>
           </TouchableOpacity>

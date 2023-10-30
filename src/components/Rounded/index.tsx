@@ -32,7 +32,7 @@ export function Rounded({ artist, artwork, className, ...rest }: RoundedProps) {
 
         <View className="mt-auto pt-2">
           <Text
-            className="font-bold text-md text-white text-center"
+            className="font-nunito-bold text-base text-white text-center"
             numberOfLines={1}
           >
             {artist}

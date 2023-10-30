@@ -68,15 +68,15 @@ export function Card({
           </View>
         </View>
 
-        <View className="mt-auto pt-2">
+        <View className="mt-1">
           <Text
-            className="font-bold text-md text-white text-center"
+            className="font-nunito-bold text-white text-center"
             numberOfLines={1}
           >
             {title}
           </Text>
           <Text
-            className="font-bold text-xs text-gray-300 text-center"
+            className="font-nunito-medium text-xs text-gray-300 text-center"
             numberOfLines={1}
           >
             {artist}
