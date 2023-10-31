@@ -29,7 +29,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
   const navigation = useNavigation<StackNavigationProps>()
 
   return (
-    <View className="bg-purple-600 flex-row items-center justify-between py-3 px-6">
+    <View className="bg-purple-600 flex-row items-center justify-between py-2 px-6">
       <TouchableOpacity
         onPress={() => {
           if (state === State.Playing) {
@@ -49,7 +49,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
       </TouchableOpacity>
 
       <TouchableOpacity
-        activeOpacity={0.5}
+        activeOpacity={0.8}
         className="w-8/12"
         onPress={() => navigation.navigate('Music')}
       >
@@ -62,8 +62,8 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
       </TouchableOpacity>
 
       <View className="flex-row gap-6">
-        <TouchableOpacity>
-          <IconAntDesign name="heart" size={22} color={colors.white} />
+        <TouchableOpacity activeOpacity={0.6}>
+          <IconAntDesign name="hearto" size={22} color={colors.white} />
         </TouchableOpacity>
 
         <TouchableOpacity

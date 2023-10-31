@@ -65,15 +65,7 @@ export function Music() {
       <View className="flex-row items-center justify-center mt-2  relative">
         <TouchableOpacity
           onPress={() => {
-            navigation.reset({
-              index: 0,
-              routes: [
-                {
-                  name: 'Home',
-                  params: undefined,
-                },
-              ],
-            })
+            navigation.goBack()
           }}
           className="absolute left-0"
         >
@@ -124,7 +116,7 @@ export function Music() {
           </TouchableOpacity>
 
           <TouchableOpacity activeOpacity={0.5} className="">
-            <Icon name="heart" size={22} color={'#fff'} />
+            <Icon name="hearto" size={22} color={'#fff'} />
           </TouchableOpacity>
         </View>
 

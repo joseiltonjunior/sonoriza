@@ -36,7 +36,7 @@ export function MoreMusic() {
           >
             <Icon name="back" size={30} color="#fff" />
           </TouchableOpacity>
-          <Text className="text-base font-bold text-white">{title}</Text>
+          <Text className="text-lg font-bold text-white">{title}</Text>
         </View>
 
         <FlatList

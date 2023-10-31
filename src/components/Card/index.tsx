@@ -39,7 +39,7 @@ export function Card({
   return (
     <TouchableOpacity
       {...rest}
-      activeOpacity={0.6}
+      activeOpacity={0.9}
       className={twMerge('', className)}
     >
       <View>

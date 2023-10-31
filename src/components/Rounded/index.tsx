@@ -18,7 +18,7 @@ export function Rounded({ artist, artwork, className, ...rest }: RoundedProps) {
   return (
     <TouchableOpacity
       {...rest}
-      activeOpacity={0.6}
+      activeOpacity={0.9}
       className={twMerge('', className)}
     >
       <View>

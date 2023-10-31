@@ -33,7 +33,7 @@ export function MoreArtists() {
           >
             <Icon name="back" size={30} color="#fff" />
           </TouchableOpacity>
-          <Text className="text-base font-bold text-white">
+          <Text className="text-lg font-nunito-bold text-white">
             Explore por artistas
           </Text>
         </View>
@@ -47,6 +47,9 @@ export function MoreArtists() {
             <TouchableOpacity
               key={index}
               className="flex-row items-center gap-4"
+              onPress={() => {
+                navigation.navigate('Artist', { artist: item })
+              }}
             >
               <View className="w-20 h-20 bg-purple-600 rounded-full overflow-hidden items-center justify-center">
                 <Image
@@ -56,7 +59,7 @@ export function MoreArtists() {
                 />
               </View>
               <View>
-                <Text className="font-bold text-white text-base">
+                <Text className="font-nunito-bold text-white text-base">
                   {item.name}
                 </Text>
               </View>
