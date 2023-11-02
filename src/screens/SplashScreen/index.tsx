@@ -13,10 +13,11 @@ import { useModal } from '@hooks/useModal'
 import { useDispatch, useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
 import { UserProps } from '@storage/modules/user/reducer'
+
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
 import { handleSetArtists } from '@storage/modules/artists/reducer'
 import { handleSetMusicalGenres } from '@storage/modules/musicalGenres/reducer'
-import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 const size = Dimensions.get('window').width * 0.9
 
@@ -37,13 +38,13 @@ export function SplashScreen() {
       const user = auth().currentUser
       if (user) {
         if (userProvider.plain === 'premium') {
-          const responseArtists = await handleGetArtists()
-          const responseGenres = await handleGetMusicalGenres()
-          const responseMusics = await handleGetMusicsDatabase()
+          const artists = await handleGetArtists()
+          const trackListRemote = await handleGetMusicsDatabase()
+          const musicalGenres = await handleGetMusicalGenres()
 
-          dispatch(handleSetArtists({ artists: responseArtists }))
-          dispatch(handleSetMusicalGenres({ musicalGenres: responseGenres }))
-          dispatch(handleTrackListRemote({ trackListRemote: responseMusics }))
+          dispatch(handleTrackListRemote({ trackListRemote }))
+          dispatch(handleSetArtists({ artists }))
+          dispatch(handleSetMusicalGenres({ musicalGenres }))
         }
 
         navigation.reset({

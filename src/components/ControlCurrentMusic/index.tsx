@@ -1,4 +1,4 @@
-import { MusicProps } from '@utils/Types/musicProps'
+import { TrackPlayerMusicProps } from '@utils/Types/musicProps'
 
 import { Text, TouchableOpacity, View } from 'react-native'
 import IconAntDesign from 'react-native-vector-icons/AntDesign'
@@ -15,7 +15,7 @@ import { State } from 'react-native-track-player'
 import colors from 'tailwindcss/colors'
 
 interface ControlCurrentMusicProps {
-  music?: MusicProps
+  music?: TrackPlayerMusicProps
 }
 
 export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
@@ -57,7 +57,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
           {isCurrentMusic?.title || music?.title}
         </Text>
         <Text className="font-nunito-regular text-white text-xs">
-          {isCurrentMusic?.artist || music?.artist}
+          {isCurrentMusic?.artist}
         </Text>
       </TouchableOpacity>
 

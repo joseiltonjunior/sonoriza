@@ -21,17 +21,11 @@ import { State } from 'react-native-track-player'
 
 interface CardProps extends TouchableOpacityProps {
   artwork: string
-  artist: string
+  album: string
   title: string
 }
 
-export function Card({
-  artist,
-  artwork,
-  title,
-  className,
-  ...rest
-}: CardProps) {
+export function Card({ album, artwork, title, className, ...rest }: CardProps) {
   const { isCurrentMusic, state } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
@@ -39,7 +33,7 @@ export function Card({
   return (
     <TouchableOpacity
       {...rest}
-      activeOpacity={0.9}
+      activeOpacity={0.6}
       className={twMerge('', className)}
     >
       <View>
@@ -79,7 +73,7 @@ export function Card({
             className="font-nunito-medium text-xs text-gray-300 text-center"
             numberOfLines={1}
           >
-            {artist}
+            {album}
           </Text>
         </View>
       </View>

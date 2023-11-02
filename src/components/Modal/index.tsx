@@ -4,13 +4,20 @@ import { TouchableOpacity, View, Text, Modal as ModalView } from 'react-native'
 
 export function Modal() {
   const {
+    closeModal,
     modalState: { visible, description, title, singleAction, twoActions },
   } = useModal()
 
   return (
     <ModalView animationType="slide" transparent visible={visible}>
-      <View className="flex-1 bg-gray-950/80 justify-center items-center p-4">
-        <View className="bg-gray-100 w-full rounded-lg p-4">
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={closeModal}
+        className="h-full w-screen bg-gray-950/80 absolute"
+      />
+
+      <View className="flex-1 justify-center p-4">
+        <View className="bg-gray-100 rounded-lg p-4">
           <Text className="font-bold text-purple-600 text-xl text-center">
             {title}
           </Text>

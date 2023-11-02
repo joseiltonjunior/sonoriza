@@ -3,12 +3,10 @@ import Carousel from 'react-native-reanimated-carousel'
 import { Rounded } from '@components/Rounded'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
+import { ArtistsDataProps } from '@utils/Types/artistsProps'
 
 interface RoundedCourselProps {
-  artists: {
-    name: string
-    photoURL: string
-  }[]
+  artists: ArtistsDataProps[]
 }
 
 export function RoundedCarousel({ artists }: RoundedCourselProps) {

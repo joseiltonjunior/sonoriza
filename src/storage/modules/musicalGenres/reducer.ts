@@ -1,9 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-
-export interface MusicalGenresDataProps {
-  name: string
-}
+import { MusicalGenresDataProps } from '@utils/Types/musicalGenresProps'
 
 export interface MusicalGenresProps {
   musicalGenres: MusicalGenresDataProps[]

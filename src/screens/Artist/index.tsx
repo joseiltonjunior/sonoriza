@@ -1,14 +1,13 @@
 import { BottomMenu } from '@components/BottomMenu/Index'
 
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
+
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
 
-import { useMemo } from 'react'
 import {
   FlatList,
   Image,
@@ -32,16 +31,6 @@ export function Artist() {
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
-
-  const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
-    (state) => state.trackListRemote,
-  )
-
-  const handleFilterMusics = useMemo(() => {
-    return trackListRemote.filter((music) =>
-      music.artist.toString().includes(artist.name),
-    )
-  }, [artist.name, trackListRemote])
 
   return (
     <>
@@ -74,8 +63,8 @@ export function Artist() {
             onPress={() => {
               handleMusicSelected({
                 indexSelected: 0,
-                listMusics: handleFilterMusics,
-                musicSelected: handleFilterMusics[0],
+                listMusics: artist.musics,
+                musicSelected: artist.musics[0],
               })
             }}
           >
@@ -101,7 +90,7 @@ export function Artist() {
           <FlatList
             className="mt-8"
             showsVerticalScrollIndicator={false}
-            data={handleFilterMusics}
+            data={artist.musics}
             ItemSeparatorComponent={() => <View className="h-3" />}
             renderItem={({ item, index }) => (
               <View className="flex-row items-center ">
@@ -111,7 +100,7 @@ export function Artist() {
                   onPress={() => {
                     handleMusicSelected({
                       indexSelected: index,
-                      listMusics: handleFilterMusics,
+                      listMusics: artist.musics,
                       musicSelected: item,
                     })
                   }}
@@ -128,7 +117,7 @@ export function Artist() {
                       {item.title}
                     </Text>
                     <Text className="font-nunito-regular text-gray-300 mt-1">
-                      {item.artist}
+                      {item.album}
                     </Text>
                   </View>
                 </TouchableOpacity>

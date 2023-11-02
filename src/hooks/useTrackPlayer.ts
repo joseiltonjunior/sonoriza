@@ -6,7 +6,7 @@ import {
   handleChangeStateCurrentMusic,
   handleSetCurrentMusic,
 } from '@storage/modules/currentMusic/reducer'
-import { MusicProps } from '@utils/Types/musicProps'
+import { MusicProps, TrackPlayerMusicProps } from '@utils/Types/musicProps'
 import { useCallback } from 'react'
 import TrackPlayer, { State, useProgress } from 'react-native-track-player'
 import { useDispatch, useSelector } from 'react-redux'
@@ -28,7 +28,11 @@ export function useTrackPlayer() {
   const getCurrentMusic = useCallback(async () => {
     const trackIndex = (await TrackPlayer.getCurrentTrack()) as number
 
-    const trackObject = (await TrackPlayer.getTrack(trackIndex)) as MusicProps
+    const trackObject = (await TrackPlayer.getTrack(
+      trackIndex,
+    )) as TrackPlayerMusicProps
+
+    if (!trackObject) return
 
     dispatch(handleSetCurrentMusic({ isCurrentMusic: trackObject }))
   }, [dispatch])
@@ -39,25 +43,42 @@ export function useTrackPlayer() {
       listMusics,
       musicSelected,
     }: HandleMusicSelectedProps) => {
-      if (isCurrentMusic?.title === musicSelected.title) {
+      if (isCurrentMusic?.title.includes(musicSelected.title)) {
         navigation.navigate('Music')
         return
       }
 
+      const { artists, genres, ...rest } = musicSelected
+
+      const currentTrackPlayerMusic = {
+        ...rest,
+        artist: artists[0].name,
+        genre: genres[0],
+      }
+
+      const trackPlayerMusics = listMusics.map(
+        ({ artists, genres, ...rest }) => ({
+          ...rest,
+          artist: artists[0].name,
+          genre: genres[0],
+        }),
+      )
+
       TrackPlayer.reset()
-      TrackPlayer.add(listMusics)
+      TrackPlayer.add(trackPlayerMusics)
       TrackPlayer.skip(indexSelected)
       TrackPlayer.play()
       navigation.navigate('Music')
-      dispatch(handleSetCurrentMusic({ isCurrentMusic: musicSelected }))
+      dispatch(
+        handleSetCurrentMusic({ isCurrentMusic: currentTrackPlayerMusic }),
+      )
       dispatch(handleChangeStateCurrentMusic(State.Playing))
     },
-    [isCurrentMusic?.title, dispatch, navigation],
+    [dispatch, isCurrentMusic?.title, navigation],
   )
 
   return {
     getCurrentMusic,
-
     TrackPlayer,
     handleMusicSelected,
     useProgress,

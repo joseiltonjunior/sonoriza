@@ -29,10 +29,6 @@ import { UserDataProps } from '@screens/Register'
 import { useModal } from '@hooks/useModal'
 import { useDispatch } from 'react-redux'
 import { handleSaveUser } from '@storage/modules/user/reducer'
-import { handleSetArtists } from '@storage/modules/artists/reducer'
-import { handleSetMusicalGenres } from '@storage/modules/musicalGenres/reducer'
-import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 interface FormDataProps {
   email: string
@@ -55,9 +51,6 @@ export function SignIn() {
   })
 
   const navigation = useNavigation<StackNavigationProps>()
-
-  const { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase } =
-    useFirebaseServices()
 
   const [isLoading, setIsLoading] = useState(false)
 
@@ -83,25 +76,7 @@ export function SignIn() {
           }),
         )
 
-        if (plain === 'premium') {
-          const responseArtists = await handleGetArtists()
-          const responseGenres = await handleGetMusicalGenres()
-          const responseMusics = await handleGetMusicsDatabase()
-
-          dispatch(handleSetArtists({ artists: responseArtists }))
-          dispatch(handleSetMusicalGenres({ musicalGenres: responseGenres }))
-          dispatch(handleTrackListRemote({ trackListRemote: responseMusics }))
-        }
-
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: 'Home',
-              params: undefined,
-            },
-          ],
-        })
+        navigation.navigate('SplashScreen')
       })
       .finally(() => {
         setIsLoading(false)

@@ -70,7 +70,7 @@ export function MoreMusic() {
               <View>
                 <Text className="font-bold text-white">{item.title}</Text>
                 <Text className="font-regular text-gray-300">
-                  {item.artist}
+                  {item.artists[0].name}
                 </Text>
               </View>
             </TouchableOpacity>

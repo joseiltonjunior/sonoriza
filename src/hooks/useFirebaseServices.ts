@@ -1,68 +1,72 @@
-import { useCallback } from 'react'
 import firestore from '@react-native-firebase/firestore'
 import crashlytics from '@react-native-firebase/crashlytics'
 import { MusicProps } from '@utils/Types/musicProps'
-import { MusicalGenresDataProps } from '@storage/modules/musicalGenres/reducer'
-import { ArtistsDataProps } from '@storage/modules/artists/reducer'
+import { MusicalGenresDataProps } from '@utils/Types/musicalGenresProps'
+import { ArtistsDataProps } from '@utils/Types/artistsProps'
 
 export function useFirebaseServices() {
-  const handleGetMusicsDatabase = useCallback(async () => {
-    const response = await firestore()
+  const handleGetMusicsDatabase = async (): Promise<MusicProps[]> => {
+    let musics = [] as MusicProps[]
+    await firestore()
       .collection('musics')
       .get()
       .then(async (querySnapshot) => {
-        const musicsResponse = querySnapshot.docs.map((doc) => ({
-          url: doc.data().url,
-          artwork: doc.data().artwork,
-          artist: doc.data().artist,
-          title: doc.data().title,
-        })) as MusicProps[]
+        const musicsResponse = querySnapshot.docs.map((doc) =>
+          doc.data(),
+        ) as MusicProps[]
 
-        return musicsResponse
+        musics = musicsResponse
       })
       .catch((err) => {
         crashlytics().recordError(err)
       })
 
-    return response as MusicProps[]
-  }, [])
+    return musics
+  }
 
-  const handleGetMusicalGenres = useCallback(async () => {
-    const response = await firestore()
+  const handleGetMusicalGenres = async (): Promise<
+    MusicalGenresDataProps[]
+  > => {
+    let musicalGenres = [] as MusicalGenresDataProps[]
+    await firestore()
       .collection('musicalGenres')
       .get()
       .then(async (querySnapshot) => {
-        const musicalGenresResponse = querySnapshot.docs.map((doc) => ({
-          name: doc.data().name as string,
-        })) as MusicalGenresDataProps[]
+        const musicalGenresResponse = querySnapshot.docs.map((doc) =>
+          doc.data(),
+        ) as MusicalGenresDataProps[]
 
-        return musicalGenresResponse
+        musicalGenres = musicalGenresResponse
       })
       .catch((err) => {
         crashlytics().recordError(err)
       })
-    return response as MusicalGenresDataProps[]
-  }, [])
+    return musicalGenres
+  }
 
-  const handleGetArtists = useCallback(async () => {
-    const response = await firestore()
+  const handleGetArtists = async (): Promise<ArtistsDataProps[]> => {
+    let artists = [] as ArtistsDataProps[]
+    await firestore()
       .collection('artists')
       .get()
       .then(async (querySnapshot) => {
-        const artistsResponse = querySnapshot.docs.map((doc) => ({
-          name: doc.data().name as string,
-          photoURL: doc.data().photoURL as string,
-        })) as ArtistsDataProps[]
+        const artistsResponse = querySnapshot.docs.map((doc) =>
+          doc.data(),
+        ) as ArtistsDataProps[]
 
-        return artistsResponse
+        artists = artistsResponse
       })
 
       .catch((err) => {
         crashlytics().recordError(err)
       })
 
-    return response as ArtistsDataProps[]
-  }, [])
+    return artists
+  }
 
-  return { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase }
+  return {
+    handleGetArtists,
+    handleGetMusicalGenres,
+    handleGetMusicsDatabase,
+  }
 }

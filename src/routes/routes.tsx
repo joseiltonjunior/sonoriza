@@ -15,8 +15,8 @@ import { MoreMusic } from '@screens/MoreMusic'
 import { MoreArtists } from '@screens/MoreArtists'
 import { Artist } from '@screens/Artist'
 
+import { ArtistsDataProps } from '@utils/Types/artistsProps'
 import { MusicProps } from '@utils/Types/musicProps'
-import { ArtistsDataProps } from '@storage/modules/artists/reducer'
 
 type RootStackParamList = {
   Home: undefined

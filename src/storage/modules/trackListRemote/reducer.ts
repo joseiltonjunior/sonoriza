@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
+
 import { MusicProps } from '@utils/Types/musicProps'
 
 export interface TrackListRemoteProps {

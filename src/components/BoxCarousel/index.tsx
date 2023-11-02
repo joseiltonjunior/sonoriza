@@ -1,8 +1,8 @@
 import Carousel from 'react-native-reanimated-carousel'
 import { Card } from '../Card'
 
-import { MusicProps } from '@utils/Types/musicProps'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
+import { MusicProps } from '@utils/Types/musicProps'
 
 interface BoxCourselProps {
   musics: MusicProps[]
@@ -22,7 +22,7 @@ export function BoxCarousel({ musics }: BoxCourselProps) {
       renderItem={({ item, index }) => (
         <Card
           title={item.title}
-          artist={item.artist}
+          album={item.album}
           artwork={item.artwork}
           onPress={() =>
             handleMusicSelected({

@@ -9,6 +9,7 @@ import AnimatedLottieView from 'lottie-react-native'
 import animation from '@assets/music-loading.json'
 
 import {
+  Image,
   ImageBackground,
   ScrollView,
   Text,
@@ -26,10 +27,16 @@ import {
 } from '@storage/modules/currentMusic/reducer'
 import { State } from 'react-native-track-player'
 
+import { useBottomModal } from '@hooks/useBottomModal'
+// import { useFirebaseServices } from '@hooks/useFirebaseServices'
+// import { RoundedCarousel } from '@components/RoundedCarousel'
+
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
 
   const { getCurrentMusic, TrackPlayer, useProgress } = useTrackPlayer()
+
+  const { openModal } = useBottomModal()
 
   const progress = useProgress()
   const dispatch = useDispatch()
@@ -61,7 +68,10 @@ export function Music() {
   }, [calculateProgressPercentage])
 
   return (
-    <ScrollView className="p-2  flex-1 bg-gray-950 px-4">
+    <ScrollView
+      className="p-2 flex-1 px-4"
+      // style={{ backgroundColor: dominantColor }}
+    >
       <View className="flex-row items-center justify-center mt-2  relative">
         <TouchableOpacity
           onPress={() => {
@@ -112,7 +122,39 @@ export function Music() {
             className="border border-white rounded-full p-3"
             activeOpacity={0.5}
           >
-            <FatherIcons name="more-vertical" size={30} color={'#fff'} />
+            <FatherIcons
+              name="more-vertical"
+              size={30}
+              color={'#fff'}
+              onPress={() =>
+                openModal({
+                  children: (
+                    <View>
+                      <View className="items-center">
+                        <Text
+                          className="font-nunito-bold text-xl text-white"
+                          numberOfLines={1}
+                        >
+                          {isCurrentMusic?.title}
+                        </Text>
+                        <Text className="text-gray-300 font-nunito-regular">
+                          {isCurrentMusic?.album}
+                        </Text>
+                        <Image
+                          source={{ uri: isCurrentMusic?.artwork }}
+                          alt="artist pic"
+                          className="w-28 h-28 rounded-full my-2"
+                        />
+
+                        <Text className="text-gray-300 font-nunito-regular">
+                          {isCurrentMusic?.artist}
+                        </Text>
+                      </View>
+                    </View>
+                  ),
+                })
+              }
+            />
           </TouchableOpacity>
 
           <TouchableOpacity activeOpacity={0.5} className="">
@@ -139,6 +181,7 @@ export function Music() {
         </Text>
         <Text className="font-nunito-regular text-gray-300">
           {isCurrentMusic?.artist}
+          {isCurrentMusic?.album && ` - ${isCurrentMusic.album}`}
         </Text>
       </View>
 

@@ -22,48 +22,58 @@ import { useSideMenu } from '@hooks/useSideMenu'
 
 import { ConfigProps } from '@storage/modules/config/reducer'
 import { BoxCarousel } from '@components/BoxCarousel'
-import { TrackListLocalProps } from '@storage/modules/trackListLocal/reducer'
-import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
+
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-import { MusicalGenres } from '@components/MusicalGenres'
-import { MusicalGenresProps } from '@storage/modules/musicalGenres/reducer'
+
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
-import { ArtistsProps } from '@storage/modules/artists/reducer'
+
 import { RoundedCarousel } from '@components/RoundedCarousel'
 import { UserProps } from '@storage/modules/user/reducer'
 import { useLocalMusic } from '@hooks/useLocalMusic'
 import { Button } from '@components/Button'
 import { Section } from '@components/Section'
 
+import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
+import { ArtistsProps } from '@storage/modules/artists/reducer'
+import { MusicalGenresProps } from '@storage/modules/musicalGenres/reducer'
+import { MusicalGenres } from '@components/MusicalGenres'
+import { TrackListLocalProps } from '@storage/modules/trackListLocal/reducer'
+
 export function Home() {
   const dispatch = useDispatch()
 
   const navigation = useNavigation<StackNavigationProps>()
 
+  const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
+    (state) => state.trackListRemote,
+  )
+
   const { handleStoragePermission } = useLocalMusic()
 
-  const { musicalGenres } = useSelector<ReduxProps, MusicalGenresProps>(
-    (state) => state.musicalGenres,
-  )
-  const { artists } = useSelector<ReduxProps, ArtistsProps>(
-    (state) => state.artists,
-  )
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
   const { isInitialized } = useSelector<ReduxProps, MusicPlayerSettingsProps>(
     (state) => state.musicPlayerSettings,
   )
+
   const { trackListLocal } = useSelector<ReduxProps, TrackListLocalProps>(
     (state) => state.trackListLocal,
   )
+
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
-  const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
-    (state) => state.trackListRemote,
+
+  const { artists } = useSelector<ReduxProps, ArtistsProps>(
+    (state) => state.artists,
   )
+
   const { config } = useSelector<ReduxProps, ConfigProps>(
     (state) => state.config,
+  )
+
+  const { musicalGenres } = useSelector<ReduxProps, MusicalGenresProps>(
+    (state) => state.musicalGenres,
   )
 
   const { handleIsVisible } = useSideMenu()
@@ -103,7 +113,7 @@ export function Home() {
 
         {user.plain === 'premium' && (
           <View className="pl-4">
-            {musicalGenres.length > 0 && (
+            {musicalGenres && (
               <Section
                 onPress={() => console.log('falta')}
                 title="Explore por gêneros musicais"
@@ -112,7 +122,7 @@ export function Home() {
               </Section>
             )}
 
-            {trackListRemote.length > 0 && (
+            {trackListRemote && (
               <Section
                 title="Explore novas possibilidades"
                 className="mt-12"
@@ -127,7 +137,7 @@ export function Home() {
               </Section>
             )}
 
-            {artists.length > 0 && (
+            {artists && (
               <Section
                 title="Explore por artistas"
                 className="mt-12"

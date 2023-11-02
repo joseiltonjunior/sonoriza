@@ -14,6 +14,7 @@ import { Routes } from '@routes/routes'
 import { SideMenu } from '@components/SideMenu'
 import { Modal } from '@components/Modal'
 import { Hooks } from '@hooks/index'
+import { BottomModal } from '@components/BottomModal'
 
 function App(): JSX.Element {
   return (
@@ -23,6 +24,7 @@ function App(): JSX.Element {
         <Routes />
         <SideMenu />
         <Modal />
+        <BottomModal />
       </NavigationContainer>
     </Hooks>
   )

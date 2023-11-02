@@ -3,10 +3,10 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 
 import { State } from 'react-native-track-player'
 
-import { MusicProps } from '@utils/Types/musicProps'
+import { TrackPlayerMusicProps } from '@utils/Types/musicProps'
 
 export interface CurrentMusicProps {
-  isCurrentMusic?: MusicProps
+  isCurrentMusic?: TrackPlayerMusicProps
   state?: State
 }
 
