@@ -1,15 +1,15 @@
 import { BottomMenu } from '@components/BottomMenu/Index'
 
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
+import { ArtistsProps } from '@storage/modules/artists/reducer'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-import { ArtistsDataProps } from '@utils/Types/artistsProps'
-import { useEffect, useState } from 'react'
+
+import { useMemo } from 'react'
 
 import {
   FlatList,
@@ -30,25 +30,20 @@ export function Artist() {
 
   const navigation = useNavigation<StackNavigationProps>()
   const { handleMusicSelected } = useTrackPlayer()
-  const { handleGetArtistById } = useFirebaseServices()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
 
-  const [artist, setArtist] = useState<ArtistsDataProps>()
+  const { artists } = useSelector<ReduxProps, ArtistsProps>(
+    (state) => state.artists,
+  )
 
-  const handleGetArtist = async (id: string) => {
-    const response = await handleGetArtistById(id)
-    setArtist(response)
-  }
+  const artist = useMemo(() => {
+    const filter = artists.find((artist) => artist.id === artistId)
 
-  useEffect(() => {
-    if (artistId) {
-      handleGetArtist(artistId)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [artistId])
+    return filter
+  }, [artistId, artists])
 
   if (!artist) return
 

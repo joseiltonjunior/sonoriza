@@ -4,7 +4,7 @@ export interface MusicProps {
   url: string
   title: string
   artists: ArtistsDataProps[]
-  genres: string[]
+  genre: string
   album: string
   date: string
   artwork: string

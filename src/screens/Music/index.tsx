@@ -66,20 +66,7 @@ export function Music() {
   }
 
   const handleSkipToPrevius = async () => {
-    if (isInitialMusic) return setIsInitialMusic(true)
-    const currentTrack = await TrackPlayer.getCurrentTrack()
-
-    const index = Number(currentTrack)
-
-    const verify = index === 0
-
-    if (verify) {
-      setIsInitialMusic(true)
-      setIsEndMusic(false)
-      return
-    }
-
-    await TrackPlayer.skip(index - 1)
+    await TrackPlayer.skipToPrevious()
 
     getCurrentMusic()
     setActualProgress(0)
@@ -89,20 +76,6 @@ export function Music() {
   }
 
   const handleSkipToNext = async () => {
-    if (isEndMusic) return setIsEndMusic(true)
-    const currentTrack = await TrackPlayer.getCurrentTrack()
-    const queue = await TrackPlayer.getQueue()
-
-    const index = Number(currentTrack)
-
-    const verify = index === queue.length - 1
-
-    if (verify) {
-      setIsEndMusic(true)
-      setIsInitialMusic(false)
-      return
-    }
-
     await TrackPlayer.skipToNext()
 
     getCurrentMusic()
@@ -163,9 +136,7 @@ export function Music() {
         </View>
 
         <View className="pt-8 flex-row items-center gap-8">
-          <TouchableOpacity activeOpacity={0.5} className="">
-            <FatherIcons name="share-2" size={22} color={'#fff'} />
-          </TouchableOpacity>
+          <View className="w-[22px]" />
 
           <TouchableOpacity
             className="border border-white rounded-full p-3"
@@ -204,7 +175,7 @@ export function Music() {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity activeOpacity={0.5} className="">
+          <TouchableOpacity activeOpacity={0.5}>
             <Icon name="hearto" size={22} color={'#fff'} />
           </TouchableOpacity>
         </View>

@@ -66,32 +66,6 @@ export function useFirebaseServices() {
 
   // fetch in cache
 
-  type ColorProps = {
-    name: string
-  }
-
-  const handleGetColorByMusicId = async (
-    musicId: string,
-  ): Promise<ColorProps> => {
-    const color = {
-      name: '',
-    } as ColorProps
-    await firestore()
-      .collection('musics')
-      .doc(musicId)
-      .get({ source: 'cache' })
-      .then(async (querySnapshot) => {
-        const musicsResponse = querySnapshot.data() as MusicProps
-
-        color.name = musicsResponse.color
-      })
-      .catch((err) => {
-        crashlytics().recordError(err)
-      })
-
-    return color
-  }
-
   const handleGetArtistsByMusicId = async (
     musicId: string,
   ): Promise<ArtistsDataProps[]> => {
@@ -139,7 +113,6 @@ export function useFirebaseServices() {
     handleGetMusicalGenres,
     handleGetMusicsDatabase,
     handleGetArtistsByMusicId,
-    handleGetColorByMusicId,
     handleGetArtistById,
   }
 }

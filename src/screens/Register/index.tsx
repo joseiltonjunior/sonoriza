@@ -27,7 +27,7 @@ import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
 import { useModal } from '@hooks/useModal'
 import { useDispatch } from 'react-redux'
-import { handleSaveUser } from '@storage/modules/user/reducer'
+import { handleSetUser } from '@storage/modules/user/reducer'
 
 interface FormDataProps {
   name: string
@@ -136,7 +136,7 @@ export function Register() {
             })
             .then(() => {
               dispatch(
-                handleSaveUser({
+                handleSetUser({
                   user: {
                     displayName,
                     email,

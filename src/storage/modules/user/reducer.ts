@@ -20,12 +20,12 @@ const userDataSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    handleSaveUser(state, action: PayloadAction<UserProps>) {
+    handleSetUser(state, action: PayloadAction<UserProps>) {
       state.user = action.payload.user
     },
   },
 })
 
-export const { handleSaveUser } = userDataSlice.actions
+export const { handleSetUser } = userDataSlice.actions
 
 export default userDataSlice.reducer

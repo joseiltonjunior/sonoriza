@@ -14,6 +14,7 @@ import { Register } from '@screens/Register'
 import { MoreMusic } from '@screens/MoreMusic'
 import { MoreArtists } from '@screens/MoreArtists'
 import { Artist } from '@screens/Artist'
+import { GenreSelected } from '@screens/GenreSelected'
 
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
 import { MusicProps } from '@utils/Types/musicProps'
@@ -33,6 +34,9 @@ type RootStackParamList = {
   MoreMusic: {
     listMusics: MusicProps[]
     title: string
+  }
+  GenreSelected: {
+    type: string
   }
 }
 
@@ -74,6 +78,7 @@ export function Routes() {
       <Stack.Screen name="MoreMusic" component={MoreMusic} />
       <Stack.Screen name="MoreArtists" component={MoreArtists} />
       <Stack.Screen name="Artist" component={Artist} />
+      <Stack.Screen name="GenreSelected" component={GenreSelected} />
     </Stack.Navigator>
   )
 }

@@ -11,8 +11,7 @@ import {
 } from '@storage/modules/currentMusic/reducer'
 import { State } from 'react-native-track-player'
 import colors from 'tailwindcss/colors'
-import { useCallback, useEffect, useState } from 'react'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import { MusicProps } from '@utils/Types/musicProps'
 
 interface ControlCurrentMusicProps {
@@ -20,11 +19,7 @@ interface ControlCurrentMusicProps {
 }
 
 export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
-  const [colorBackground, setColorBackground] = useState('#9333ea')
-
   const { TrackPlayer } = useTrackPlayer()
-
-  const { handleGetColorByMusicId } = useFirebaseServices()
 
   const { isCurrentMusic, state } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
@@ -33,24 +28,9 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
   const dispatch = useDispatch()
   const navigation = useNavigation<StackNavigationProps>()
 
-  const handleGetBackgroundColor = useCallback(
-    async (id: string) => {
-      await handleGetColorByMusicId(id).then((result) => {
-        setColorBackground(result.name)
-      })
-    },
-    [handleGetColorByMusicId],
-  )
-
-  useEffect(() => {
-    if (isCurrentMusic?.id) {
-      handleGetBackgroundColor(isCurrentMusic.id)
-    }
-  }, [handleGetBackgroundColor, isCurrentMusic?.id])
-
   return (
     <View
-      style={{ backgroundColor: colorBackground }}
+      style={{ backgroundColor: isCurrentMusic?.color }}
       className="flex-row items-center justify-between py-2 px-2 rounded-lg mx-2 mb-2 shadow shadow-gray-500"
     >
       <TouchableOpacity

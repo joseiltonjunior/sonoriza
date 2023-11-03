@@ -33,6 +33,8 @@ import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
 import { ArtistsProps } from '@storage/modules/artists/reducer'
 import { MusicalGenresProps } from '@storage/modules/musicalGenres/reducer'
 import { MusicalGenres } from '@components/MusicalGenres'
+import { useEffect } from 'react'
+import { useTrackPlayer } from '@hooks/useTrackPlayer'
 
 export function Home() {
   const navigation = useNavigation<StackNavigationProps>()
@@ -49,6 +51,8 @@ export function Home() {
     (state) => state.currentMusic,
   )
 
+  const { getCurrentMusic } = useTrackPlayer()
+
   const { artists } = useSelector<ReduxProps, ArtistsProps>(
     (state) => state.artists,
   )
@@ -62,6 +66,13 @@ export function Home() {
   )
 
   const { handleIsVisible } = useSideMenu()
+
+  useEffect(() => {
+    if (isCurrentMusic?.id) {
+      getCurrentMusic()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCurrentMusic?.id])
 
   return (
     <>
@@ -77,10 +88,7 @@ export function Home() {
         {user.plain === 'premium' && (
           <View className="pl-4">
             {musicalGenres && (
-              <Section
-                onPress={() => console.log('falta')}
-                title="Explore por gêneros musicais"
-              >
+              <Section title="Explore por gêneros musicais">
                 <MusicalGenres musicalGenres={musicalGenres} />
               </Section>
             )}

@@ -28,7 +28,12 @@ import { useNavigation } from '@react-navigation/native'
 import { UserDataProps } from '@screens/Register'
 import { useModal } from '@hooks/useModal'
 import { useDispatch } from 'react-redux'
-import { handleSaveUser } from '@storage/modules/user/reducer'
+import { handleSetUser } from '@storage/modules/user/reducer'
+
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
+import { handleSetArtists } from '@storage/modules/artists/reducer'
+import { handleSetMusicalGenres } from '@storage/modules/musicalGenres/reducer'
 
 interface FormDataProps {
   email: string
@@ -56,6 +61,9 @@ export function SignIn() {
 
   const { closeModal, openModal } = useModal()
 
+  const { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase } =
+    useFirebaseServices()
+
   const dispatch = useDispatch()
 
   GoogleSignin.configure({
@@ -71,12 +79,20 @@ export function SignIn() {
         const user = querySnapshot.data() as UserDataProps
         const { displayName, email, photoURL, uid, plain } = user
         dispatch(
-          handleSaveUser({
+          handleSetUser({
             user: { displayName, email, photoURL, uid, plain },
           }),
         )
 
-        navigation.navigate('SplashScreen')
+        const artists = await handleGetArtists()
+        const trackListRemote = await handleGetMusicsDatabase()
+        const musicalGenres = await handleGetMusicalGenres()
+
+        dispatch(handleTrackListRemote({ trackListRemote }))
+        dispatch(handleSetArtists({ artists }))
+        dispatch(handleSetMusicalGenres({ musicalGenres }))
+
+        navigation.navigate('Home')
       })
       .finally(() => {
         setIsLoading(false)

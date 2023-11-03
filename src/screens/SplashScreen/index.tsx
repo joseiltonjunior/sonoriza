@@ -10,9 +10,7 @@ import { StackNavigationProps } from '@routes/routes'
 import auth from '@react-native-firebase/auth'
 import { useModal } from '@hooks/useModal'
 
-import { useDispatch, useSelector } from 'react-redux'
-import { ReduxProps } from '@storage/index'
-import { UserProps } from '@storage/modules/user/reducer'
+import { useDispatch } from 'react-redux'
 
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
@@ -34,23 +32,17 @@ export function SplashScreen() {
   const { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase } =
     useFirebaseServices()
 
-  const { user: userProvider } = useSelector<ReduxProps, UserProps>(
-    (state) => state.user,
-  )
-
   const handleVerifyUser = async () => {
     try {
       const user = auth().currentUser
       if (user) {
-        if (userProvider.plain === 'premium') {
-          const artists = await handleGetArtists()
-          const trackListRemote = await handleGetMusicsDatabase()
-          const musicalGenres = await handleGetMusicalGenres()
+        const artists = await handleGetArtists()
+        const trackListRemote = await handleGetMusicsDatabase()
+        const musicalGenres = await handleGetMusicalGenres()
 
-          dispatch(handleTrackListRemote({ trackListRemote }))
-          dispatch(handleSetArtists({ artists }))
-          dispatch(handleSetMusicalGenres({ musicalGenres }))
-        }
+        dispatch(handleTrackListRemote({ trackListRemote }))
+        dispatch(handleSetArtists({ artists }))
+        dispatch(handleSetMusicalGenres({ musicalGenres }))
 
         navigation.reset({
           index: 0,
@@ -86,8 +78,13 @@ export function SplashScreen() {
         android: {
           appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
         },
-        capabilities: [Capability.Play, Capability.Play],
-        notificationCapabilities: [Capability.Play, Capability.Play],
+        capabilities: [
+          Capability.Play,
+          Capability.Pause,
+          Capability.SkipToNext,
+          Capability.SkipToPrevious,
+        ],
+        compactCapabilities: [Capability.Play, Capability.Pause],
       })
     } catch (err) {}
   }
