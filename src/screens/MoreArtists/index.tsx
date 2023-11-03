@@ -48,7 +48,7 @@ export function MoreArtists() {
               key={index}
               className="flex-row items-center gap-4"
               onPress={() => {
-                navigation.navigate('Artist', { artist: item })
+                navigation.navigate('Artist', { artistId: item.id })
               }}
             >
               <View className="w-20 h-20 bg-purple-600 rounded-full overflow-hidden items-center justify-center">

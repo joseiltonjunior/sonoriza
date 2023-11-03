@@ -40,6 +40,7 @@ export function useLocalMusic() {
         date: '',
         artwork: '',
         duration: 0,
+        id: music.path,
       }))
 
       dispatch(handleTrackListLocal({ trackListLocal: tracksFormatted }))

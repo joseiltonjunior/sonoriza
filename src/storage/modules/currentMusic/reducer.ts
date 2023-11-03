@@ -1,12 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
+import { MusicProps } from '@utils/Types/musicProps'
 
 import { State } from 'react-native-track-player'
 
-import { TrackPlayerMusicProps } from '@utils/Types/musicProps'
-
 export interface CurrentMusicProps {
-  isCurrentMusic?: TrackPlayerMusicProps
+  isCurrentMusic?: MusicProps
   state?: State
 }
 

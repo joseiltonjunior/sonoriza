@@ -64,9 +64,82 @@ export function useFirebaseServices() {
     return artists
   }
 
+  // fetch in cache
+
+  type ColorProps = {
+    name: string
+  }
+
+  const handleGetColorByMusicId = async (
+    musicId: string,
+  ): Promise<ColorProps> => {
+    const color = {
+      name: '',
+    } as ColorProps
+    await firestore()
+      .collection('musics')
+      .doc(musicId)
+      .get({ source: 'cache' })
+      .then(async (querySnapshot) => {
+        const musicsResponse = querySnapshot.data() as MusicProps
+
+        color.name = musicsResponse.color
+      })
+      .catch((err) => {
+        crashlytics().recordError(err)
+      })
+
+    return color
+  }
+
+  const handleGetArtistsByMusicId = async (
+    musicId: string,
+  ): Promise<ArtistsDataProps[]> => {
+    let artists = [] as ArtistsDataProps[]
+    await firestore()
+      .collection('musics')
+      .doc(musicId)
+      .get({ source: 'cache' })
+      .then(async (querySnapshot) => {
+        const musicResponse = querySnapshot.data() as MusicProps
+
+        artists = musicResponse.artists
+      })
+
+      .catch((err) => {
+        crashlytics().recordError(err)
+      })
+
+    return artists
+  }
+
+  const handleGetArtistById = async (
+    artistId: string,
+  ): Promise<ArtistsDataProps> => {
+    let artist = {} as ArtistsDataProps
+    await firestore()
+      .collection('artists')
+      .doc(artistId)
+      .get({ source: 'cache' })
+      .then(async (querySnapshot) => {
+        const musicResponse = querySnapshot.data() as ArtistsDataProps
+
+        artist = musicResponse
+      })
+
+      .catch((err) => {
+        crashlytics().recordError(err)
+      })
+
+    return artist
+  }
+
   return {
     handleGetArtists,
     handleGetMusicalGenres,
     handleGetMusicsDatabase,
+    handleGetArtistsByMusicId,
+    handleGetColorByMusicId,
+    handleGetArtistById,
   }
 }

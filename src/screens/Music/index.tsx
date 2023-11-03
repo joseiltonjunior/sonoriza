@@ -9,7 +9,6 @@ import AnimatedLottieView from 'lottie-react-native'
 import animation from '@assets/music-loading.json'
 
 import {
-  Image,
   ImageBackground,
   ScrollView,
   Text,
@@ -28,15 +27,18 @@ import {
 import { State } from 'react-native-track-player'
 
 import { useBottomModal } from '@hooks/useBottomModal'
-// import { useFirebaseServices } from '@hooks/useFirebaseServices'
-// import { RoundedCarousel } from '@components/RoundedCarousel'
+
+import { RoundedCarousel } from '@components/RoundedCarousel'
 
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
 
   const { getCurrentMusic, TrackPlayer, useProgress } = useTrackPlayer()
 
-  const { openModal } = useBottomModal()
+  const { openModal, closeModal } = useBottomModal()
+
+  const [isInitialMusic, setIsInitialMusic] = useState(false)
+  const [isEndMusic, setIsEndMusic] = useState(false)
 
   const progress = useProgress()
   const dispatch = useDispatch()
@@ -63,16 +65,63 @@ export function Music() {
     return `${minutes}:${formattedSeconds}`
   }
 
+  const handleSkipToPrevius = async () => {
+    if (isInitialMusic) return setIsInitialMusic(true)
+    const currentTrack = await TrackPlayer.getCurrentTrack()
+
+    const index = Number(currentTrack)
+
+    const verify = index === 0
+
+    if (verify) {
+      setIsInitialMusic(true)
+      setIsEndMusic(false)
+      return
+    }
+
+    await TrackPlayer.skip(index - 1)
+
+    getCurrentMusic()
+    setActualProgress(0)
+    TrackPlayer.play()
+    dispatch(handleChangeStateCurrentMusic(State.Playing))
+    setIsInitialMusic(false)
+  }
+
+  const handleSkipToNext = async () => {
+    if (isEndMusic) return setIsEndMusic(true)
+    const currentTrack = await TrackPlayer.getCurrentTrack()
+    const queue = await TrackPlayer.getQueue()
+
+    const index = Number(currentTrack)
+
+    const verify = index === queue.length - 1
+
+    if (verify) {
+      setIsEndMusic(true)
+      setIsInitialMusic(false)
+      return
+    }
+
+    await TrackPlayer.skipToNext()
+
+    getCurrentMusic()
+    setActualProgress(0)
+    TrackPlayer.play()
+    dispatch(handleChangeStateCurrentMusic(State.Playing))
+    setIsEndMusic(false)
+  }
+
   useEffect(() => {
     calculateProgressPercentage()
   }, [calculateProgressPercentage])
 
   return (
     <ScrollView
-      className="p-2 flex-1 px-4"
-      // style={{ backgroundColor: dominantColor }}
+      className="flex-1"
+      style={{ backgroundColor: isCurrentMusic?.color }}
     >
-      <View className="flex-row items-center justify-center mt-2  relative">
+      <View className="flex-row items-center justify-center m-4 ">
         <TouchableOpacity
           onPress={() => {
             navigation.goBack()
@@ -82,29 +131,29 @@ export function Music() {
           <Icon name="back" size={30} color="#fff" />
         </TouchableOpacity>
         <View className="flex-col items-center">
-          <Text className="text-gray-300 font-nunito-light">
+          <Text className="text-gray-100 font-nunito-light">
             Tocando do artista
           </Text>
           <Text className="text-white font-nunito-bold">
-            {isCurrentMusic?.artist}
+            {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
           </Text>
         </View>
       </View>
 
-      <View className="flex-1 items-center mt-12">
-        <View className="w-full h-[360px] overflow-hidden rounded-lg bg-purple-600 items-center justify-center">
+      <View className="flex-1 items-center mt-8 mx-4">
+        <View className="w-full h-[360px] overflow-hidden rounded-lg bg-purple-600 items-center justify-center shadow-lg shadow-gray-950">
           {isCurrentMusic?.artwork ? (
             <ImageBackground
               source={{ uri: isCurrentMusic.artwork }}
               alt=""
-              className="w-full h-full object-cover items-center justify-center"
+              className="w-full h-full object-cover items-center justify-center "
             >
               {actualProgress === 0 && (
                 <AnimatedLottieView
                   source={animation}
                   autoPlay
                   loop
-                  style={{ width: 150, height: 150 }}
+                  style={{ width: 120, height: 120 }}
                 />
               )}
             </ImageBackground>
@@ -130,25 +179,23 @@ export function Music() {
                 openModal({
                   children: (
                     <View>
-                      <View className="items-center">
-                        <Text
-                          className="font-nunito-bold text-xl text-white"
-                          numberOfLines={1}
-                        >
-                          {isCurrentMusic?.title}
-                        </Text>
-                        <Text className="text-gray-300 font-nunito-regular">
-                          {isCurrentMusic?.album}
-                        </Text>
-                        <Image
-                          source={{ uri: isCurrentMusic?.artwork }}
-                          alt="artist pic"
-                          className="w-28 h-28 rounded-full my-2"
-                        />
-
-                        <Text className="text-gray-300 font-nunito-regular">
-                          {isCurrentMusic?.artist}
-                        </Text>
+                      <Text
+                        className="text-center text-white font-nunito-bold text-lg"
+                        numberOfLines={1}
+                      >
+                        {isCurrentMusic?.title}
+                      </Text>
+                      <Text className="text-center font-nunito-regular text-gray-200">
+                        {isCurrentMusic?.album}
+                      </Text>
+                      <View className="my-4">
+                        {isCurrentMusic?.artists && (
+                          <RoundedCarousel
+                            artists={isCurrentMusic.artists}
+                            roundedSmall
+                            onAction={closeModal}
+                          />
+                        )}
                       </View>
                     </View>
                   ),
@@ -179,21 +226,16 @@ export function Music() {
         >
           {isCurrentMusic?.title}
         </Text>
-        <Text className="font-nunito-regular text-gray-300">
-          {isCurrentMusic?.artist}
+        <Text className="font-nunito-regular text-gray-100">
+          {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
           {isCurrentMusic?.album && ` - ${isCurrentMusic.album}`}
         </Text>
       </View>
 
       <View className="flex-row justify-around mt-8 items-center px-12">
         <TouchableOpacity
-          onPress={() => {
-            TrackPlayer.skipToPrevious()
-            getCurrentMusic()
-            setActualProgress(0)
-            TrackPlayer.play()
-            dispatch(handleChangeStateCurrentMusic(State.Playing))
-          }}
+          disabled={isInitialMusic}
+          onPress={() => handleSkipToPrevius()}
           className=" p-2 rounded-full "
         >
           <Icon name="stepbackward" size={25} color="#fff" />
@@ -220,13 +262,8 @@ export function Music() {
           />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => {
-            TrackPlayer.skipToNext()
-            TrackPlayer.play()
-            getCurrentMusic()
-            setActualProgress(0)
-            dispatch(handleChangeStateCurrentMusic(State.Playing))
-          }}
+          disabled={isEndMusic}
+          onPress={handleSkipToNext}
           className=" p-2 rounded-full "
         >
           <Icon name="stepforward" size={25} color="#fff" />

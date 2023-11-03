@@ -9,6 +9,7 @@ export function BottomMenu() {
   return (
     <View className="bg-gray-950 px-8 flex-row justify-between">
       <TouchableOpacity
+        activeOpacity={0.6}
         className="items-center py-2"
         onPress={() => navigation.navigate('Home')}
       >
@@ -16,12 +17,12 @@ export function BottomMenu() {
         <Text className="font-nunito-regular text-xs mt-1">Início</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity className="items-center py-2">
+      <TouchableOpacity activeOpacity={0.6} className="items-center py-2">
         <Icon name="heart" size={22} />
         <Text className="font-nunito-regular text-xs mt-1">Favoritos</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity className="items-center py-2">
+      <TouchableOpacity activeOpacity={0.6} className="items-center py-2">
         <Icon name="search" size={22} />
         <Text className="font-nunito-regular text-xs mt-1">Busca</Text>
       </TouchableOpacity>

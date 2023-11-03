@@ -14,15 +14,15 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 
 import { UserProps, handleSaveUser } from '@storage/modules/user/reducer'
 
-import { Switch } from './Switch'
+// import { Switch } from './Switch'
 import { Button } from './Button'
 import {
-  ConfigProps,
+  // ConfigProps,
   handleChangeConfig,
 } from '@storage/modules/config/reducer'
 
 import { handleTrackListLocal } from '@storage/modules/trackListLocal/reducer'
-import { useLocalMusic } from '@hooks/useLocalMusic'
+// import { useLocalMusic } from '@hooks/useLocalMusic'
 
 export function SideMenu() {
   const { isVisible, handleIsVisible } = useSideMenu()
@@ -36,11 +36,11 @@ export function SideMenu() {
 
   const dispatch = useDispatch()
 
-  const { config } = useSelector<ReduxProps, ConfigProps>(
-    (state) => state.config,
-  )
+  // const { config } = useSelector<ReduxProps, ConfigProps>(
+  //   (state) => state.config,
+  // )
 
-  const { handleStoragePermission } = useLocalMusic()
+  // const { handleStoragePermission } = useLocalMusic()
 
   const handleSignOutApp = () => {
     TrackPlayer.reset()
@@ -122,7 +122,7 @@ export function SideMenu() {
 
           <Button icon="question" title="Sobre" className="mt-5" />
 
-          <Switch
+          {/* <Switch
             icon="file"
             title="Modo Local"
             onValueChange={() => {
@@ -144,7 +144,7 @@ export function SideMenu() {
           <Text className="mt-1 text-sm text-gray-300 font-nunito-regular">
             Este modo permite ao usuário reproduzir músicas armazenadas
             localmente no dispositivo.
-          </Text>
+          </Text> */}
 
           <TouchableOpacity
             className="ml-auto mr-auto mt-auto bg-purple-600 h-14 items-center justify-center px-6 rounded-full"

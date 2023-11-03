@@ -25,7 +25,7 @@ type RootStackParamList = {
   SignIn: undefined
   Register: undefined
   Artist: {
-    artist: ArtistsDataProps
+    artistId: string
   }
   MoreArtists: {
     listArtists: ArtistsDataProps[]

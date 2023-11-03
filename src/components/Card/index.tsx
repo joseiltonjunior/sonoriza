@@ -33,11 +33,11 @@ export function Card({ album, artwork, title, className, ...rest }: CardProps) {
   return (
     <TouchableOpacity
       {...rest}
-      activeOpacity={0.6}
+      activeOpacity={0.8}
       className={twMerge('', className)}
     >
       <View>
-        <View className="w-full h-[150px] bg-purple-600 rounded-md overflow-hidden items-center justify-center">
+        <View className="w-full h-[150px] bg-gray-950 rounded-md overflow-hidden items-center justify-center">
           {artwork.length ? (
             <Image
               source={{ uri: artwork }}

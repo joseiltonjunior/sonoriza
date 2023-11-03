@@ -6,10 +6,17 @@ import {
   handleChangeStateCurrentMusic,
   handleSetCurrentMusic,
 } from '@storage/modules/currentMusic/reducer'
-import { MusicProps, TrackPlayerMusicProps } from '@utils/Types/musicProps'
-import { useCallback } from 'react'
-import TrackPlayer, { State, useProgress } from 'react-native-track-player'
+import { MusicProps } from '@utils/Types/musicProps'
+
+import TrackPlayer, {
+  State,
+  useProgress,
+  Capability,
+  Track,
+} from 'react-native-track-player'
 import { useDispatch, useSelector } from 'react-redux'
+
+export type TrackProps = Track
 
 interface HandleMusicSelectedProps {
   musicSelected: MusicProps
@@ -25,62 +32,43 @@ export function useTrackPlayer() {
     (state) => state.currentMusic,
   )
 
-  const getCurrentMusic = useCallback(async () => {
-    const trackIndex = (await TrackPlayer.getCurrentTrack()) as number
+  const getCurrentMusic = async () => {
+    await TrackPlayer.getActiveTrack().then((result) => {
+      const isCurrentMusic = result as MusicProps
+      dispatch(handleSetCurrentMusic({ isCurrentMusic }))
+    })
+  }
 
-    const trackObject = (await TrackPlayer.getTrack(
-      trackIndex,
-    )) as TrackPlayerMusicProps
-
-    if (!trackObject) return
-
-    dispatch(handleSetCurrentMusic({ isCurrentMusic: trackObject }))
-  }, [dispatch])
-
-  const handleMusicSelected = useCallback(
-    async ({
-      indexSelected,
-      listMusics,
-      musicSelected,
-    }: HandleMusicSelectedProps) => {
-      if (isCurrentMusic?.title.includes(musicSelected.title)) {
-        navigation.navigate('Music')
-        return
-      }
-
-      const { artists, genres, ...rest } = musicSelected
-
-      const currentTrackPlayerMusic = {
-        ...rest,
-        artist: artists[0].name,
-        genre: genres[0],
-      }
-
-      const trackPlayerMusics = listMusics.map(
-        ({ artists, genres, ...rest }) => ({
-          ...rest,
-          artist: artists[0].name,
-          genre: genres[0],
-        }),
-      )
-
-      TrackPlayer.reset()
-      TrackPlayer.add(trackPlayerMusics)
-      TrackPlayer.skip(indexSelected)
-      TrackPlayer.play()
+  const handleMusicSelected = async ({
+    indexSelected,
+    listMusics,
+    musicSelected,
+  }: HandleMusicSelectedProps) => {
+    if (
+      isCurrentMusic?.title &&
+      isCurrentMusic.title.includes(musicSelected.title)
+    ) {
       navigation.navigate('Music')
-      dispatch(
-        handleSetCurrentMusic({ isCurrentMusic: currentTrackPlayerMusic }),
-      )
+      await TrackPlayer.play()
       dispatch(handleChangeStateCurrentMusic(State.Playing))
-    },
-    [dispatch, isCurrentMusic?.title, navigation],
-  )
+      return
+    }
+
+    await TrackPlayer.reset()
+    await TrackPlayer.add(listMusics)
+    await TrackPlayer.skip(indexSelected)
+    await TrackPlayer.play()
+    navigation.navigate('Music')
+    dispatch(handleSetCurrentMusic({ isCurrentMusic: musicSelected }))
+    dispatch(handleChangeStateCurrentMusic(State.Playing))
+  }
 
   return {
     getCurrentMusic,
     TrackPlayer,
     handleMusicSelected,
     useProgress,
+    Capability,
+    State,
   }
 }

@@ -1,9 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import { MusicProps } from '@utils/Types/musicProps'
+import { TrackPlayerMusicProps } from '@utils/Types/musicProps'
 
 export interface TrackListLocalProps {
-  trackListLocal: MusicProps[]
+  trackListLocal: TrackPlayerMusicProps[]
 }
 
 const initialState: TrackListLocalProps = {

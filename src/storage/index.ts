@@ -11,7 +11,7 @@ import {
   REGISTER,
 } from 'redux-persist'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { MusicPlayerSettingsProps } from './modules/musicPlayerSettings/reducer'
+
 import { TrackListLocalProps } from './modules/trackListLocal/reducer'
 import { UserProps } from './modules/user/reducer'
 import { ConfigProps } from './modules/config/reducer'
@@ -21,7 +21,6 @@ import { MusicalGenresProps } from './modules/musicalGenres/reducer'
 import { ArtistsProps } from './modules/artists/reducer'
 
 export interface ReduxProps {
-  musicPlayerSettings: MusicPlayerSettingsProps
   trackListLocal: TrackListLocalProps
   trackListRemote: TrackListRemoteProps
   user: UserProps
@@ -34,13 +33,7 @@ export interface ReduxProps {
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  blacklist: [
-    'musicPlayerSettings',
-    'currentMusic',
-    'artists',
-    'musicalGenres',
-    'trackListRemote',
-  ],
+  blacklist: ['currentMusic'],
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

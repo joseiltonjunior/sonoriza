@@ -1,12 +1,15 @@
 import { BottomMenu } from '@components/BottomMenu/Index'
 
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import { ArtistsDataProps } from '@utils/Types/artistsProps'
+import { useEffect, useState } from 'react'
 
 import {
   FlatList,
@@ -23,14 +26,31 @@ import colors from 'tailwindcss/colors'
 
 export function Artist() {
   const { params } = useRoute<RouteParamsProps<'Artist'>>()
-  const { artist } = params
+  const { artistId } = params
 
   const navigation = useNavigation<StackNavigationProps>()
   const { handleMusicSelected } = useTrackPlayer()
+  const { handleGetArtistById } = useFirebaseServices()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
+
+  const [artist, setArtist] = useState<ArtistsDataProps>()
+
+  const handleGetArtist = async (id: string) => {
+    const response = await handleGetArtistById(id)
+    setArtist(response)
+  }
+
+  useEffect(() => {
+    if (artistId) {
+      handleGetArtist(artistId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [artistId])
+
+  if (!artist) return
 
   return (
     <>
@@ -51,35 +71,36 @@ export function Artist() {
           </View>
           <View className="mt-auto items-center mb-14">
             <Text className="font-nunito-bold text-white" style={styles.text}>
-              {artist.name}
+              {artist?.name}
             </Text>
           </View>
         </ImageBackground>
 
         <View className="bottom-6 flex-row px-4 items-center justify-center">
-          <TouchableOpacity
-            activeOpacity={1}
-            className="bg-purple-600 rounded-full px-12 py-4 items-center"
-            onPress={() => {
-              handleMusicSelected({
-                indexSelected: 0,
-                listMusics: artist.musics,
-                musicSelected: artist.musics[0],
-              })
-            }}
-          >
-            <View className="flex-row justify-center ">
-              <Icon name="caretright" size={16} color={colors.white} />
-              <Text className="font-nunito-bold text-white ml-4">TOCAR</Text>
-            </View>
-          </TouchableOpacity>
+          <View className="bg-gray-950 rounded-full overflow-hidden">
+            <TouchableOpacity
+              activeOpacity={0.6}
+              className="bg-purple-600  px-12 py-4 items-center"
+              onPress={() => {
+                handleMusicSelected({
+                  indexSelected: 0,
+                  listMusics: artist.musics,
+                  musicSelected: artist.musics[0],
+                })
+              }}
+            >
+              <View className="flex-row justify-center ">
+                <Icon name="caretright" size={16} color={colors.white} />
+                <Text className="font-nunito-bold text-white ml-4">TOCAR</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity
-            activeOpacity={0.8}
-            className="bg-gray-700 p-4 rounded-full right-4 absolute"
-          >
-            <Icon name="hearto" color={colors.red[600]} size={22} />
-          </TouchableOpacity>
+          <View className="right-4 bg-gray-950 absolute rounded-full overflow-hidden">
+            <TouchableOpacity activeOpacity={0.6} className="bg-gray-700 p-4">
+              <Icon name="hearto" color={colors.red[600]} size={22} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View className="p-4 ">
@@ -90,14 +111,15 @@ export function Artist() {
           <FlatList
             className="mt-8"
             showsVerticalScrollIndicator={false}
-            data={artist.musics}
+            data={artist?.musics}
             ItemSeparatorComponent={() => <View className="h-3" />}
             renderItem={({ item, index }) => (
-              <View className="flex-row items-center ">
+              <View className="flex-row items-center">
                 <TouchableOpacity
                   key={index}
                   className="flex-row items-center gap-2 flex-1 overflow-hidden pr-24 "
                   onPress={() => {
+                    if (!artist) return
                     handleMusicSelected({
                       indexSelected: index,
                       listMusics: artist.musics,
@@ -105,15 +127,18 @@ export function Artist() {
                     })
                   }}
                 >
-                  <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
+                  <View className="w-16 h-16 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
                     <Image
                       source={{ uri: item.artwork }}
                       alt="artwork"
                       className="h-full w-full"
                     />
                   </View>
-                  <View>
-                    <Text className="font-nunito-bold text-white text-base">
+                  <View className="w-full">
+                    <Text
+                      className="font-nunito-bold text-white text-base"
+                      numberOfLines={1}
+                    >
                       {item.title}
                     </Text>
                     <Text className="font-nunito-regular text-gray-300 mt-1">
@@ -121,7 +146,7 @@ export function Artist() {
                     </Text>
                   </View>
                 </TouchableOpacity>
-                <TouchableOpacity activeOpacity={0.6} className="">
+                <TouchableOpacity activeOpacity={0.6} className="ml-8">
                   <Icon name="hearto" color={colors.white} size={22} />
                 </TouchableOpacity>
               </View>

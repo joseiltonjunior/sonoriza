@@ -2,7 +2,7 @@ import AnimatedLottieView from 'lottie-react-native'
 import { BackHandler, Dimensions, LogBox, View } from 'react-native'
 
 import splash from '@assets/splash.json'
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
 
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
@@ -19,12 +19,17 @@ import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
 import { handleSetArtists } from '@storage/modules/artists/reducer'
 import { handleSetMusicalGenres } from '@storage/modules/musicalGenres/reducer'
 
+import { useTrackPlayer } from '@hooks/useTrackPlayer'
+import { AppKilledPlaybackBehavior } from 'react-native-track-player'
+
 const size = Dimensions.get('window').width * 0.9
 
 export function SplashScreen() {
   const navigation = useNavigation<StackNavigationProps>()
   const { closeModal, openModal } = useModal()
   const dispatch = useDispatch()
+
+  const { TrackPlayer, Capability } = useTrackPlayer()
 
   const { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase } =
     useFirebaseServices()
@@ -33,7 +38,7 @@ export function SplashScreen() {
     (state) => state.user,
   )
 
-  const handleVerifyUser = useCallback(async () => {
+  const handleVerifyUser = async () => {
     try {
       const user = auth().currentUser
       if (user) {
@@ -71,21 +76,32 @@ export function SplashScreen() {
         },
       })
     }
-  }, [
-    closeModal,
-    dispatch,
-    handleGetArtists,
-    handleGetMusicalGenres,
-    handleGetMusicsDatabase,
-    navigation,
-    openModal,
-    userProvider.plain,
-  ])
+  }
+
+  const handleInitializePlayer = async () => {
+    try {
+      await TrackPlayer.setupPlayer()
+
+      TrackPlayer.updateOptions({
+        android: {
+          appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
+        },
+        capabilities: [Capability.Play, Capability.Play],
+        notificationCapabilities: [Capability.Play, Capability.Play],
+      })
+    } catch (err) {}
+  }
 
   useEffect(() => {
     handleVerifyUser()
     LogBox.ignoreLogs(['new NativeEventEmitter'])
-  }, [handleVerifyUser])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    handleInitializePlayer()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <View className="flex-1 items-center justify-center bg-gray-950">

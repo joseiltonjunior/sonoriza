@@ -7,27 +7,35 @@ import { ArtistsDataProps } from '@utils/Types/artistsProps'
 
 interface RoundedCourselProps {
   artists: ArtistsDataProps[]
+  roundedSmall?: boolean
+  onAction?: () => void
 }
 
-export function RoundedCarousel({ artists }: RoundedCourselProps) {
+export function RoundedCarousel({
+  artists,
+  roundedSmall,
+  onAction,
+}: RoundedCourselProps) {
   const navigation = useNavigation<StackNavigationProps>()
 
   return (
     <Carousel
       loop={false}
       style={{ width: 'auto' }}
-      width={170}
-      height={190}
+      width={roundedSmall ? 140 : 170}
+      height={roundedSmall ? 160 : 190}
       data={artists}
       scrollAnimationDuration={1000}
       renderItem={({ item }) => (
         <Rounded
           artist={item.name}
           artwork={item.photoURL}
+          roundedSmall={roundedSmall}
           onPress={() => {
-            navigation.navigate('Artist', { artist: item })
+            if (onAction) onAction()
+            navigation.navigate('Artist', { artistId: item.id })
           }}
-          className="mr-4"
+          className={`mr-4`}
         />
       )}
     />

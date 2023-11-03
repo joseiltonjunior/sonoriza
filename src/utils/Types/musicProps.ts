@@ -10,16 +10,5 @@ export interface MusicProps {
   artwork: string
   duration: number
   id: string
-}
-
-export interface TrackPlayerMusicProps {
-  url: string
-  title: string
-  artist: string
-  genre: string
-  album: string
-  date: string
-  artwork: string
-  duration: number
-  id: string
+  color: string
 }

@@ -1,17 +1,12 @@
-import { useCallback, useEffect } from 'react'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import { ReduxProps } from '@storage/index'
 
-import {
-  MusicPlayerSettingsProps,
-  handleInitializedMusicPlayer,
-} from '@storage/modules/musicPlayerSettings/reducer'
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
-import { useTrackPlayer } from '@hooks/useTrackPlayer'
+
 import AnimatedLottieView from 'lottie-react-native'
 
 import notFiles from '@assets/not-files.json'
@@ -38,11 +33,8 @@ import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
 import { ArtistsProps } from '@storage/modules/artists/reducer'
 import { MusicalGenresProps } from '@storage/modules/musicalGenres/reducer'
 import { MusicalGenres } from '@components/MusicalGenres'
-import { TrackListLocalProps } from '@storage/modules/trackListLocal/reducer'
 
 export function Home() {
-  const dispatch = useDispatch()
-
   const navigation = useNavigation<StackNavigationProps>()
 
   const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
@@ -52,13 +44,6 @@ export function Home() {
   const { handleStoragePermission } = useLocalMusic()
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
-  const { isInitialized } = useSelector<ReduxProps, MusicPlayerSettingsProps>(
-    (state) => state.musicPlayerSettings,
-  )
-
-  const { trackListLocal } = useSelector<ReduxProps, TrackListLocalProps>(
-    (state) => state.trackListLocal,
-  )
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
@@ -77,28 +62,6 @@ export function Home() {
   )
 
   const { handleIsVisible } = useSideMenu()
-
-  const { getCurrentMusic, TrackPlayer } = useTrackPlayer()
-
-  const handleInitializePlayer = useCallback(async () => {
-    await TrackPlayer.setupPlayer()
-      .then(async () => {
-        dispatch(handleInitializedMusicPlayer({ isInitialized: true }))
-      })
-      .catch((err) => console.error(err))
-  }, [TrackPlayer, dispatch])
-
-  useEffect(() => {
-    if (isInitialized) {
-      getCurrentMusic()
-    }
-  }, [getCurrentMusic, isInitialized])
-
-  useEffect(() => {
-    if (!isInitialized) {
-      handleInitializePlayer()
-    }
-  }, [handleInitializePlayer, isInitialized])
 
   return (
     <>
@@ -173,21 +136,6 @@ export function Home() {
               className="mt-8 w-full"
             />
           </View>
-        )}
-
-        {config.isLocal && trackListLocal.length > 0 && (
-          <Section
-            title="Suas músicas locais"
-            className={`pl-4 ${user.plain !== 'free' && 'mt-12'}`}
-            onPress={() =>
-              navigation.navigate('MoreMusic', {
-                listMusics: trackListLocal,
-                title: 'Suas músicas locais',
-              })
-            }
-          >
-            <BoxCarousel musics={trackListLocal} />
-          </Section>
         )}
       </ScrollView>
       {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
