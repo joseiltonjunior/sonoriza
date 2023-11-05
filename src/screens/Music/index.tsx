@@ -30,6 +30,11 @@ import { useBottomModal } from '@hooks/useBottomModal'
 
 import { RoundedCarousel } from '@components/RoundedCarousel'
 
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
+import colors from 'tailwindcss/colors'
+import { useFavorites } from '@hooks/useFavorites'
+
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -48,6 +53,10 @@ export function Music() {
   const { isCurrentMusic, state } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
+
+  const { isFavoriteMusic } = useFavorites()
+
+  const { handleFavoriteMusic } = useFirebaseServices()
 
   const calculateProgressPercentage = useCallback(() => {
     if (progress.duration > 0) {
@@ -175,8 +184,19 @@ export function Music() {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity activeOpacity={0.5}>
-            <Icon name="hearto" size={22} color={'#fff'} />
+          <TouchableOpacity
+            activeOpacity={0.5}
+            onPress={() => {
+              if (isCurrentMusic) {
+                handleFavoriteMusic(isCurrentMusic)
+              }
+            }}
+          >
+            <Icon
+              name={isFavoriteMusic ? 'heart' : 'hearto'}
+              size={22}
+              color={colors.white}
+            />
           </TouchableOpacity>
         </View>
 

@@ -7,15 +7,10 @@ import { ReduxProps } from '@storage/index'
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 
-import AnimatedLottieView from 'lottie-react-native'
-
-import notFiles from '@assets/not-files.json'
-
 import IconAnt from 'react-native-vector-icons/AntDesign'
 
 import { useSideMenu } from '@hooks/useSideMenu'
 
-import { ConfigProps } from '@storage/modules/config/reducer'
 import { BoxCarousel } from '@components/BoxCarousel'
 
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
@@ -25,8 +20,7 @@ import { StackNavigationProps } from '@routes/routes'
 
 import { RoundedCarousel } from '@components/RoundedCarousel'
 import { UserProps } from '@storage/modules/user/reducer'
-import { useLocalMusic } from '@hooks/useLocalMusic'
-import { Button } from '@components/Button'
+
 import { Section } from '@components/Section'
 
 import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
@@ -43,8 +37,6 @@ export function Home() {
     (state) => state.trackListRemote,
   )
 
-  const { handleStoragePermission } = useLocalMusic()
-
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
@@ -55,10 +47,6 @@ export function Home() {
 
   const { artists } = useSelector<ReduxProps, ArtistsProps>(
     (state) => state.artists,
-  )
-
-  const { config } = useSelector<ReduxProps, ConfigProps>(
-    (state) => state.config,
   )
 
   const { musicalGenres } = useSelector<ReduxProps, MusicalGenresProps>(
@@ -115,34 +103,13 @@ export function Home() {
                 onPress={() =>
                   navigation.navigate('MoreArtists', {
                     listArtists: artists,
+                    title: 'Explore por artistas',
                   })
                 }
               >
                 <RoundedCarousel artists={artists} />
               </Section>
             )}
-          </View>
-        )}
-
-        {user.plain === 'free' && !config.isLocal && (
-          <View className="p-4 items-center justify-center">
-            <AnimatedLottieView
-              source={notFiles}
-              autoPlay
-              loop
-              resizeMode="contain"
-              style={{ width: 300, height: 300 }}
-            />
-            <Text className="text-center text-xl text-white mt-8">
-              Permita o acesso às suas músicas locais e desfrute dos serviços
-              gratuitos.
-            </Text>
-
-            <Button
-              title="PERMITIR ACESSO"
-              onPress={handleStoragePermission}
-              className="mt-8 w-full"
-            />
           </View>
         )}
       </ScrollView>

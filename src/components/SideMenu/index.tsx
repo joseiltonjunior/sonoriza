@@ -12,17 +12,9 @@ import { ReduxProps } from '@storage/index'
 
 import Icon from 'react-native-vector-icons/FontAwesome'
 
-import { UserProps, handleSaveUser } from '@storage/modules/user/reducer'
+import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
 
-// import { Switch } from './Switch'
 import { Button } from './Button'
-import {
-  // ConfigProps,
-  handleChangeConfig,
-} from '@storage/modules/config/reducer'
-
-import { handleTrackListLocal } from '@storage/modules/trackListLocal/reducer'
-// import { useLocalMusic } from '@hooks/useLocalMusic'
 
 export function SideMenu() {
   const { isVisible, handleIsVisible } = useSideMenu()
@@ -36,12 +28,6 @@ export function SideMenu() {
 
   const dispatch = useDispatch()
 
-  // const { config } = useSelector<ReduxProps, ConfigProps>(
-  //   (state) => state.config,
-  // )
-
-  // const { handleStoragePermission } = useLocalMusic()
-
   const handleSignOutApp = () => {
     TrackPlayer.reset()
     auth()
@@ -49,7 +35,7 @@ export function SideMenu() {
       .then(() => {
         handleIsVisible()
         dispatch(
-          handleSaveUser({
+          handleSetUser({
             user: {
               displayName: '',
               email: '',
@@ -59,8 +45,7 @@ export function SideMenu() {
             },
           }),
         )
-        dispatch(handleChangeConfig({ config: { isLocal: false } }))
-        dispatch(handleTrackListLocal({ trackListLocal: [] }))
+
         closeModal()
 
         navigation.reset({
@@ -121,30 +106,6 @@ export function SideMenu() {
           />
 
           <Button icon="question" title="Sobre" className="mt-5" />
-
-          {/* <Switch
-            icon="file"
-            title="Modo Local"
-            onValueChange={() => {
-              if (config.isLocal) {
-                dispatch(
-                  handleChangeConfig({
-                    config: { ...config, isLocal: false },
-                  }),
-                )
-                handleIsVisible()
-
-                return
-              }
-              handleIsVisible()
-              handleStoragePermission()
-            }}
-            value={config.isLocal}
-          />
-          <Text className="mt-1 text-sm text-gray-300 font-nunito-regular">
-            Este modo permite ao usuário reproduzir músicas armazenadas
-            localmente no dispositivo.
-          </Text> */}
 
           <TouchableOpacity
             className="ml-auto mr-auto mt-auto bg-purple-600 h-14 items-center justify-center px-6 rounded-full"

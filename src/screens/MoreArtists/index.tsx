@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/AntDesign'
 
 export function MoreArtists() {
   const { params } = useRoute<RouteParamsProps<'MoreArtists'>>()
-  const { listArtists } = params
+  const { listArtists, title } = params
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -33,9 +33,7 @@ export function MoreArtists() {
           >
             <Icon name="back" size={30} color="#fff" />
           </TouchableOpacity>
-          <Text className="text-lg font-nunito-bold text-white">
-            Explore por artistas
-          </Text>
+          <Text className="text-lg font-nunito-bold text-white">{title}</Text>
         </View>
 
         <FlatList

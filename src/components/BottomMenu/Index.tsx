@@ -17,7 +17,11 @@ export function BottomMenu() {
         <Text className="font-nunito-regular text-xs mt-1">Início</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity activeOpacity={0.6} className="items-center py-2">
+      <TouchableOpacity
+        activeOpacity={0.6}
+        className="items-center py-2"
+        onPress={() => navigation.navigate('Favorites')}
+      >
         <Icon name="heart" size={22} />
         <Text className="font-nunito-regular text-xs mt-1">Favoritos</Text>
       </TouchableOpacity>

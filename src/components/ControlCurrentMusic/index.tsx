@@ -14,6 +14,9 @@ import colors from 'tailwindcss/colors'
 
 import { MusicProps } from '@utils/Types/musicProps'
 
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { useFavorites } from '@hooks/useFavorites'
+
 interface ControlCurrentMusicProps {
   music?: MusicProps
 }
@@ -24,6 +27,10 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
   const { isCurrentMusic, state } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
+
+  const { handleFavoriteMusic } = useFirebaseServices()
+
+  const { isFavoriteMusic } = useFavorites()
 
   const dispatch = useDispatch()
   const navigation = useNavigation<StackNavigationProps>()
@@ -53,8 +60,19 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity activeOpacity={0.6}>
-        <IconAntDesign name={'hearto'} size={26} color={colors.white} />
+      <TouchableOpacity
+        activeOpacity={0.6}
+        onPress={() => {
+          if (isCurrentMusic) {
+            handleFavoriteMusic(isCurrentMusic)
+          }
+        }}
+      >
+        <IconAntDesign
+          name={isFavoriteMusic ? 'heart' : 'hearto'}
+          size={26}
+          color={colors.white}
+        />
       </TouchableOpacity>
 
       <TouchableOpacity

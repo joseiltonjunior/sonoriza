@@ -1,8 +1,8 @@
 import AnimatedLottieView from 'lottie-react-native'
-import { BackHandler, Dimensions, LogBox, View } from 'react-native'
+import { BackHandler, Dimensions, Linking, LogBox, View } from 'react-native'
 
 import splash from '@assets/splash.json'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
@@ -10,15 +10,25 @@ import { StackNavigationProps } from '@routes/routes'
 import auth from '@react-native-firebase/auth'
 import { useModal } from '@hooks/useModal'
 
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
-import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
-import { handleSetArtists } from '@storage/modules/artists/reducer'
-import { handleSetMusicalGenres } from '@storage/modules/musicalGenres/reducer'
+import {
+  TrackListRemoteProps,
+  handleTrackListRemote,
+} from '@storage/modules/trackListRemote/reducer'
+import {
+  ArtistsProps,
+  handleSetArtists,
+} from '@storage/modules/artists/reducer'
+import {
+  MusicalGenresProps,
+  handleSetMusicalGenres,
+} from '@storage/modules/musicalGenres/reducer'
 
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { AppKilledPlaybackBehavior } from 'react-native-track-player'
+import { ReduxProps } from '@storage/index'
 
 const size = Dimensions.get('window').width * 0.9
 
@@ -27,22 +37,54 @@ export function SplashScreen() {
   const { closeModal, openModal } = useModal()
   const dispatch = useDispatch()
 
-  const { TrackPlayer, Capability } = useTrackPlayer()
+  const { TrackPlayer, Capability, getCurrentMusic } = useTrackPlayer()
+
+  const { artists } = useSelector<ReduxProps, ArtistsProps>(
+    (state) => state.artists,
+  )
+
+  const { musicalGenres } = useSelector<ReduxProps, MusicalGenresProps>(
+    (state) => state.musicalGenres,
+  )
+
+  const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
+    (state) => state.trackListRemote,
+  )
 
   const { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase } =
     useFirebaseServices()
+
+  const handleLinkClickNotification = useCallback(() => {
+    Linking.addEventListener('url', (event) => {
+      if (event.url === 'trackplayer://notification.click') {
+        getCurrentMusic()
+      }
+    })
+  }, [getCurrentMusic])
 
   const handleVerifyUser = async () => {
     try {
       const user = auth().currentUser
       if (user) {
-        const artists = await handleGetArtists()
-        const trackListRemote = await handleGetMusicsDatabase()
-        const musicalGenres = await handleGetMusicalGenres()
+        if (trackListRemote && artists && musicalGenres)
+          return setTimeout(() => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Home' }],
+            })
+          }, 2000)
 
-        dispatch(handleTrackListRemote({ trackListRemote }))
-        dispatch(handleSetArtists({ artists }))
-        dispatch(handleSetMusicalGenres({ musicalGenres }))
+        const artistsResponse = await handleGetArtists()
+        const trackListRemoteResponse = await handleGetMusicsDatabase()
+        const musicalGenresResponse = await handleGetMusicalGenres()
+
+        dispatch(
+          handleTrackListRemote({ trackListRemote: trackListRemoteResponse }),
+        )
+        dispatch(handleSetArtists({ artists: artistsResponse }))
+        dispatch(
+          handleSetMusicalGenres({ musicalGenres: musicalGenresResponse }),
+        )
 
         navigation.reset({
           index: 0,
@@ -92,6 +134,11 @@ export function SplashScreen() {
   useEffect(() => {
     handleVerifyUser()
     LogBox.ignoreLogs(['new NativeEventEmitter'])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    handleLinkClickNotification()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

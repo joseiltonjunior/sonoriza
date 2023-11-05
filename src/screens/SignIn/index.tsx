@@ -25,7 +25,7 @@ import firestore from '@react-native-firebase/firestore'
 
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
-import { UserDataProps } from '@screens/Register'
+
 import { useModal } from '@hooks/useModal'
 import { useDispatch } from 'react-redux'
 import { handleSetUser } from '@storage/modules/user/reducer'
@@ -34,6 +34,7 @@ import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
 import { handleSetArtists } from '@storage/modules/artists/reducer'
 import { handleSetMusicalGenres } from '@storage/modules/musicalGenres/reducer'
+import { UserDataProps } from '@utils/Types/userProps'
 
 interface FormDataProps {
   email: string
@@ -77,10 +78,10 @@ export function SignIn() {
       .get()
       .then(async (querySnapshot) => {
         const user = querySnapshot.data() as UserDataProps
-        const { displayName, email, photoURL, uid, plain } = user
+
         dispatch(
           handleSetUser({
-            user: { displayName, email, photoURL, uid, plain },
+            user,
           }),
         )
 
@@ -92,7 +93,10 @@ export function SignIn() {
         dispatch(handleSetArtists({ artists }))
         dispatch(handleSetMusicalGenres({ musicalGenres }))
 
-        navigation.navigate('Home')
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        })
       })
       .finally(() => {
         setIsLoading(false)

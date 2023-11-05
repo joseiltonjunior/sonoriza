@@ -1,10 +1,20 @@
 import firestore from '@react-native-firebase/firestore'
+
 import crashlytics from '@react-native-firebase/crashlytics'
 import { MusicProps } from '@utils/Types/musicProps'
 import { MusicalGenresDataProps } from '@utils/Types/musicalGenresProps'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
+import { useDispatch, useSelector } from 'react-redux'
+import { ReduxProps } from '@storage/index'
+import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
 
 export function useFirebaseServices() {
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+
+  const dispatch = useDispatch()
+
+  // get
+
   const handleGetMusicsDatabase = async (): Promise<MusicProps[]> => {
     let musics = [] as MusicProps[]
     await firestore()
@@ -64,41 +74,120 @@ export function useFirebaseServices() {
     return artists
   }
 
-  // fetch in cache
+  // put
 
-  const handleGetArtistsByMusicId = async (
-    musicId: string,
-  ): Promise<ArtistsDataProps[]> => {
-    let artists = [] as ArtistsDataProps[]
-    await firestore()
-      .collection('musics')
-      .doc(musicId)
-      .get({ source: 'cache' })
-      .then(async (querySnapshot) => {
-        const musicResponse = querySnapshot.data() as MusicProps
+  const handleFavoriteMusic = async (musicSelected: MusicProps) => {
+    try {
+      const userRef = firestore().collection('users').doc(user.uid)
+      const musicRef = firestore().collection('musics').doc(musicSelected.id)
 
-        artists = musicResponse.artists
+      let like = 0
+
+      await musicRef.get().then((querySnapshot) => {
+        const { like: likeMusic } = querySnapshot.data() as MusicProps
+
+        if (likeMusic) {
+          like = likeMusic
+        }
       })
 
-      .catch((err) => {
-        crashlytics().recordError(err)
-      })
+      let favoritesMusics = [] as string[]
 
-    return artists
+      if (user.favoritesMusics) {
+        favoritesMusics = user.favoritesMusics
+      }
+
+      const exist = favoritesMusics.find((music) => music === musicSelected.id)
+
+      if (exist) {
+        const filter = favoritesMusics.filter(
+          (music) => music !== musicSelected.id,
+        ) as string[]
+
+        favoritesMusics = filter
+        like--
+      } else {
+        favoritesMusics = [...favoritesMusics, musicSelected.id]
+        like++
+      }
+
+      musicRef.update({ like })
+      userRef.update({ favoritesMusics })
+
+      dispatch(
+        handleSetUser({
+          user: { ...user, favoritesMusics },
+        }),
+      )
+    } catch (error) {
+      console.error('Erro ao executar ação de favoritar/remover música:', error)
+    }
   }
 
+  const handleFavoriteArtist = async (artist: ArtistsDataProps) => {
+    try {
+      const userRef = firestore().collection('users').doc(user.uid)
+      const artistRef = firestore().collection('artists').doc(artist.id)
+
+      let like = 0
+
+      await artistRef.get().then((querySnapshot) => {
+        const { like: likeArtist } = querySnapshot.data() as ArtistsDataProps
+        if (likeArtist) {
+          like = likeArtist
+        }
+      })
+
+      let favoritesArtists = [] as string[]
+
+      if (user.favoritesArtists) {
+        favoritesArtists = user.favoritesArtists
+      }
+
+      const exist = favoritesArtists.find((item) => item === artist.id)
+
+      if (exist) {
+        const filter = favoritesArtists.filter(
+          (item) => item !== artist.id,
+        ) as string[]
+
+        like--
+        favoritesArtists = filter
+      } else {
+        like++
+        favoritesArtists = [...favoritesArtists, artist.id]
+      }
+
+      userRef.update({ favoritesArtists })
+      artistRef.update({ like })
+
+      dispatch(
+        handleSetUser({
+          user: { ...user, favoritesArtists },
+        }),
+      )
+    } catch (error) {
+      console.error(
+        'Erro ao executar ação de favoritar/remover artista:',
+        error,
+      )
+    }
+  }
+
+  // in cache
+
   const handleGetArtistById = async (
-    artistId: string,
+    artistID: string,
   ): Promise<ArtistsDataProps> => {
     let artist = {} as ArtistsDataProps
     await firestore()
       .collection('artists')
-      .doc(artistId)
+      .doc(artistID)
       .get({ source: 'cache' })
       .then(async (querySnapshot) => {
-        const musicResponse = querySnapshot.data() as ArtistsDataProps
+        const artistResponse = querySnapshot.data() as ArtistsDataProps
 
-        artist = musicResponse
+        artist = artistResponse
       })
 
       .catch((err) => {
@@ -108,11 +197,83 @@ export function useFirebaseServices() {
     return artist
   }
 
+  const handleGetMusicsById = async (
+    musicsId: string[],
+  ): Promise<MusicProps[]> => {
+    let musics = [] as MusicProps[]
+    await firestore()
+      .collection('musics')
+      .where(firestore.FieldPath.documentId(), 'in', musicsId)
+      .get({ source: 'cache' })
+      .then(async (querySnapshot) => {
+        const musicsResponse = querySnapshot.docs.map((doc) =>
+          doc.data(),
+        ) as MusicProps[]
+
+        musics = musicsResponse
+      })
+      .catch((err) => {
+        crashlytics().recordError(err)
+      })
+
+    return musics
+  }
+
+  const handleGetFavoritesArtists = async (
+    artistsId: string[],
+  ): Promise<ArtistsDataProps[]> => {
+    let artists = [] as ArtistsDataProps[]
+    await firestore()
+      .collection('artists')
+      .where(firestore.FieldPath.documentId(), 'in', artistsId)
+      .get({ source: 'cache' })
+      .then(async (querySnapshot) => {
+        const artistsResponse = querySnapshot.docs.map((doc) =>
+          doc.data(),
+        ) as ArtistsDataProps[]
+
+        artists = artistsResponse
+      })
+
+      .catch((err) => {
+        crashlytics().recordError(err)
+      })
+
+    return artists
+  }
+
+  const handleGetFavoritesMusics = async (
+    musicsId: string[],
+  ): Promise<MusicProps[]> => {
+    let musics = [] as MusicProps[]
+    await firestore()
+      .collection('musics')
+      .where(firestore.FieldPath.documentId(), 'in', musicsId)
+      .get({ source: 'cache' })
+      .then(async (querySnapshot) => {
+        const musicsResponse = querySnapshot.docs.map((doc) =>
+          doc.data(),
+        ) as MusicProps[]
+
+        musics = musicsResponse
+      })
+
+      .catch((err) => {
+        crashlytics().recordError(err)
+      })
+
+    return musics
+  }
+
   return {
     handleGetArtists,
     handleGetMusicalGenres,
     handleGetMusicsDatabase,
-    handleGetArtistsByMusicId,
+    handleFavoriteMusic,
+    handleFavoriteArtist,
     handleGetArtistById,
+    handleGetMusicsById,
+    handleGetFavoritesArtists,
+    handleGetFavoritesMusics,
   }
 }

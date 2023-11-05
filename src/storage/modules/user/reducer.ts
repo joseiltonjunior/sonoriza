@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import { UserDataProps } from '@screens/Register'
+import { UserDataProps } from '@utils/Types/userProps'
 
 export interface UserProps {
   user: UserDataProps

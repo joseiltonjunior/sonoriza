@@ -11,4 +11,6 @@ export interface MusicProps {
   duration: number
   id: string
   color: string
+  isFavorite: boolean
+  like: number
 }

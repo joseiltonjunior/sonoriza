@@ -2,14 +2,19 @@ import { BottomMenu } from '@components/BottomMenu/Index'
 
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
-import { ArtistsProps } from '@storage/modules/artists/reducer'
-import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 
-import { useMemo } from 'react'
+import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import { UserProps } from '@storage/modules/user/reducer'
+import { ArtistsDataProps } from '@utils/Types/artistsProps'
+import { MusicProps } from '@utils/Types/musicProps'
+
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   FlatList,
@@ -28,22 +33,57 @@ export function Artist() {
   const { params } = useRoute<RouteParamsProps<'Artist'>>()
   const { artistId } = params
 
+  const [artist, setArtist] = useState<ArtistsDataProps>()
+  const [musics, setMusics] = useState<MusicProps[]>()
+
   const navigation = useNavigation<StackNavigationProps>()
   const { handleMusicSelected } = useTrackPlayer()
+  const { handleFavoriteMusic, handleGetArtistById, handleGetMusicsById } =
+    useFirebaseServices()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
 
-  const { artists } = useSelector<ReduxProps, ArtistsProps>(
-    (state) => state.artists,
-  )
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
-  const artist = useMemo(() => {
-    const filter = artists.find((artist) => artist.id === artistId)
+  const { handleFavoriteArtist } = useFirebaseServices()
 
-    return filter
-  }, [artistId, artists])
+  const handleGetMusics = async (musicsId: string[]) => {
+    await handleGetMusicsById(musicsId)
+      .then((result) => {
+        setMusics(result)
+      })
+      .catch((err) => console.log(err, 'err'))
+  }
+
+  const handleGetArtist = async () => {
+    await handleGetArtistById(artistId)
+      .then((result) => {
+        handleGetMusics(result.musics)
+        setArtist(result)
+      })
+      .catch((err) => console.log(err, 'err'))
+  }
+
+  const isFavorite = useMemo(() => {
+    const filter = user.favoritesArtists?.find((item) => item === artist?.id)
+
+    return !!filter
+  }, [artist?.id, user.favoritesArtists])
+
+  const hanfleFilterFavorites = (musicId: string) => {
+    const filter = user.favoritesMusics?.find((item) => item === musicId)
+
+    return !!filter
+  }
+
+  useEffect(() => {
+    if (artistId) {
+      handleGetArtist()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [artistId])
 
   if (!artist) return
 
@@ -77,10 +117,11 @@ export function Artist() {
               activeOpacity={0.6}
               className="bg-purple-600  px-12 py-4 items-center"
               onPress={() => {
+                if (!musics) return
                 handleMusicSelected({
                   indexSelected: 0,
-                  listMusics: artist.musics,
-                  musicSelected: artist.musics[0],
+                  listMusics: musics,
+                  musicSelected: musics[0],
                 })
               }}
             >
@@ -92,8 +133,18 @@ export function Artist() {
           </View>
 
           <View className="right-4 bg-gray-950 absolute rounded-full overflow-hidden">
-            <TouchableOpacity activeOpacity={0.6} className="bg-gray-700 p-4">
-              <Icon name="hearto" color={colors.red[600]} size={22} />
+            <TouchableOpacity
+              onPress={() => {
+                handleFavoriteArtist(artist)
+              }}
+              activeOpacity={0.6}
+              className="bg-gray-700 p-4"
+            >
+              <Icon
+                name={isFavorite ? 'heart' : 'hearto'}
+                color={colors.red[600]}
+                size={22}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -106,7 +157,7 @@ export function Artist() {
           <FlatList
             className="mt-8"
             showsVerticalScrollIndicator={false}
-            data={artist?.musics}
+            data={musics}
             ItemSeparatorComponent={() => <View className="h-3" />}
             renderItem={({ item, index }) => (
               <View className="flex-row items-center">
@@ -114,10 +165,10 @@ export function Artist() {
                   key={index}
                   className="flex-row items-center gap-2 flex-1 overflow-hidden pr-24 "
                   onPress={() => {
-                    if (!artist) return
+                    if (!musics) return
                     handleMusicSelected({
                       indexSelected: index,
-                      listMusics: artist.musics,
+                      listMusics: musics,
                       musicSelected: item,
                     })
                   }}
@@ -141,8 +192,18 @@ export function Artist() {
                     </Text>
                   </View>
                 </TouchableOpacity>
-                <TouchableOpacity activeOpacity={0.6} className="ml-8">
-                  <Icon name="hearto" color={colors.white} size={22} />
+                <TouchableOpacity
+                  activeOpacity={0.6}
+                  className="ml-8"
+                  onPress={() => {
+                    handleFavoriteMusic(item)
+                  }}
+                >
+                  <Icon
+                    name={hanfleFilterFavorites(item.id) ? 'heart' : 'hearto'}
+                    color={colors.white}
+                    size={22}
+                  />
                 </TouchableOpacity>
               </View>
             )}
