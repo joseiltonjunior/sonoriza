@@ -11,15 +11,47 @@ import { useSelector } from 'react-redux'
 
 import Icon from 'react-native-vector-icons/AntDesign'
 
+import { useEffect, useState } from 'react'
+import { ArtistsDataProps } from '@utils/Types/artistsProps'
+import { ArtistsProps } from '@storage/modules/artists/reducer'
+import { UserProps } from '@storage/modules/user/reducer'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 export function MoreArtists() {
+  const [listArtists, setListArtists] = useState<ArtistsDataProps[]>()
   const { params } = useRoute<RouteParamsProps<'MoreArtists'>>()
-  const { listArtists, title } = params
+  const { type, title } = params
+
+  const { artists } = useSelector<ReduxProps, ArtistsProps>(
+    (state) => state.artists,
+  )
+
+  const { handleGetFavoritesArtists } = useFirebaseServices()
+
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const navigation = useNavigation<StackNavigationProps>()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
+
+  const handleGetArtists = async (ids: string[]) => {
+    await handleGetFavoritesArtists(ids).then((result) => {
+      setListArtists(result)
+    })
+  }
+
+  useEffect(() => {
+    if (type === 'default') {
+      setListArtists(artists)
+    } else if (user.favoritesArtists && user.favoritesArtists.length > 0) {
+      handleGetArtists(user.favoritesArtists)
+    } else {
+      setListArtists([])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, user.favoritesArtists])
 
   return (
     <View className="flex-1 bg-gray-950">

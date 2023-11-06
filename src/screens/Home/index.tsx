@@ -1,6 +1,6 @@
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { ReduxProps } from '@storage/index'
 
@@ -13,7 +13,10 @@ import { useSideMenu } from '@hooks/useSideMenu'
 
 import { BoxCarousel } from '@components/BoxCarousel'
 
-import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import {
+  CurrentMusicProps,
+  handleChangeStateCurrentMusic,
+} from '@storage/modules/currentMusic/reducer'
 
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
@@ -27,8 +30,9 @@ import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
 import { ArtistsProps } from '@storage/modules/artists/reducer'
 import { MusicalGenresProps } from '@storage/modules/musicalGenres/reducer'
 import { MusicalGenres } from '@components/MusicalGenres'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
+import TrackPlayer from 'react-native-track-player'
 
 export function Home() {
   const navigation = useNavigation<StackNavigationProps>()
@@ -43,11 +47,17 @@ export function Home() {
     (state) => state.currentMusic,
   )
 
+  const dispatch = useDispatch()
+
+  const { useProgress } = useTrackPlayer()
+
   const { getCurrentMusic } = useTrackPlayer()
 
   const { artists } = useSelector<ReduxProps, ArtistsProps>(
     (state) => state.artists,
   )
+
+  const progress = useProgress()
 
   const { musicalGenres } = useSelector<ReduxProps, MusicalGenresProps>(
     (state) => state.musicalGenres,
@@ -55,12 +65,25 @@ export function Home() {
 
   const { handleIsVisible } = useSideMenu()
 
-  useEffect(() => {
-    if (isCurrentMusic?.id) {
-      getCurrentMusic()
+  const handleGetCurrentMusic = useCallback(async () => {
+    try {
+      const isEndMusic = progress.position === progress.duration
+
+      const State = await TrackPlayer.getPlaybackState()
+
+      dispatch(handleChangeStateCurrentMusic(State.state))
+
+      if (isEndMusic) {
+        getCurrentMusic()
+      }
+    } catch (error) {
+      console.log(error, 'err')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCurrentMusic?.id])
+  }, [dispatch, getCurrentMusic, progress.duration, progress.position])
+
+  useEffect(() => {
+    handleGetCurrentMusic()
+  }, [handleGetCurrentMusic])
 
   return (
     <>
@@ -87,7 +110,7 @@ export function Home() {
                 className="mt-12"
                 onPress={() =>
                   navigation.navigate('MoreMusic', {
-                    listMusics: trackListRemote,
+                    type: 'default',
                     title: 'Explore novas possibilidades',
                   })
                 }
@@ -102,7 +125,7 @@ export function Home() {
                 className="mt-12"
                 onPress={() =>
                   navigation.navigate('MoreArtists', {
-                    listArtists: artists,
+                    type: 'default',
                     title: 'Explore por artistas',
                   })
                 }

@@ -120,11 +120,14 @@ export function SplashScreen() {
         android: {
           appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
         },
+
         capabilities: [
           Capability.Play,
           Capability.Pause,
           Capability.SkipToNext,
           Capability.SkipToPrevious,
+          Capability.PlayFromId,
+          Capability.SetRating,
         ],
         compactCapabilities: [Capability.Play, Capability.Pause],
       })

@@ -1,19 +1,15 @@
 import { BottomMenu } from '@components/BottomMenu/Index'
-import { BoxCarousel } from '@components/BoxCarousel'
+
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
-import { RoundedCarousel } from '@components/RoundedCarousel'
-import { Section } from '@components/Section'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 import { UserProps } from '@storage/modules/user/reducer'
-import { ArtistsDataProps } from '@utils/Types/artistsProps'
-import { MusicProps } from '@utils/Types/musicProps'
-import { useEffect, useState } from 'react'
-import { Text, View } from 'react-native'
-import { TouchableOpacity } from 'react-native-gesture-handler'
+
+import { Text, View, TouchableOpacity } from 'react-native'
+
 import { useSelector } from 'react-redux'
 
 import IconAnt from 'react-native-vector-icons/AntDesign'
@@ -26,39 +22,9 @@ export function Favorites() {
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
-  const { handleGetFavoritesArtists, handleGetFavoritesMusics } =
-    useFirebaseServices()
-
-  const [artists, setArtists] = useState<ArtistsDataProps[]>()
-  const [musics, setMusics] = useState<MusicProps[]>()
-
   const navigation = useNavigation<StackNavigationProps>()
 
   const { handleIsVisible } = useSideMenu()
-
-  const handleArtists = async (artistsId: string[]) => {
-    await handleGetFavoritesArtists(artistsId).then((result) =>
-      setArtists(result),
-    )
-  }
-
-  const handleMusics = async (musicsId: string[]) => {
-    await handleGetFavoritesMusics(musicsId).then((result) => setMusics(result))
-  }
-
-  useEffect(() => {
-    if (user?.favoritesArtists) {
-      handleArtists(user.favoritesArtists)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user.favoritesArtists])
-
-  useEffect(() => {
-    if (user?.favoritesMusics) {
-      handleMusics(user.favoritesMusics)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user.favoritesMusics])
 
   return (
     <View className="flex-1">
@@ -70,8 +36,65 @@ export function Favorites() {
         </TouchableOpacity>
       </View>
 
-      <View className="p-4 flex-1 w-screen">
-        {musics && (
+      <View className="flex-1 w-screen">
+        <TouchableOpacity
+          disabled
+          activeOpacity={0.6}
+          className="flex-row justify-between items-center px-4 py-2"
+        >
+          <Text className="font-nunito-medium text-lg text-white">
+            Músicas baixadas
+          </Text>
+          <Text className="font-nunito-regular text-gray-300">0</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.6}
+          onPress={() =>
+            navigation.navigate('MoreMusic', {
+              type: 'favorites',
+              title: 'Mais queridas',
+            })
+          }
+          className="flex-row justify-between items-center px-4 py-2"
+        >
+          <Text className="font-nunito-medium text-lg text-white">
+            Mais queridas
+          </Text>
+          <Text className="font-nunito-regular text-gray-300">
+            {user.favoritesMusics?.length}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          disabled
+          activeOpacity={0.6}
+          className="flex-row justify-between items-center px-4 py-2"
+        >
+          <Text className="font-nunito-medium text-lg text-white">
+            Playlists
+          </Text>
+          <Text className="font-nunito-regular text-gray-300">0</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.6}
+          onPress={() =>
+            navigation.navigate('MoreArtists', {
+              type: 'favorites',
+              title: 'Artistas',
+            })
+          }
+          className="flex-row justify-between items-center px-4 py-2"
+        >
+          <Text className="font-nunito-medium text-lg text-white">
+            Artistas
+          </Text>
+          <Text className="font-nunito-regular text-gray-300">
+            {user.favoritesArtists?.length}
+          </Text>
+        </TouchableOpacity>
+        {/* {musics && (
           <Section
             title="Suas músicas favoritas"
             onPress={() =>
@@ -83,9 +106,9 @@ export function Favorites() {
           >
             <BoxCarousel musics={musics} />
           </Section>
-        )}
+        )} */}
 
-        {artists && (
+        {/* {artists && (
           <Section
             title="Seus artistas favoritos"
             className="mt-12"
@@ -98,7 +121,7 @@ export function Favorites() {
           >
             <RoundedCarousel artists={artists} />
           </Section>
-        )}
+        )} */}
       </View>
 
       {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}

@@ -17,9 +17,6 @@ import { Artist } from '@screens/Artist'
 import { GenreSelected } from '@screens/GenreSelected'
 import { Favorites } from '@screens/Favorites'
 
-import { ArtistsDataProps } from '@utils/Types/artistsProps'
-import { MusicProps } from '@utils/Types/musicProps'
-
 type RootStackParamList = {
   Home: undefined
   SplashScreen: undefined
@@ -30,11 +27,11 @@ type RootStackParamList = {
     artistId: string
   }
   MoreArtists: {
-    listArtists: ArtistsDataProps[]
+    type: 'favorites' | 'default'
     title: string
   }
   MoreMusic: {
-    listMusics: MusicProps[]
+    type: 'favorites' | 'default'
     title: string
   }
   GenreSelected: {

@@ -11,10 +11,24 @@ import { useSelector } from 'react-redux'
 import IconFather from 'react-native-vector-icons/Feather'
 import Icon from 'react-native-vector-icons/AntDesign'
 import colors from 'tailwindcss/colors'
+import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
+import { useEffect, useState } from 'react'
+import { MusicProps } from '@utils/Types/musicProps'
+import { UserProps } from '@storage/modules/user/reducer'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 export function MoreMusic() {
   const { params } = useRoute<RouteParamsProps<'MoreMusic'>>()
-  const { listMusics, title } = params
+  const { type, title } = params
+
+  const [listMusics, setListMusics] = useState<MusicProps[]>([])
+
+  const { handleGetFavoritesMusics } = useFirebaseServices()
+
+  const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
+    (state) => state.trackListRemote,
+  )
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const { handleMusicSelected } = useTrackPlayer()
 
@@ -23,6 +37,23 @@ export function MoreMusic() {
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
+
+  const handleGetMusics = async (ids: string[]) => {
+    await handleGetFavoritesMusics(ids).then((result) => {
+      setListMusics(result)
+    })
+  }
+
+  useEffect(() => {
+    if (type === 'default') {
+      setListMusics(trackListRemote)
+    } else if (user.favoritesMusics && user.favoritesMusics.length > 0) {
+      handleGetMusics(user.favoritesMusics)
+    } else {
+      setListMusics([])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, user.favoritesMusics])
 
   return (
     <View className="flex-1 bg-gray-950">

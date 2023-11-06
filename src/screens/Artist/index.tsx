@@ -10,6 +10,7 @@ import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+
 import { UserProps } from '@storage/modules/user/reducer'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
 import { MusicProps } from '@utils/Types/musicProps'

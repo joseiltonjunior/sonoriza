@@ -18,12 +18,9 @@ import {
 
 import Icon from 'react-native-vector-icons/AntDesign'
 import FatherIcons from 'react-native-vector-icons/Feather'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
-import {
-  CurrentMusicProps,
-  handleChangeStateCurrentMusic,
-} from '@storage/modules/currentMusic/reducer'
+import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 import { State } from 'react-native-track-player'
 
 import { useBottomModal } from '@hooks/useBottomModal'
@@ -38,7 +35,7 @@ import { useFavorites } from '@hooks/useFavorites'
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
 
-  const { getCurrentMusic, TrackPlayer, useProgress } = useTrackPlayer()
+  const { TrackPlayer, useProgress } = useTrackPlayer()
 
   const { openModal, closeModal } = useBottomModal()
 
@@ -46,7 +43,6 @@ export function Music() {
   const [isEndMusic, setIsEndMusic] = useState(false)
 
   const progress = useProgress()
-  const dispatch = useDispatch()
 
   const [actualProgress, setActualProgress] = useState<number>(0)
 
@@ -77,20 +73,18 @@ export function Music() {
   const handleSkipToPrevius = async () => {
     await TrackPlayer.skipToPrevious()
 
-    getCurrentMusic()
     setActualProgress(0)
     TrackPlayer.play()
-    dispatch(handleChangeStateCurrentMusic(State.Playing))
+
     setIsInitialMusic(false)
   }
 
   const handleSkipToNext = async () => {
     await TrackPlayer.skipToNext()
 
-    getCurrentMusic()
     setActualProgress(0)
     TrackPlayer.play()
-    dispatch(handleChangeStateCurrentMusic(State.Playing))
+
     setIsEndMusic(false)
   }
 
@@ -235,10 +229,8 @@ export function Music() {
           onPress={() => {
             if (state === State.Playing) {
               TrackPlayer.pause()
-              dispatch(handleChangeStateCurrentMusic(State.Paused))
             } else {
               TrackPlayer.play()
-              dispatch(handleChangeStateCurrentMusic(State.Playing))
             }
           }}
         >
