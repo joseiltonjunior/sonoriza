@@ -35,7 +35,7 @@ export function RoundedCarousel({
             if (onAction) onAction()
             navigation.navigate('Artist', { artistId: item.id })
           }}
-          className={`mr-4`}
+          className={`ml-4`}
         />
       )}
     />

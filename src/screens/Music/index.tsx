@@ -25,22 +25,18 @@ import { State } from 'react-native-track-player'
 
 import { useBottomModal } from '@hooks/useBottomModal'
 
-import { RoundedCarousel } from '@components/RoundedCarousel'
-
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 import colors from 'tailwindcss/colors'
 import { useFavorites } from '@hooks/useFavorites'
+import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
 
   const { TrackPlayer, useProgress } = useTrackPlayer()
 
-  const { openModal, closeModal } = useBottomModal()
-
-  const [isInitialMusic, setIsInitialMusic] = useState(false)
-  const [isEndMusic, setIsEndMusic] = useState(false)
+  const { openModal } = useBottomModal()
 
   const progress = useProgress()
 
@@ -73,19 +69,13 @@ export function Music() {
   const handleSkipToPrevius = async () => {
     await TrackPlayer.skipToPrevious()
 
-    setActualProgress(0)
     TrackPlayer.play()
-
-    setIsInitialMusic(false)
   }
 
   const handleSkipToNext = async () => {
     await TrackPlayer.skipToNext()
 
-    setActualProgress(0)
     TrackPlayer.play()
-
-    setIsEndMusic(false)
   }
 
   useEffect(() => {
@@ -124,7 +114,7 @@ export function Music() {
               alt=""
               className="w-full h-full object-cover items-center justify-center "
             >
-              {actualProgress === 0 && (
+              {state === State.Buffering && (
                 <AnimatedLottieView
                   source={animation}
                   autoPlay
@@ -151,28 +141,7 @@ export function Music() {
               color={'#fff'}
               onPress={() =>
                 openModal({
-                  children: (
-                    <View>
-                      <Text
-                        className="text-center text-white font-nunito-bold text-lg"
-                        numberOfLines={1}
-                      >
-                        {isCurrentMusic?.title}
-                      </Text>
-                      <Text className="text-center font-nunito-regular text-gray-200">
-                        {isCurrentMusic?.album}
-                      </Text>
-                      <View className="my-4">
-                        {isCurrentMusic?.artists && (
-                          <RoundedCarousel
-                            artists={isCurrentMusic.artists}
-                            roundedSmall
-                            onAction={closeModal}
-                          />
-                        )}
-                      </View>
-                    </View>
-                  ),
+                  children: <InfoPlayingMusic currentMusic={isCurrentMusic} />,
                 })
               }
             />
@@ -219,7 +188,6 @@ export function Music() {
 
       <View className="flex-row justify-around mt-8 items-center px-12">
         <TouchableOpacity
-          disabled={isInitialMusic}
           onPress={() => handleSkipToPrevius()}
           className=" p-2 rounded-full "
         >
@@ -244,8 +212,8 @@ export function Music() {
             color={'#fff'}
           />
         </TouchableOpacity>
+
         <TouchableOpacity
-          disabled={isEndMusic}
           onPress={handleSkipToNext}
           className=" p-2 rounded-full "
         >

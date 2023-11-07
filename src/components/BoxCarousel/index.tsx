@@ -31,7 +31,7 @@ export function BoxCarousel({ musics }: BoxCourselProps) {
               listMusics: musics,
             })
           }
-          className="mr-4"
+          className="ml-4"
         />
       )}
     />

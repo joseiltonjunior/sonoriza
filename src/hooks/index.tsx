@@ -6,6 +6,7 @@ import { store, persistor } from '@storage/index'
 
 import '@config/ReactotronConfig'
 import { BottomModalProvider } from './useBottomModal'
+import { PlaylistModalProvider } from './usePlaylistModal'
 
 export function Hooks({ children }: React.PropsWithChildren) {
   return (
@@ -13,7 +14,9 @@ export function Hooks({ children }: React.PropsWithChildren) {
       <PersistGate loading={null} persistor={persistor}>
         <BottomModalProvider>
           <ModalProvider>
-            <SideMenuProvider>{children}</SideMenuProvider>
+            <PlaylistModalProvider>
+              <SideMenuProvider>{children}</SideMenuProvider>
+            </PlaylistModalProvider>
           </ModalProvider>
         </BottomModalProvider>
       </PersistGate>

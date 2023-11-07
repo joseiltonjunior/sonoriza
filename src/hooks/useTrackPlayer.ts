@@ -3,7 +3,6 @@ import { StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import {
   CurrentMusicProps,
-  handleChangeStateCurrentMusic,
   handleSetCurrentMusic,
 } from '@storage/modules/currentMusic/reducer'
 import { MusicProps } from '@utils/Types/musicProps'
@@ -50,7 +49,7 @@ export function useTrackPlayer() {
     ) {
       navigation.navigate('Music')
       await TrackPlayer.play()
-      dispatch(handleChangeStateCurrentMusic(State.Playing))
+
       return
     }
 
@@ -58,9 +57,7 @@ export function useTrackPlayer() {
     await TrackPlayer.add(listMusics)
     await TrackPlayer.skip(indexSelected)
     await TrackPlayer.play()
-    navigation.navigate('Music')
     dispatch(handleSetCurrentMusic({ isCurrentMusic: musicSelected }))
-    dispatch(handleChangeStateCurrentMusic(State.Playing))
   }
 
   return {

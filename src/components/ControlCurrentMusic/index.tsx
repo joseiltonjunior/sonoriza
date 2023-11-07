@@ -1,4 +1,4 @@
-import { Image, Text, TouchableOpacity, View } from 'react-native'
+import { ImageBackground, Text, TouchableOpacity, View } from 'react-native'
 import IconAntDesign from 'react-native-vector-icons/AntDesign'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation } from '@react-navigation/native'
@@ -11,6 +11,9 @@ import {
 } from '@storage/modules/currentMusic/reducer'
 import { State } from 'react-native-track-player'
 import colors from 'tailwindcss/colors'
+
+import AnimatedLottieView from 'lottie-react-native'
+import animation from '@assets/music-loading.json'
 
 import { MusicProps } from '@utils/Types/musicProps'
 
@@ -45,11 +48,20 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
         className="flex-row items-center w-9/12"
         onPress={() => navigation.navigate('Music')}
       >
-        <Image
+        <ImageBackground
           source={{ uri: isCurrentMusic?.artwork }}
           alt="thumb track"
-          className="w-12 h-12 rounded-md"
-        />
+          className="w-12 h-12 rounded-md items-center justify-center overflow-hidden"
+        >
+          {state === State.Buffering && (
+            <AnimatedLottieView
+              source={animation}
+              autoPlay
+              loop
+              style={{ width: 35, height: 35 }}
+            />
+          )}
+        </ImageBackground>
         <View className="ml-2 flex-1">
           <Text numberOfLines={1} className="font-nunito-bold text-white ">
             {isCurrentMusic?.title || music?.title}

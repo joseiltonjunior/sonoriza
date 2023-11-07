@@ -16,6 +16,7 @@ import { ArtistsDataProps } from '@utils/Types/artistsProps'
 import { ArtistsProps } from '@storage/modules/artists/reducer'
 import { UserProps } from '@storage/modules/user/reducer'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import colors from 'tailwindcss/colors'
 
 export function MoreArtists() {
   const [listArtists, setListArtists] = useState<ArtistsDataProps[]>()
@@ -26,7 +27,8 @@ export function MoreArtists() {
     (state) => state.artists,
   )
 
-  const { handleGetFavoritesArtists } = useFirebaseServices()
+  const { handleGetFavoritesArtists, handleFavoriteArtist } =
+    useFirebaseServices()
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
@@ -74,26 +76,39 @@ export function MoreArtists() {
           data={listArtists}
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item, index }) => (
-            <TouchableOpacity
-              key={index}
-              className="flex-row items-center gap-4"
-              onPress={() => {
-                navigation.navigate('Artist', { artistId: item.id })
-              }}
-            >
-              <View className="w-20 h-20 bg-purple-600 rounded-full overflow-hidden items-center justify-center">
-                <Image
-                  source={{ uri: item.photoURL }}
-                  alt="artwork"
-                  className="h-full w-full"
-                />
-              </View>
-              <View>
-                <Text className="font-nunito-bold text-white text-base">
-                  {item.name}
-                </Text>
-              </View>
-            </TouchableOpacity>
+            <View className="flex-row items-center justify-between">
+              <TouchableOpacity
+                key={index}
+                className="flex-row items-center gap-4 flex-1"
+                onPress={() => {
+                  navigation.navigate('Artist', { artistId: item.id })
+                }}
+              >
+                <View className="w-20 h-20 bg-purple-600 rounded-full overflow-hidden items-center justify-center">
+                  <Image
+                    source={{ uri: item.photoURL }}
+                    alt="artwork"
+                    className="h-full w-full"
+                  />
+                </View>
+                <View>
+                  <Text className="font-nunito-bold text-white text-base">
+                    {item.name}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              {type === 'favorites' && (
+                <TouchableOpacity
+                  onPress={() => {
+                    handleFavoriteArtist(item)
+                  }}
+                  activeOpacity={0.6}
+                  className="p-4"
+                >
+                  <Icon name={'heart'} color={colors.white} size={22} />
+                </TouchableOpacity>
+              )}
+            </View>
           )}
         />
       </View>

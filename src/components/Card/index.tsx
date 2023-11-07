@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import IconFather from 'react-native-vector-icons/Feather'
 import IconFontAwesome from 'react-native-vector-icons/FontAwesome'
 import AnimatedLottieView from 'lottie-react-native'
@@ -30,6 +30,23 @@ export function Card({ album, artwork, title, className, ...rest }: CardProps) {
     (state) => state.currentMusic,
   )
 
+  const handleStateMusic = useMemo(() => {
+    switch (state) {
+      case State.Playing:
+        if (title !== isCurrentMusic?.title) {
+          return 'play-not-current'
+        }
+        return 'play-current'
+
+      case State.Paused:
+      case State.Ended:
+        return 'paused'
+
+      default:
+        return 'paused'
+    }
+  }, [isCurrentMusic?.title, state, title])
+
   return (
     <TouchableOpacity
       {...rest}
@@ -49,9 +66,15 @@ export function Card({ album, artwork, title, className, ...rest }: CardProps) {
           )}
 
           <View className="bg-white shadow-lg shadow-black h-6 w-6 p-1 rounded-full m-2 mt-auto items-center justify-center absolute bottom-0 left-0">
-            {state === State.Paused || title !== isCurrentMusic?.title ? (
+            {handleStateMusic === 'play-not-current' && (
               <IconFontAwesome name="play" color={colors.gray[950]} size={12} />
-            ) : (
+            )}
+
+            {handleStateMusic === 'paused' && (
+              <IconFontAwesome name="play" color={colors.gray[950]} size={12} />
+            )}
+
+            {handleStateMusic === 'play-current' && (
               <AnimatedLottieView
                 source={animation}
                 autoPlay

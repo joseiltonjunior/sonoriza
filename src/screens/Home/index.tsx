@@ -76,9 +76,7 @@ export function Home() {
       if (isEndMusic) {
         getCurrentMusic()
       }
-    } catch (error) {
-      console.log(error, 'err')
-    }
+    } catch (error) {}
   }, [dispatch, getCurrentMusic, progress.duration, progress.position])
 
   useEffect(() => {
@@ -97,7 +95,7 @@ export function Home() {
         </View>
 
         {user.plain === 'premium' && (
-          <View className="pl-4">
+          <View>
             {musicalGenres && (
               <Section title="Explore por gêneros musicais">
                 <MusicalGenres musicalGenres={musicalGenres} />

@@ -23,7 +23,8 @@ export function MoreMusic() {
 
   const [listMusics, setListMusics] = useState<MusicProps[]>([])
 
-  const { handleGetFavoritesMusics } = useFirebaseServices()
+  const { handleGetFavoritesMusics, handleFavoriteMusic } =
+    useFirebaseServices()
 
   const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
     (state) => state.trackListRemote,
@@ -76,35 +77,46 @@ export function MoreMusic() {
           data={listMusics}
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item, index }) => (
-            <TouchableOpacity
-              key={index}
-              className="flex-row items-center gap-2 "
-              onPress={() => {
-                handleMusicSelected({
-                  indexSelected: index,
-                  listMusics,
-                  musicSelected: item,
-                })
-              }}
-            >
-              <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
-                {item.artwork ? (
-                  <Image
-                    source={{ uri: item.artwork }}
-                    alt="artwork"
-                    className="h-full w-full"
-                  />
-                ) : (
-                  <IconFather name="music" size={28} color={colors.white} />
-                )}
-              </View>
-              <View>
-                <Text className="font-bold text-white">{item.title}</Text>
-                <Text className="font-regular text-gray-300">
-                  {item.artists[0].name}
-                </Text>
-              </View>
-            </TouchableOpacity>
+            <View className="flex-row justify-between items-center">
+              <TouchableOpacity
+                key={index}
+                className="flex-row items-center gap-2 max-w-[200px] "
+                onPress={() => {
+                  handleMusicSelected({
+                    indexSelected: index,
+                    listMusics,
+                    musicSelected: item,
+                  })
+                }}
+              >
+                <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
+                  {item.artwork ? (
+                    <Image
+                      source={{ uri: item.artwork }}
+                      alt="artwork"
+                      className="h-full w-full"
+                    />
+                  ) : (
+                    <IconFather name="music" size={28} color={colors.white} />
+                  )}
+                </View>
+                <View>
+                  <Text className="font-bold text-white">{item.title}</Text>
+                  <Text className="font-regular text-gray-300">
+                    {item.artists[0].name}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  handleFavoriteMusic(item)
+                }}
+                activeOpacity={0.6}
+                className="p-4"
+              >
+                <Icon name={'heart'} color={colors.white} size={22} />
+              </TouchableOpacity>
+            </View>
           )}
         />
       </View>

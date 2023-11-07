@@ -18,7 +18,7 @@ export function MusicalGenres({ musicalGenres }: MusicalGenresProps) {
         scrollAnimationDuration={1000}
         renderItem={({ item }) => (
           <TouchableOpacity
-            className="bg-purple-600 rounded-lg mr-4 px-6  items-center justify-center h-full"
+            className="bg-purple-600 rounded-lg ml-4 px-6  items-center justify-center h-full"
             activeOpacity={0.8}
             onPress={() =>
               navigation.navigate('GenreSelected', { type: item.name })
