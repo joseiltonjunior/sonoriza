@@ -10,25 +10,15 @@ import { StackNavigationProps } from '@routes/routes'
 import auth from '@react-native-firebase/auth'
 import { useModal } from '@hooks/useModal'
 
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
-import {
-  TrackListRemoteProps,
-  handleTrackListRemote,
-} from '@storage/modules/trackListRemote/reducer'
-import {
-  ArtistsProps,
-  handleSetArtists,
-} from '@storage/modules/artists/reducer'
-import {
-  MusicalGenresProps,
-  handleSetMusicalGenres,
-} from '@storage/modules/musicalGenres/reducer'
+import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
+import { handleSetArtists } from '@storage/modules/artists/reducer'
+import { handleSetMusicalGenres } from '@storage/modules/musicalGenres/reducer'
 
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { AppKilledPlaybackBehavior } from 'react-native-track-player'
-import { ReduxProps } from '@storage/index'
 
 const size = Dimensions.get('window').width * 0.9
 
@@ -38,18 +28,6 @@ export function SplashScreen() {
   const dispatch = useDispatch()
 
   const { TrackPlayer, Capability, getCurrentMusic } = useTrackPlayer()
-
-  const { artists } = useSelector<ReduxProps, ArtistsProps>(
-    (state) => state.artists,
-  )
-
-  const { musicalGenres } = useSelector<ReduxProps, MusicalGenresProps>(
-    (state) => state.musicalGenres,
-  )
-
-  const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
-    (state) => state.trackListRemote,
-  )
 
   const { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase } =
     useFirebaseServices()
@@ -66,14 +44,6 @@ export function SplashScreen() {
     try {
       const user = auth().currentUser
       if (user) {
-        if (trackListRemote && artists && musicalGenres)
-          return setTimeout(() => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Home' }],
-            })
-          }, 2000)
-
         const artistsResponse = await handleGetArtists()
         const trackListRemoteResponse = await handleGetMusicsDatabase()
         const musicalGenresResponse = await handleGetMusicalGenres()

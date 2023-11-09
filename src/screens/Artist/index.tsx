@@ -102,7 +102,7 @@ export function Artist() {
                 navigation.goBack()
               }}
             >
-              <Icon name="back" size={30} color={colors.white} />
+              <Icon name="left" size={25} color={colors.white} />
             </TouchableOpacity>
           </View>
           <View className="mt-auto items-center mb-14">

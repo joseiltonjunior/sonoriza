@@ -7,10 +7,13 @@ import currentMusic from './currentMusic/reducer'
 import musicalGenres from './musicalGenres/reducer'
 import artists from './artists/reducer'
 
+import queue from './queue/reducer'
+
 export default combineReducers({
   trackListRemote,
   user,
   currentMusic,
   musicalGenres,
   artists,
+  queue,
 })

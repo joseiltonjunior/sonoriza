@@ -65,7 +65,7 @@ export function MoreArtists() {
             }}
             className="absolute left-0"
           >
-            <Icon name="back" size={30} color="#fff" />
+            <Icon name="left" size={25} color="#fff" />
           </TouchableOpacity>
           <Text className="text-lg font-nunito-bold text-white">{title}</Text>
         </View>

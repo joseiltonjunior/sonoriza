@@ -66,7 +66,7 @@ export function MoreMusic() {
             }}
             className="absolute left-0"
           >
-            <Icon name="back" size={30} color="#fff" />
+            <Icon name="left" size={25} color="#fff" />
           </TouchableOpacity>
           <Text className="text-lg font-bold text-white">{title}</Text>
         </View>
@@ -83,9 +83,9 @@ export function MoreMusic() {
                 className="flex-row items-center gap-2 max-w-[200px] "
                 onPress={() => {
                   handleMusicSelected({
-                    indexSelected: index,
-                    listMusics,
                     musicSelected: item,
+                    indexSelected: index,
+                    listMusics: trackListRemote,
                   })
                 }}
               >
@@ -107,15 +107,17 @@ export function MoreMusic() {
                   </Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  handleFavoriteMusic(item)
-                }}
-                activeOpacity={0.6}
-                className="p-4"
-              >
-                <Icon name={'heart'} color={colors.white} size={22} />
-              </TouchableOpacity>
+              {type === 'favorites' && (
+                <TouchableOpacity
+                  onPress={() => {
+                    handleFavoriteMusic(item)
+                  }}
+                  activeOpacity={0.6}
+                  className="p-4"
+                >
+                  <Icon name={'heart'} color={colors.white} size={22} />
+                </TouchableOpacity>
+              )}
             </View>
           )}
         />

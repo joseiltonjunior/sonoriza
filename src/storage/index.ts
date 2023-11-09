@@ -18,6 +18,7 @@ import { TrackListRemoteProps } from './modules/trackListRemote/reducer'
 import { CurrentMusicProps } from './modules/currentMusic/reducer'
 import { MusicalGenresProps } from './modules/musicalGenres/reducer'
 import { ArtistsProps } from './modules/artists/reducer'
+import { QueueProps } from './modules/queue/reducer'
 
 export interface ReduxProps {
   trackListRemote: TrackListRemoteProps
@@ -25,6 +26,7 @@ export interface ReduxProps {
   currentMusic: CurrentMusicProps
   musicalGenres: MusicalGenresProps
   artists: ArtistsProps
+  queue: QueueProps
 }
 
 const persistConfig = {

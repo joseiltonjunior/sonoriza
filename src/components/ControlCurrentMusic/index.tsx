@@ -41,7 +41,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
   return (
     <View
       style={{ backgroundColor: isCurrentMusic?.color }}
-      className="flex-row items-center justify-between py-2 px-2 rounded-lg mx-2 mb-2 shadow shadow-gray-500"
+      className="flex-row items-center justify-between py-2 px-2 rounded-lg mx-2 mb-2"
     >
       <TouchableOpacity
         activeOpacity={0.8}

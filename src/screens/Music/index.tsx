@@ -2,6 +2,7 @@ import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ProgressBar } from '@react-native-community/progress-bar-android'
+import Carousel from 'react-native-reanimated-carousel'
 
 import { useCallback, useEffect, useState } from 'react'
 
@@ -9,6 +10,7 @@ import AnimatedLottieView from 'lottie-react-native'
 import animation from '@assets/music-loading.json'
 
 import {
+  Dimensions,
   ImageBackground,
   ScrollView,
   Text,
@@ -18,10 +20,14 @@ import {
 
 import Icon from 'react-native-vector-icons/AntDesign'
 import FatherIcons from 'react-native-vector-icons/Feather'
-import { useSelector } from 'react-redux'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import { useDispatch, useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
-import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-import { State } from 'react-native-track-player'
+import {
+  CurrentMusicProps,
+  handleSetCurrentMusic,
+} from '@storage/modules/currentMusic/reducer'
+import { State as StatePlayer, Track } from 'react-native-track-player'
 
 import { useBottomModal } from '@hooks/useBottomModal'
 
@@ -31,20 +37,27 @@ import colors from 'tailwindcss/colors'
 import { useFavorites } from '@hooks/useFavorites'
 import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 
+import { MusicProps } from '@utils/Types/musicProps'
+
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
+
+  const size = Dimensions.get('window').width * 1
 
   const { TrackPlayer, useProgress } = useTrackPlayer()
 
   const { openModal } = useBottomModal()
 
   const progress = useProgress()
+  const dispatch = useDispatch()
 
   const [actualProgress, setActualProgress] = useState<number>(0)
 
   const { isCurrentMusic, state } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
+
+  const [queue, setQueue] = useState<Track[]>([])
 
   const { isFavoriteMusic } = useFavorites()
 
@@ -69,14 +82,31 @@ export function Music() {
   const handleSkipToPrevius = async () => {
     await TrackPlayer.skipToPrevious()
 
-    TrackPlayer.play()
+    await TrackPlayer.play()
+  }
+
+  const handleSlideThumb = async (index: number) => {
+    const trackSelect = queue[index] as MusicProps
+
+    await TrackPlayer.skip(index)
+    await TrackPlayer.play()
+    dispatch(handleSetCurrentMusic({ isCurrentMusic: trackSelect }))
   }
 
   const handleSkipToNext = async () => {
     await TrackPlayer.skipToNext()
 
-    TrackPlayer.play()
+    await TrackPlayer.play()
   }
+
+  const handleGetQueue = useCallback(async () => {
+    const response = await TrackPlayer.getQueue()
+    setQueue(response)
+  }, [TrackPlayer])
+
+  useEffect(() => {
+    handleGetQueue()
+  }, [handleGetQueue])
 
   useEffect(() => {
     calculateProgressPercentage()
@@ -94,7 +124,7 @@ export function Music() {
           }}
           className="absolute left-0"
         >
-          <Icon name="back" size={30} color="#fff" />
+          <Icon name="left" size={25} color="#fff" />
         </TouchableOpacity>
         <View className="flex-col items-center">
           <Text className="text-gray-100 font-nunito-light">
@@ -107,26 +137,43 @@ export function Music() {
       </View>
 
       <View className="flex-1 items-center mt-8 mx-4">
-        <View className="w-full h-[360px] overflow-hidden rounded-lg bg-purple-600 items-center justify-center shadow-lg shadow-gray-950">
-          {isCurrentMusic?.artwork ? (
-            <ImageBackground
-              source={{ uri: isCurrentMusic.artwork }}
-              alt=""
-              className="w-full h-full object-cover items-center justify-center "
-            >
-              {state === State.Buffering && (
-                <AnimatedLottieView
-                  source={animation}
-                  autoPlay
-                  loop
-                  style={{ width: 120, height: 120 }}
-                />
-              )}
-            </ImageBackground>
-          ) : (
-            <FatherIcons name="music" size={200} color="#fff" />
+        <Carousel
+          loop={false}
+          width={size}
+          height={370}
+          data={queue}
+          onSnapToItem={(index) => {
+            handleSlideThumb(index)
+          }}
+          defaultIndex={queue.findIndex(
+            (item) => item.title === isCurrentMusic?.title,
           )}
-        </View>
+          scrollAnimationDuration={500}
+          renderItem={({ item }) => (
+            <View className="px-4">
+              <View className="w-full h-[360px] overflow-hidden rounded-lg bg-purple-600 items-center justify-center shadow-lg shadow-gray-950">
+                {item?.artwork ? (
+                  <ImageBackground
+                    source={{ uri: item.artwork }}
+                    alt=""
+                    className="w-full h-full object-cover items-center justify-center "
+                  >
+                    {state === StatePlayer.Buffering && (
+                      <AnimatedLottieView
+                        source={animation}
+                        autoPlay
+                        loop
+                        style={{ width: 120, height: 120 }}
+                      />
+                    )}
+                  </ImageBackground>
+                ) : (
+                  <FatherIcons name="music" size={200} color="#fff" />
+                )}
+              </View>
+            </View>
+          )}
+        />
 
         <View className="pt-8 flex-row items-center gap-8">
           <View className="w-[22px]" />
@@ -164,7 +211,14 @@ export function Music() {
         </View>
 
         <View className="mt-4 w-full items-center">
-          <Text>{formatTime(progress.position)}</Text>
+          <View className="flex-row justify-between w-11/12">
+            <Text className="font-nunito-regular">
+              {formatTime(progress.position)}
+            </Text>
+            <Text className="font-nunito-regular">
+              {formatTime(progress.duration)}
+            </Text>
+          </View>
           <ProgressBar
             styleAttr="Horizontal"
             indeterminate={false}
@@ -195,7 +249,7 @@ export function Music() {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
-            if (state === State.Playing) {
+            if (state === StatePlayer.Playing) {
               TrackPlayer.pause()
             } else {
               TrackPlayer.play()
@@ -204,7 +258,7 @@ export function Music() {
         >
           <Icon
             name={
-              actualProgress > 0 && state === State.Playing
+              actualProgress > 0 && state === StatePlayer.Playing
                 ? 'pause'
                 : 'caretright'
             }
@@ -215,9 +269,18 @@ export function Music() {
 
         <TouchableOpacity
           onPress={handleSkipToNext}
-          className=" p-2 rounded-full "
+          className="p-2 rounded-full"
         >
           <Icon name="stepforward" size={25} color="#fff" />
+        </TouchableOpacity>
+      </View>
+      <View className="mt-4 mx-4">
+        <TouchableOpacity
+          className="w-8 h-8 ml-auto"
+          activeOpacity={0.6}
+          onPress={() => navigation.navigate('Queue')}
+        >
+          <MaterialIcons name="queue-music" size={30} color="#fff" />
         </TouchableOpacity>
       </View>
     </ScrollView>
