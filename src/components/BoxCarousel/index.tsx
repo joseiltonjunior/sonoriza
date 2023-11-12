@@ -15,8 +15,8 @@ export function BoxCarousel({ musics }: BoxCourselProps) {
     <Carousel
       loop={false}
       style={{ width: 'auto' }}
-      width={170}
-      height={190}
+      width={160}
+      height={180}
       data={musics}
       scrollAnimationDuration={1000}
       renderItem={({ item, index }) => (

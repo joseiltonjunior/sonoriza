@@ -4,7 +4,7 @@ import {
   TouchableOpacityProps,
   View,
 } from 'react-native'
-import Icon from 'react-native-vector-icons/FontAwesome'
+import Icon from 'react-native-vector-icons/Ionicons'
 import colors from 'tailwindcss/colors'
 import { twMerge } from 'tailwind-merge'
 

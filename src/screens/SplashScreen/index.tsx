@@ -1,8 +1,8 @@
 import AnimatedLottieView from 'lottie-react-native'
-import { BackHandler, Dimensions, Linking, LogBox, View } from 'react-native'
+import { BackHandler, Dimensions, View } from 'react-native'
 
 import splash from '@assets/splash.json'
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
 
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
@@ -27,18 +27,10 @@ export function SplashScreen() {
   const { closeModal, openModal } = useModal()
   const dispatch = useDispatch()
 
-  const { TrackPlayer, Capability, getCurrentMusic } = useTrackPlayer()
+  const { TrackPlayer, Capability } = useTrackPlayer()
 
   const { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase } =
     useFirebaseServices()
-
-  const handleLinkClickNotification = useCallback(() => {
-    Linking.addEventListener('url', (event) => {
-      if (event.url === 'trackplayer://notification.click') {
-        getCurrentMusic()
-      }
-    })
-  }, [getCurrentMusic])
 
   const handleVerifyUser = async () => {
     try {
@@ -96,8 +88,6 @@ export function SplashScreen() {
           Capability.Pause,
           Capability.SkipToNext,
           Capability.SkipToPrevious,
-          Capability.PlayFromId,
-          Capability.SetRating,
         ],
         compactCapabilities: [Capability.Play, Capability.Pause],
       })
@@ -105,19 +95,8 @@ export function SplashScreen() {
   }
 
   useEffect(() => {
-    handleVerifyUser()
-    LogBox.ignoreLogs(['new NativeEventEmitter'])
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    handleLinkClickNotification()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
     handleInitializePlayer()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    handleVerifyUser()
   }, [])
 
   return (

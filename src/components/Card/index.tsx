@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import IconFather from 'react-native-vector-icons/Feather'
-import IconFontAwesome from 'react-native-vector-icons/FontAwesome'
+import Icon from 'react-native-vector-icons/Ionicons'
 import AnimatedLottieView from 'lottie-react-native'
 import animation from '@assets/playing.json'
 
@@ -54,7 +54,7 @@ export function Card({ album, artwork, title, className, ...rest }: CardProps) {
       className={twMerge('', className)}
     >
       <View>
-        <View className="w-full h-[150px] bg-gray-950 rounded-md overflow-hidden items-center justify-center">
+        <View className="w-full h-[140px] bg-gray-950 rounded-md overflow-hidden items-center justify-center">
           {artwork.length ? (
             <Image
               source={{ uri: artwork }}
@@ -67,11 +67,11 @@ export function Card({ album, artwork, title, className, ...rest }: CardProps) {
 
           <View className="bg-white shadow-lg shadow-black h-6 w-6 p-1 rounded-full m-2 mt-auto items-center justify-center absolute bottom-0 left-0">
             {handleStateMusic === 'play-not-current' && (
-              <IconFontAwesome name="play" color={colors.gray[950]} size={12} />
+              <Icon name="play" color={colors.gray[950]} size={12} />
             )}
 
             {handleStateMusic === 'paused' && (
-              <IconFontAwesome name="play" color={colors.gray[950]} size={12} />
+              <Icon name="play" color={colors.gray[950]} size={12} />
             )}
 
             {handleStateMusic === 'play-current' && (

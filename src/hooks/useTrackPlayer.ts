@@ -3,8 +3,10 @@ import { StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import {
   CurrentMusicProps,
+  handleChangeStateCurrentMusic,
   handleSetCurrentMusic,
 } from '@storage/modules/currentMusic/reducer'
+import { handleSetQueue } from '@storage/modules/queue/reducer'
 import { MusicProps } from '@utils/Types/musicProps'
 
 import TrackPlayer, {
@@ -32,10 +34,18 @@ export function useTrackPlayer() {
   )
 
   const getCurrentMusic = async () => {
-    await TrackPlayer.getActiveTrack().then((result) => {
-      const isCurrentMusic = result as MusicProps
+    try {
+      const currentMusic = await TrackPlayer.getActiveTrack()
+
+      const isCurrentMusic = currentMusic as MusicProps
       dispatch(handleSetCurrentMusic({ isCurrentMusic }))
-    })
+
+      const State = await TrackPlayer.getPlaybackState()
+      dispatch(handleChangeStateCurrentMusic(State.state))
+
+      const queue = await TrackPlayer.getQueue()
+      dispatch(handleSetQueue({ queue }))
+    } catch (error) {}
   }
 
   const handleMusicSelected = async ({

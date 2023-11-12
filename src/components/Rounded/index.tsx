@@ -31,7 +31,7 @@ export function Rounded({
       <View>
         <View
           className={`${
-            roundedSmall ? 'w-[120px] h-[120px]' : 'w-[150px] h-[150px]'
+            roundedSmall ? 'w-[110px] h-[110px]' : 'w-[140px] h-[140px]'
           } bg-gray-950 rounded-full overflow-hidden items-center justify-center`}
         >
           <Image

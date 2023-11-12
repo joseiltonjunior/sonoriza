@@ -10,7 +10,7 @@ import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useDispatch, useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
 
-import Icon from 'react-native-vector-icons/FontAwesome'
+import Icon from 'react-native-vector-icons/Ionicons'
 
 import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
 
@@ -82,7 +82,7 @@ export function SideMenu() {
                 className="w-full h-full object-contain"
               />
             ) : (
-              <Icon name="user" color={'#9ca3af'} size={35} />
+              <Icon name="person" color={'#9ca3af'} size={35} />
             )}
           </View>
 
@@ -97,15 +97,11 @@ export function SideMenu() {
         </View>
 
         <View className="p-4 pb-8 flex-1">
-          <Button icon="gear" title="Gerenciamento de conta" />
+          <Button icon="settings-sharp" title="Gerenciamento de conta" />
 
-          <Button
-            icon="thumbs-o-up"
-            title="Avaliar o aplicativo"
-            className="mt-5"
-          />
+          <Button icon="star" title="Avaliar o aplicativo" className="mt-5" />
 
-          <Button icon="question" title="Sobre" className="mt-5" />
+          <Button icon="reader" title="Sobre" className="mt-5" />
 
           <TouchableOpacity
             className="ml-auto mr-auto mt-auto bg-purple-600 h-14 items-center justify-center px-6 rounded-full"

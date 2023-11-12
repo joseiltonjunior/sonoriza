@@ -18,15 +18,15 @@ import { MusicProps } from '@utils/Types/musicProps'
 import { useEffect, useMemo, useState } from 'react'
 
 import {
-  FlatList,
   Image,
   ImageBackground,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native'
-import Icon from 'react-native-vector-icons/AntDesign'
+import Icon from 'react-native-vector-icons/Ionicons'
 import { useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
 
@@ -90,33 +90,49 @@ export function Artist() {
 
   return (
     <>
-      <View className="flex-1">
+      <ScrollView className="flex-1">
         <ImageBackground
           source={{ uri: artist.photoURL }}
           alt={artist.name}
           className="h-80 w-screen p-4"
         >
-          <View>
-            <TouchableOpacity
-              onPress={() => {
-                navigation.goBack()
-              }}
-            >
-              <Icon name="left" size={25} color={colors.white} />
-            </TouchableOpacity>
-          </View>
-          <View className="mt-auto items-center mb-14">
+          <TouchableOpacity
+            className="p-2 rounded-full w-12 h-12 "
+            onPress={() => {
+              navigation.goBack()
+            }}
+          >
+            <Icon name="chevron-back-outline" size={30} color={colors.white} />
+          </TouchableOpacity>
+
+          <View className="mt-auto">
             <Text className="font-nunito-bold text-white" style={styles.text}>
               {artist?.name}
             </Text>
           </View>
         </ImageBackground>
 
-        <View className="bottom-6 flex-row px-4 items-center justify-center">
+        <View className="flex-row px-4 mt-2 items-center justify-between">
+          <View className="rounded-full overflow-hidden">
+            <TouchableOpacity
+              onPress={() => {
+                handleFavoriteArtist(artist)
+              }}
+              activeOpacity={0.6}
+              className="p-4"
+            >
+              <Icon
+                name={isFavorite ? 'heart-sharp' : 'heart-outline'}
+                color={colors.white}
+                size={25}
+              />
+            </TouchableOpacity>
+          </View>
+
           <View className="bg-gray-950 rounded-full overflow-hidden">
             <TouchableOpacity
               activeOpacity={0.6}
-              className="bg-purple-600  px-12 py-4 items-center"
+              className="bg-purple-600 p-3 items-center"
               onPress={() => {
                 if (!musics) return
                 handleMusicSelected({
@@ -126,26 +142,9 @@ export function Artist() {
                 })
               }}
             >
-              <View className="flex-row justify-center ">
-                <Icon name="caretright" size={16} color={colors.white} />
-                <Text className="font-nunito-bold text-white ml-4">TOCAR</Text>
+              <View className="flex-row justify-center items-center">
+                <Icon name="play" size={20} color={colors.white} />
               </View>
-            </TouchableOpacity>
-          </View>
-
-          <View className="right-4 bg-gray-950 absolute rounded-full overflow-hidden">
-            <TouchableOpacity
-              onPress={() => {
-                handleFavoriteArtist(artist)
-              }}
-              activeOpacity={0.6}
-              className="bg-gray-700 p-4"
-            >
-              <Icon
-                name={isFavorite ? 'heart' : 'hearto'}
-                color={colors.red[600]}
-                size={22}
-              />
             </TouchableOpacity>
           </View>
         </View>
@@ -155,62 +154,59 @@ export function Artist() {
             Top músicas
           </Text>
 
-          <FlatList
-            className="mt-8"
-            showsVerticalScrollIndicator={false}
-            data={musics}
-            ItemSeparatorComponent={() => <View className="h-3" />}
-            renderItem={({ item, index }) => (
-              <View className="flex-row items-center">
-                <TouchableOpacity
-                  key={index}
-                  className="flex-row items-center gap-2 flex-1 overflow-hidden pr-24 "
-                  onPress={() => {
-                    if (!musics) return
-                    handleMusicSelected({
-                      indexSelected: index,
-                      listMusics: musics,
-                      musicSelected: item,
-                    })
-                  }}
-                >
-                  <View className="w-16 h-16 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
-                    <Image
-                      source={{ uri: item.artwork }}
-                      alt="artwork"
-                      className="h-full w-full"
-                    />
-                  </View>
-                  <View className="w-full">
-                    <Text
-                      className="font-nunito-bold text-white text-base"
-                      numberOfLines={1}
-                    >
-                      {item.title}
-                    </Text>
-                    <Text className="font-nunito-regular text-gray-300 mt-1">
-                      {item.album}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.6}
-                  className="ml-8"
-                  onPress={() => {
-                    handleFavoriteMusic(item)
-                  }}
-                >
-                  <Icon
-                    name={hanfleFilterFavorites(item.id) ? 'heart' : 'hearto'}
-                    color={colors.white}
-                    size={22}
+          {musics?.map((item, index) => (
+            <View className="flex-row items-center mt-3" key={item.id}>
+              <TouchableOpacity
+                className="flex-row items-center gap-2 flex-1 overflow-hidden"
+                onPress={() => {
+                  if (!musics) return
+                  handleMusicSelected({
+                    indexSelected: index,
+                    listMusics: musics,
+                    musicSelected: item,
+                  })
+                }}
+              >
+                <View className="w-16 h-16 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
+                  <Image
+                    source={{ uri: item.artwork }}
+                    alt="artwork"
+                    className="h-full w-full"
                   />
-                </TouchableOpacity>
-              </View>
-            )}
-          />
+                </View>
+                <View className="w-full">
+                  <Text
+                    className="font-nunito-bold text-white text-base"
+                    numberOfLines={1}
+                  >
+                    {item.title}
+                  </Text>
+                  <Text className="font-nunito-regular text-gray-300 mt-1">
+                    {item.album}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.6}
+                className="ml-8"
+                onPress={() => {
+                  handleFavoriteMusic(item)
+                }}
+              >
+                <Icon
+                  name={
+                    hanfleFilterFavorites(item.id)
+                      ? 'heart-sharp'
+                      : 'heart-outline'
+                  }
+                  color={colors.white}
+                  size={22}
+                />
+              </TouchableOpacity>
+            </View>
+          ))}
         </View>
-      </View>
+      </ScrollView>
       {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
       <BottomMenu />
     </>
@@ -219,8 +215,8 @@ export function Artist() {
 const styles = StyleSheet.create({
   text: {
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
-    fontSize: 42,
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 2,
+    fontSize: 30,
   },
 })

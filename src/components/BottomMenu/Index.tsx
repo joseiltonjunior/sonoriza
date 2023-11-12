@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { Text, TouchableOpacity, View } from 'react-native'
-import Icon from 'react-native-vector-icons/Feather'
+import Icon from 'react-native-vector-icons/Ionicons'
 
 export function BottomMenu() {
   const navigation = useNavigation<StackNavigationProps>()
@@ -31,7 +31,7 @@ export function BottomMenu() {
         className="items-center py-2"
         onPress={() => navigation.navigate('Favorites')}
       >
-        <Icon name="heart" size={22} />
+        <Icon name="heart-outline" size={22} />
         <Text className="font-nunito-regular text-xs mt-1">Favoritos</Text>
       </TouchableOpacity>
     </View>

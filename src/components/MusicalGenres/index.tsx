@@ -12,13 +12,13 @@ export function MusicalGenres({ musicalGenres }: MusicalGenresProps) {
       <Carousel
         loop={false}
         style={{ width: '100%' }}
-        width={170}
-        height={70}
+        width={150}
+        height={60}
         data={musicalGenres}
         scrollAnimationDuration={1000}
         renderItem={({ item }) => (
           <TouchableOpacity
-            className="bg-purple-600 rounded-lg ml-4 px-6  items-center justify-center h-full"
+            className="bg-purple-600 rounded-lg ml-4 px-2 items-center justify-center h-full"
             activeOpacity={0.8}
             onPress={() =>
               navigation.navigate('GenreSelected', { type: item.name })

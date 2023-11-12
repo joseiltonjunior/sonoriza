@@ -1,12 +1,17 @@
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
+import AnimatedLottieView from 'lottie-react-native'
 import { ReduxProps } from '@storage/index'
-import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import {
+  CurrentMusicProps,
+  handleSetCurrentMusic,
+} from '@storage/modules/currentMusic/reducer'
 
 import { MusicProps } from '@utils/Types/musicProps'
-import { useCallback, useEffect, useState } from 'react'
-import AnimatedLottieView from 'lottie-react-native'
+
+import playing from '@assets/playing.json'
+
 import {
   FlatList,
   ImageBackground,
@@ -14,148 +19,135 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { State, Track } from 'react-native-track-player'
 
-import Icon from 'react-native-vector-icons/AntDesign'
+import Icon from 'react-native-vector-icons/Ionicons'
 import IconFather from 'react-native-vector-icons/Feather'
 import IconMaterial from 'react-native-vector-icons/MaterialIcons'
 
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
 
-import animation from '@assets/playing.json'
-import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
+import { QueueProps, handleSetQueue } from '@storage/modules/queue/reducer'
+import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
+import { BottomMenu } from '@components/BottomMenu/Index'
+import { useCallback } from 'react'
 
 export function Queue() {
   const navigation = useNavigation<StackNavigationProps>()
-  const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
-    (state) => state.trackListRemote,
-  )
 
-  const [queue, setQueue] = useState<Track[]>([])
-
-  const { isCurrentMusic, state } = useSelector<ReduxProps, CurrentMusicProps>(
+  const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
 
+  const { queue } = useSelector<ReduxProps, QueueProps>((state) => state.queue)
+
+  const dispatch = useDispatch()
+
   const { handleMusicSelected, TrackPlayer } = useTrackPlayer()
 
-  const handleStateMusic = useCallback(
-    (title: string) => {
-      switch (state) {
-        case State.Playing:
-          if (title !== isCurrentMusic?.title) {
-            return 'play-not-current'
-          }
-          return 'play-current'
-
-        case State.Paused:
-        case State.Ended:
-          return 'paused'
-
-        default:
-          return 'paused'
-      }
-    },
-    [isCurrentMusic?.title, state],
-  )
+  const handleGetQueue = useCallback(async () => {
+    try {
+      const queue = await TrackPlayer.getQueue()
+      dispatch(handleSetQueue({ queue }))
+    } catch (error) {}
+  }, [TrackPlayer, dispatch])
 
   const handleRemoveToQueue = async (index: number) => {
     try {
       await TrackPlayer.remove(index)
-    } catch (error) {
-      console.log(error, 'err')
-    }
+      if (queue.length === 1) {
+        dispatch(handleSetCurrentMusic({ isCurrentMusic: undefined }))
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        })
+      } else {
+        handleGetQueue()
+      }
+    } catch (error) {}
   }
 
-  const handleGetQueue = useCallback(async () => {
-    const response = await TrackPlayer.getQueue()
-    if (response.length > 0) setQueue(response)
-  }, [TrackPlayer])
-
-  useEffect(() => {
-    handleGetQueue()
-  }, [handleGetQueue])
-
   return (
-    <View className="p-4">
-      <View className="flex-row items-center justify-center mt-2">
-        <TouchableOpacity
-          onPress={() => {
-            navigation.goBack()
-          }}
-          className="absolute left-0"
-        >
-          <Icon name="left" size={25} color="#fff" />
-        </TouchableOpacity>
+    <View className="flex-1 bg-gray-950">
+      <View className="px-4 flex-1 mt-4">
+        <View className="flex-row items-center justify-center">
+          <TouchableOpacity
+            onPress={() => {
+              navigation.goBack()
+            }}
+            className="absolute left-0 p-2 rounded-full"
+          >
+            <Icon name="chevron-back-outline" size={25} color="#fff" />
+          </TouchableOpacity>
 
-        <Text className="text-white font-nunito-bold text-lg">Tocando</Text>
-      </View>
+          <Text className="text-white font-nunito-bold text-lg">Tocando</Text>
+        </View>
 
-      <FlatList
-        className="mt-8"
-        showsVerticalScrollIndicator={false}
-        data={queue}
-        ItemSeparatorComponent={() => <View className="h-3" />}
-        renderItem={({ item, index }) => (
-          <View className="flex-row justify-between items-center">
-            <TouchableOpacity
-              className="flex-row items-center gap-2 max-w-[200px] "
-              onPress={() => {
-                handleMusicSelected({
-                  musicSelected: item as MusicProps,
-                  indexSelected: index,
-                  listMusics: trackListRemote,
-                })
-              }}
-            >
-              <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
-                {item.artwork ? (
-                  <ImageBackground
-                    source={{ uri: item.artwork }}
-                    alt="artwork"
-                    className="h-full w-full items-center justify-center"
-                  >
-                    {item.title &&
-                      handleStateMusic(item.title) === 'play-current' && (
-                        <View className="bg-white/80 h-8 w-8 rounded-xl">
+        <FlatList
+          className="mt-8"
+          showsVerticalScrollIndicator={false}
+          data={queue}
+          ItemSeparatorComponent={() => <View className="h-3" />}
+          renderItem={({ item, index }) => (
+            <View className="flex-row justify-between items-center">
+              <TouchableOpacity
+                className="flex-row items-center gap-2 max-w-[200px] "
+                onPress={() => {
+                  handleMusicSelected({
+                    musicSelected: item as MusicProps,
+                    indexSelected: index,
+                    listMusics: queue as MusicProps[],
+                  })
+                }}
+              >
+                <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
+                  {item.artwork ? (
+                    <ImageBackground
+                      source={{ uri: item.artwork }}
+                      alt="artwork"
+                      className="h-full w-full items-center justify-center"
+                    >
+                      {item.title === isCurrentMusic?.title && (
+                        <View className="bg-white/90 rounded-full p-1">
                           <AnimatedLottieView
-                            source={animation}
+                            source={playing}
                             autoPlay
                             loop
-                            style={{ width: 35, height: 35 }}
+                            style={{ width: 30, height: 30 }}
                           />
                         </View>
                       )}
-                  </ImageBackground>
-                ) : (
-                  <IconFather name="music" size={28} color={colors.white} />
-                )}
-              </View>
-              <View>
-                <Text className="font-bold text-white">{item.title}</Text>
-                <Text className="font-regular text-gray-300">
-                  {item.artists[0].name}
-                </Text>
-              </View>
-            </TouchableOpacity>
+                    </ImageBackground>
+                  ) : (
+                    <IconFather name="music" size={28} color={colors.white} />
+                  )}
+                </View>
+                <View>
+                  <Text className="font-bold text-white">{item.title}</Text>
+                  <Text className="font-regular text-gray-300">
+                    {item.artists[0].name}
+                  </Text>
+                </View>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              activeOpacity={0.6}
-              onPress={() => {
-                handleRemoveToQueue(index)
-                handleGetQueue()
-              }}
-            >
-              <IconMaterial
-                name={'playlist-remove'}
-                color={colors.purple[600]}
-                size={30}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-      />
+              <TouchableOpacity
+                activeOpacity={0.6}
+                onPress={() => {
+                  handleRemoveToQueue(index)
+                }}
+              >
+                <IconMaterial
+                  name={'playlist-remove'}
+                  color={colors.gray[300]}
+                  size={30}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+        />
+      </View>
+      {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
+      <BottomMenu />
     </View>
   )
 }

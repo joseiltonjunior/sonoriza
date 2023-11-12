@@ -1,22 +1,19 @@
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import { ReduxProps } from '@storage/index'
 
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 
-import IconAnt from 'react-native-vector-icons/AntDesign'
+import Icon from 'react-native-vector-icons/Ionicons'
 
 import { useSideMenu } from '@hooks/useSideMenu'
 
 import { BoxCarousel } from '@components/BoxCarousel'
 
-import {
-  CurrentMusicProps,
-  handleChangeStateCurrentMusic,
-} from '@storage/modules/currentMusic/reducer'
+import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
@@ -30,9 +27,11 @@ import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
 import { ArtistsProps } from '@storage/modules/artists/reducer'
 import { MusicalGenresProps } from '@storage/modules/musicalGenres/reducer'
 import { MusicalGenres } from '@components/MusicalGenres'
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
+
+import TrackPlayer, { Event, State } from 'react-native-track-player'
+
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
-import TrackPlayer from 'react-native-track-player'
 
 export function Home() {
   const navigation = useNavigation<StackNavigationProps>()
@@ -41,23 +40,17 @@ export function Home() {
     (state) => state.trackListRemote,
   )
 
+  const { getCurrentMusic } = useTrackPlayer()
+
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
 
-  const dispatch = useDispatch()
-
-  const { useProgress } = useTrackPlayer()
-
-  const { getCurrentMusic } = useTrackPlayer()
-
   const { artists } = useSelector<ReduxProps, ArtistsProps>(
     (state) => state.artists,
   )
-
-  const progress = useProgress()
 
   const { musicalGenres } = useSelector<ReduxProps, MusicalGenresProps>(
     (state) => state.musicalGenres,
@@ -65,23 +58,29 @@ export function Home() {
 
   const { handleIsVisible } = useSideMenu()
 
-  const handleGetCurrentMusic = useCallback(async () => {
-    try {
-      const isEndMusic = progress.position === progress.duration
-
-      const State = await TrackPlayer.getPlaybackState()
-
-      dispatch(handleChangeStateCurrentMusic(State.state))
-
-      if (isEndMusic) {
-        getCurrentMusic()
-      }
-    } catch (error) {}
-  }, [dispatch, getCurrentMusic, progress.duration, progress.position])
+  const handleGetCurrentMusic = () => {
+    getCurrentMusic()
+  }
 
   useEffect(() => {
     handleGetCurrentMusic()
-  }, [handleGetCurrentMusic])
+    const playbackStateListener = TrackPlayer.addEventListener(
+      Event.PlaybackState,
+      ({ state }) => {
+        if (
+          [State.Paused, State.Playing, State.Buffering, State.Ended].includes(
+            state,
+          )
+        ) {
+          handleGetCurrentMusic()
+        }
+      },
+    )
+
+    return () => {
+      playbackStateListener.remove()
+    }
+  }, [])
 
   return (
     <>
@@ -90,7 +89,7 @@ export function Home() {
           <Text className="text-white text-3xl font-nunito-bold">Início</Text>
 
           <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
-            <IconAnt name="setting" size={26} />
+            <Icon name="settings-outline" size={26} />
           </TouchableOpacity>
         </View>
 

@@ -1,9 +1,9 @@
-import { TrackProps } from '@hooks/useTrackPlayer'
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
+import { Track } from 'react-native-track-player'
 
 export interface QueueProps {
-  queue: TrackProps[]
+  queue: Track[]
 }
 
 const initialState: QueueProps = {

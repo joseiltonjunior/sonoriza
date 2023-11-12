@@ -9,7 +9,7 @@ import { Text, TouchableOpacity, View, Image } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { useSelector } from 'react-redux'
 import IconFather from 'react-native-vector-icons/Feather'
-import Icon from 'react-native-vector-icons/AntDesign'
+import Icon from 'react-native-vector-icons/Ionicons'
 import colors from 'tailwindcss/colors'
 import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
 import { useEffect, useState } from 'react'
@@ -64,9 +64,9 @@ export function MoreMusic() {
             onPress={() => {
               navigation.goBack()
             }}
-            className="absolute left-0"
+            className="absolute left-0 p-2 rounded-full"
           >
-            <Icon name="left" size={25} color="#fff" />
+            <Icon name="chevron-back-outline" size={25} color="#fff" />
           </TouchableOpacity>
           <Text className="text-lg font-bold text-white">{title}</Text>
         </View>

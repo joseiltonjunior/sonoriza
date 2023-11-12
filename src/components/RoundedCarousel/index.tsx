@@ -22,8 +22,8 @@ export function RoundedCarousel({
     <Carousel
       loop={false}
       style={{ width: 'auto' }}
-      width={roundedSmall ? 140 : 170}
-      height={roundedSmall ? 160 : 190}
+      width={roundedSmall ? 130 : 160}
+      height={roundedSmall ? 150 : 180}
       data={artists}
       scrollAnimationDuration={1000}
       renderItem={({ item }) => (

@@ -12,7 +12,7 @@ import { Text, View, TouchableOpacity } from 'react-native'
 
 import { useSelector } from 'react-redux'
 
-import IconAnt from 'react-native-vector-icons/AntDesign'
+import Icon from 'react-native-vector-icons/Ionicons'
 import { useSideMenu } from '@hooks/useSideMenu'
 
 export function Favorites() {
@@ -32,7 +32,7 @@ export function Favorites() {
         <Text className="text-white text-3xl font-nunito-bold">Favoritos</Text>
 
         <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
-          <IconAnt name="setting" size={26} />
+          <Icon name="settings-outline" size={26} />
         </TouchableOpacity>
       </View>
 
