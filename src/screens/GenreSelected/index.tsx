@@ -64,7 +64,6 @@ export function GenreSelected() {
                 className="flex-row items-center gap-2 "
                 onPress={() => {
                   handleMusicSelected({
-                    indexSelected: index,
                     listMusics,
                     musicSelected: item,
                   })

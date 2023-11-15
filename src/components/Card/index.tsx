@@ -54,7 +54,7 @@ export function Card({ album, artwork, title, className, ...rest }: CardProps) {
       className={twMerge('', className)}
     >
       <View>
-        <View className="w-full h-[140px] bg-gray-950 rounded-md overflow-hidden items-center justify-center">
+        <View className="w-full h-[120px] bg-gray-950 rounded-md overflow-hidden items-center justify-center">
           {artwork.length ? (
             <Image
               source={{ uri: artwork }}

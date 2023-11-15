@@ -6,6 +6,7 @@ import {
   handleChangeStateCurrentMusic,
   handleSetCurrentMusic,
 } from '@storage/modules/currentMusic/reducer'
+import { handleSetHistoric } from '@storage/modules/historic/reducer'
 import { handleSetQueue } from '@storage/modules/queue/reducer'
 import { MusicProps } from '@utils/Types/musicProps'
 
@@ -21,7 +22,6 @@ export type TrackProps = Track
 
 interface HandleMusicSelectedProps {
   musicSelected: MusicProps
-  indexSelected: number
   listMusics: MusicProps[]
 }
 
@@ -49,7 +49,6 @@ export function useTrackPlayer() {
   }
 
   const handleMusicSelected = async ({
-    indexSelected,
     listMusics,
     musicSelected,
   }: HandleMusicSelectedProps) => {
@@ -63,11 +62,16 @@ export function useTrackPlayer() {
       return
     }
 
+    const indexSelected = listMusics.findIndex(
+      (item) => item.id === musicSelected.id,
+    )
+
     await TrackPlayer.reset()
     await TrackPlayer.add(listMusics)
     await TrackPlayer.skip(indexSelected)
     await TrackPlayer.play()
     dispatch(handleSetCurrentMusic({ isCurrentMusic: musicSelected }))
+    dispatch(handleSetHistoric({ music: musicSelected }))
   }
 
   return {

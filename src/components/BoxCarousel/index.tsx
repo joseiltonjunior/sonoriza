@@ -15,18 +15,17 @@ export function BoxCarousel({ musics }: BoxCourselProps) {
     <Carousel
       loop={false}
       style={{ width: 'auto' }}
-      width={160}
-      height={180}
+      width={140}
+      height={160}
       data={musics}
       scrollAnimationDuration={1000}
-      renderItem={({ item, index }) => (
+      renderItem={({ item }) => (
         <Card
           title={item.title}
           album={item.album}
           artwork={item.artwork}
           onPress={() =>
             handleMusicSelected({
-              indexSelected: index,
               musicSelected: item,
               listMusics: musics,
             })

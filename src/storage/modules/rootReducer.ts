@@ -8,6 +8,7 @@ import musicalGenres from './musicalGenres/reducer'
 import artists from './artists/reducer'
 
 import queue from './queue/reducer'
+import historic from './historic/reducer'
 
 export default combineReducers({
   trackListRemote,
@@ -16,4 +17,5 @@ export default combineReducers({
   musicalGenres,
   artists,
   queue,
+  historic,
 })

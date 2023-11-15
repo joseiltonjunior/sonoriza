@@ -31,7 +31,7 @@ export function Rounded({
       <View>
         <View
           className={`${
-            roundedSmall ? 'w-[110px] h-[110px]' : 'w-[140px] h-[140px]'
+            roundedSmall ? 'w-[110px] h-[110px]' : 'w-[130px] h-[130px]'
           } bg-gray-950 rounded-full overflow-hidden items-center justify-center`}
         >
           <Image
@@ -43,7 +43,7 @@ export function Rounded({
 
         <View className="mt-auto pt-2">
           <Text
-            className="font-nunito-bold text-base text-white text-center"
+            className="font-nunito-bold text-base text-gray-300 text-center"
             numberOfLines={1}
           >
             {artist}

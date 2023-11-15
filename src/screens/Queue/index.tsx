@@ -95,7 +95,7 @@ export function Queue() {
                 onPress={() => {
                   handleMusicSelected({
                     musicSelected: item as MusicProps,
-                    indexSelected: index,
+
                     listMusics: queue as MusicProps[],
                   })
                 }}

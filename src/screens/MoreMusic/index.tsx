@@ -5,8 +5,9 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-import { Text, TouchableOpacity, View, Image } from 'react-native'
+import { Text, TouchableOpacity, View, ImageBackground } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
+import AnimatedLottieView from 'lottie-react-native'
 import { useSelector } from 'react-redux'
 import IconFather from 'react-native-vector-icons/Feather'
 import Icon from 'react-native-vector-icons/Ionicons'
@@ -16,6 +17,9 @@ import { useEffect, useState } from 'react'
 import { MusicProps } from '@utils/Types/musicProps'
 import { UserProps } from '@storage/modules/user/reducer'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { HistoricProps } from '@storage/modules/historic/reducer'
+
+import playing from '@assets/playing.json'
 
 export function MoreMusic() {
   const { params } = useRoute<RouteParamsProps<'MoreMusic'>>()
@@ -29,6 +33,10 @@ export function MoreMusic() {
   const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
     (state) => state.trackListRemote,
   )
+  const { historic } = useSelector<ReduxProps, HistoricProps>(
+    (state) => state.historic,
+  )
+
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const { handleMusicSelected } = useTrackPlayer()
@@ -40,19 +48,31 @@ export function MoreMusic() {
   )
 
   const handleGetMusics = async (ids: string[]) => {
-    await handleGetFavoritesMusics(ids).then((result) => {
+    try {
+      const result = await handleGetFavoritesMusics(ids)
       setListMusics(result)
-    })
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   useEffect(() => {
+    let updatedListMusics = [] as MusicProps[]
+
     if (type === 'default') {
-      setListMusics(trackListRemote)
-    } else if (user.favoritesMusics && user.favoritesMusics.length > 0) {
+      updatedListMusics = trackListRemote
+    } else if (
+      type === 'favorites' &&
+      user.favoritesMusics &&
+      user.favoritesMusics.length > 0
+    ) {
       handleGetMusics(user.favoritesMusics)
-    } else {
-      setListMusics([])
+      return
+    } else if (type === 'historic') {
+      updatedListMusics = historic
     }
+
+    setListMusics(updatedListMusics)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, user.favoritesMusics])
 
@@ -84,18 +104,29 @@ export function MoreMusic() {
                 onPress={() => {
                   handleMusicSelected({
                     musicSelected: item,
-                    indexSelected: index,
-                    listMusics: trackListRemote,
+
+                    listMusics,
                   })
                 }}
               >
                 <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
                   {item.artwork ? (
-                    <Image
+                    <ImageBackground
                       source={{ uri: item.artwork }}
                       alt="artwork"
-                      className="h-full w-full"
-                    />
+                      className="h-full w-full items-center justify-center"
+                    >
+                      {item.title === isCurrentMusic?.title && (
+                        <View className="bg-white/90 rounded-full p-1">
+                          <AnimatedLottieView
+                            source={playing}
+                            autoPlay
+                            loop
+                            style={{ width: 30, height: 30 }}
+                          />
+                        </View>
+                      )}
+                    </ImageBackground>
                   ) : (
                     <IconFather name="music" size={28} color={colors.white} />
                   )}

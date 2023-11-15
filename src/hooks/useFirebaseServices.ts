@@ -223,21 +223,29 @@ export function useFirebaseServices() {
     artistsId: string[],
   ): Promise<ArtistsDataProps[]> => {
     let artists = [] as ArtistsDataProps[]
-    await firestore()
-      .collection('artists')
-      .where(firestore.FieldPath.documentId(), 'in', artistsId)
-      .get({ source: 'cache' })
-      .then(async (querySnapshot) => {
-        const artistsResponse = querySnapshot.docs.map((doc) =>
-          doc.data(),
-        ) as ArtistsDataProps[]
+    const batches = []
+    const batchSize = 10
 
-        artists = artistsResponse
-      })
+    for (let i = 0; i < artistsId.length; i += batchSize) {
+      const batch = artistsId.slice(i, i + batchSize)
+      batches.push(batch)
+    }
 
-      .catch((err) => {
-        crashlytics().recordError(err)
-      })
+    for (const batch of batches) {
+      await firestore()
+        .collection('artists')
+        .where(firestore.FieldPath.documentId(), 'in', batch)
+        .get({ source: 'cache' })
+        .then((querySnapshot) => {
+          const artistsResponse = querySnapshot.docs.map((doc) =>
+            doc.data(),
+          ) as ArtistsDataProps[]
+          artists = artists.concat(artistsResponse)
+        })
+        .catch((err) => {
+          crashlytics().recordError(err)
+        })
+    }
 
     return artists
   }
@@ -246,21 +254,30 @@ export function useFirebaseServices() {
     musicsId: string[],
   ): Promise<MusicProps[]> => {
     let musics = [] as MusicProps[]
-    await firestore()
-      .collection('musics')
-      .where(firestore.FieldPath.documentId(), 'in', musicsId)
-      .get({ source: 'cache' })
-      .then(async (querySnapshot) => {
-        const musicsResponse = querySnapshot.docs.map((doc) =>
-          doc.data(),
-        ) as MusicProps[]
 
-        musics = musicsResponse
-      })
+    const batches = []
+    const batchSize = 10
 
-      .catch((err) => {
-        crashlytics().recordError(err)
-      })
+    for (let i = 0; i < musicsId.length; i += batchSize) {
+      const batch = musicsId.slice(i, i + batchSize)
+      batches.push(batch)
+    }
+
+    for (const batch of batches) {
+      await firestore()
+        .collection('musics')
+        .where(firestore.FieldPath.documentId(), 'in', batch)
+        .get({ source: 'cache' })
+        .then((querySnapshot) => {
+          const musicsResponse = querySnapshot.docs.map((doc) =>
+            doc.data(),
+          ) as MusicProps[]
+          musics = musics.concat(musicsResponse)
+        })
+        .catch((err) => {
+          crashlytics().recordError(err)
+        })
+    }
 
     return musics
   }

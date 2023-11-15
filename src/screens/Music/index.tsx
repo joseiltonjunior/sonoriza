@@ -333,14 +333,14 @@ export function Music() {
         </Text>
       </View>
 
-      <View className="flex-row justify-around  items-center px-12 mt-8">
+      <View className="flex-row justify-around  items-center px-20 mt-6">
         <TouchableOpacity
           activeOpacity={0.6}
           disabled={havePrevious}
           onPress={handleSkipToPrevius}
           className="p-2 rounded-full "
         >
-          <Icon name="play-skip-back-sharp" size={25} color={fontColor} />
+          <Icon name="play-skip-back" size={25} color={fontColor} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
@@ -352,8 +352,8 @@ export function Music() {
           }}
         >
           <Icon
-            name={state === StatePlayer.Paused ? 'play' : 'pause-sharp'}
-            size={40}
+            name={state === StatePlayer.Paused ? 'play' : 'pause'}
+            size={50}
             color={fontColor}
           />
         </TouchableOpacity>

@@ -136,7 +136,6 @@ export function Artist() {
               onPress={() => {
                 if (!musics) return
                 handleMusicSelected({
-                  indexSelected: 0,
                   listMusics: musics,
                   musicSelected: musics[0],
                 })
@@ -154,14 +153,13 @@ export function Artist() {
             Top músicas
           </Text>
 
-          {musics?.map((item, index) => (
+          {musics?.map((item) => (
             <View className="flex-row items-center mt-3" key={item.id}>
               <TouchableOpacity
                 className="flex-row items-center gap-2 flex-1 overflow-hidden"
                 onPress={() => {
                   if (!musics) return
                   handleMusicSelected({
-                    indexSelected: index,
                     listMusics: musics,
                     musicSelected: item,
                   })

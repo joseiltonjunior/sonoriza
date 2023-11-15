@@ -32,7 +32,7 @@ type RootStackParamList = {
     title: string
   }
   MoreMusic: {
-    type: 'favorites' | 'default'
+    type: 'favorites' | 'default' | 'historic'
     title: string
   }
   GenreSelected: {

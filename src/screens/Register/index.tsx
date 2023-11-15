@@ -80,7 +80,7 @@ export function Register() {
     displayName,
     photoURL,
     uid,
-    plain,
+    plan,
   }: UserDataProps) {
     const userRef = firestore().collection('users').doc(uid)
 
@@ -118,7 +118,7 @@ export function Register() {
               displayName,
               photoURL,
               uid,
-              plain,
+              plan,
             })
             .then(() => {
               dispatch(
@@ -128,7 +128,7 @@ export function Register() {
                     email,
                     photoURL,
                     uid,
-                    plain,
+                    plan,
                   },
                 }),
               )
@@ -174,7 +174,7 @@ export function Register() {
 
       const { uid, email, displayName, photoURL } = response.user
 
-      handleSaveInDatabase({ displayName, email, photoURL, uid, plain: 'free' })
+      handleSaveInDatabase({ displayName, email, photoURL, uid, plan: 'free' })
     } catch (error) {
       openModal({
         title: 'Atenção',
@@ -212,7 +212,7 @@ export function Register() {
               email,
               photoURL,
               uid,
-              plain: 'free',
+              plan: 'free',
             })
           })
       })

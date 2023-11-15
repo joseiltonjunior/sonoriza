@@ -15,8 +15,8 @@ import { BoxCarousel } from '@components/BoxCarousel'
 
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 
-import { useNavigation } from '@react-navigation/native'
-import { StackNavigationProps } from '@routes/routes'
+// import { useNavigation } from '@react-navigation/native'
+// import { StackNavigationProps } from '@routes/routes'
 
 import { RoundedCarousel } from '@components/RoundedCarousel'
 import { UserProps } from '@storage/modules/user/reducer'
@@ -32,12 +32,18 @@ import { useEffect } from 'react'
 import TrackPlayer, { Event, State } from 'react-native-track-player'
 
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
+import { HistoricProps } from '@storage/modules/historic/reducer'
+import { ListCarousel } from '@components/ListCarousel'
 
 export function Home() {
-  const navigation = useNavigation<StackNavigationProps>()
+  // const navigation = useNavigation<StackNavigationProps>()
 
   const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
     (state) => state.trackListRemote,
+  )
+
+  const { historic } = useSelector<ReduxProps, HistoricProps>(
+    (state) => state.historic,
   )
 
   const { getCurrentMusic } = useTrackPlayer()
@@ -80,6 +86,7 @@ export function Home() {
     return () => {
       playbackStateListener.remove()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -93,10 +100,19 @@ export function Home() {
           </TouchableOpacity>
         </View>
 
-        {user.plain === 'premium' && (
+        {user.plan === 'premium' && (
           <View>
+            {historic.length > 0 && (
+              <Section title="Tocado recentemente">
+                <BoxCarousel musics={historic} />
+              </Section>
+            )}
+
             {musicalGenres && (
-              <Section title="Explore por gêneros musicais">
+              <Section
+                title="Explore por gêneros musicais"
+                className={`${historic.length > 0 && 'mt-12'}`}
+              >
                 <MusicalGenres musicalGenres={musicalGenres} />
               </Section>
             )}
@@ -105,14 +121,14 @@ export function Home() {
               <Section
                 title="Explore novas possibilidades"
                 className="mt-12"
-                onPress={() =>
-                  navigation.navigate('MoreMusic', {
-                    type: 'default',
-                    title: 'Explore novas possibilidades',
-                  })
-                }
+                // onPress={() =>
+                //   navigation.navigate('MoreMusic', {
+                //     type: 'default',
+                //     title: 'Explore novas possibilidades',
+                //   })
+                // }
               >
-                <BoxCarousel musics={trackListRemote} />
+                <ListCarousel musics={trackListRemote} />
               </Section>
             )}
 
@@ -120,12 +136,12 @@ export function Home() {
               <Section
                 title="Explore por artistas"
                 className="mt-12"
-                onPress={() =>
-                  navigation.navigate('MoreArtists', {
-                    type: 'default',
-                    title: 'Explore por artistas',
-                  })
-                }
+                // onPress={() =>
+                //   navigation.navigate('MoreArtists', {
+                //     type: 'default',
+                //     title: 'Explore por artistas',
+                //   })
+                // }
               >
                 <RoundedCarousel artists={artists} />
               </Section>
