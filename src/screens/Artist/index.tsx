@@ -153,56 +153,58 @@ export function Artist() {
             Top músicas
           </Text>
 
-          {musics?.map((item) => (
-            <View className="flex-row items-center mt-3" key={item.id}>
-              <TouchableOpacity
-                className="flex-row items-center gap-2 flex-1 overflow-hidden"
-                onPress={() => {
-                  if (!musics) return
-                  handleMusicSelected({
-                    listMusics: musics,
-                    musicSelected: item,
-                  })
-                }}
-              >
-                <View className="w-16 h-16 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
-                  <Image
-                    source={{ uri: item.artwork }}
-                    alt="artwork"
-                    className="h-full w-full"
+          {musics
+            ?.map((item) => (
+              <View className="flex-row items-center mt-3" key={item.id}>
+                <TouchableOpacity
+                  className="flex-row items-center gap-2 flex-1 overflow-hidden"
+                  onPress={() => {
+                    if (!musics) return
+                    handleMusicSelected({
+                      listMusics: musics,
+                      musicSelected: item,
+                    })
+                  }}
+                >
+                  <View className="w-16 h-16 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
+                    <Image
+                      source={{ uri: item.artwork }}
+                      alt="artwork"
+                      className="h-full w-full"
+                    />
+                  </View>
+                  <View className="w-full">
+                    <Text
+                      className="font-nunito-bold text-white text-base"
+                      numberOfLines={1}
+                    >
+                      {item.title}
+                    </Text>
+                    <Text className="font-nunito-regular text-gray-300 mt-1">
+                      {item.album}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.6}
+                  className="ml-8"
+                  onPress={() => {
+                    handleFavoriteMusic(item)
+                  }}
+                >
+                  <Icon
+                    name={
+                      hanfleFilterFavorites(item.id)
+                        ? 'heart-sharp'
+                        : 'heart-outline'
+                    }
+                    color={colors.white}
+                    size={22}
                   />
-                </View>
-                <View className="w-full">
-                  <Text
-                    className="font-nunito-bold text-white text-base"
-                    numberOfLines={1}
-                  >
-                    {item.title}
-                  </Text>
-                  <Text className="font-nunito-regular text-gray-300 mt-1">
-                    {item.album}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.6}
-                className="ml-8"
-                onPress={() => {
-                  handleFavoriteMusic(item)
-                }}
-              >
-                <Icon
-                  name={
-                    hanfleFilterFavorites(item.id)
-                      ? 'heart-sharp'
-                      : 'heart-outline'
-                  }
-                  color={colors.white}
-                  size={22}
-                />
-              </TouchableOpacity>
-            </View>
-          ))}
+                </TouchableOpacity>
+              </View>
+            ))
+            .slice(0, 4)}
         </View>
       </ScrollView>
       {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
