@@ -14,10 +14,15 @@ import { useSelector } from 'react-redux'
 
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useSideMenu } from '@hooks/useSideMenu'
+import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
 
 export function Favorites() {
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
+  )
+
+  const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
+    (state) => state.trackListOffline,
   )
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
@@ -38,14 +43,21 @@ export function Favorites() {
 
       <View className="flex-1 w-screen">
         <TouchableOpacity
-          disabled
           activeOpacity={0.6}
           className="flex-row justify-between items-center px-4 py-2"
+          onPress={() =>
+            navigation.navigate('MoreMusic', {
+              type: 'offline',
+              title: 'Músicas baixadas',
+            })
+          }
         >
           <Text className="font-nunito-medium text-lg text-white">
             Músicas baixadas
           </Text>
-          <Text className="font-nunito-regular text-gray-300">0</Text>
+          <Text className="font-nunito-regular text-gray-300">
+            {trackListOffline.length}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -94,34 +106,6 @@ export function Favorites() {
             {user.favoritesArtists?.length}
           </Text>
         </TouchableOpacity>
-        {/* {musics && (
-          <Section
-            title="Suas músicas favoritas"
-            onPress={() =>
-              navigation.navigate('MoreMusic', {
-                listMusics: musics,
-                title: 'Suas músicas favoritas',
-              })
-            }
-          >
-            <BoxCarousel musics={musics} />
-          </Section>
-        )} */}
-
-        {/* {artists && (
-          <Section
-            title="Seus artistas favoritos"
-            className="mt-12"
-            onPress={() =>
-              navigation.navigate('MoreArtists', {
-                listArtists: artists,
-                title: 'Seus artistas favoritos',
-              })
-            }
-          >
-            <RoundedCarousel artists={artists} />
-          </Section>
-        )} */}
       </View>
 
       {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}

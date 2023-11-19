@@ -5,7 +5,8 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
+
+import { MusicProps } from '@utils/Types/musicProps'
 
 import { useMemo } from 'react'
 import { FlatList, Image, Text, View } from 'react-native'
@@ -24,16 +25,12 @@ export function GenreSelected() {
     (state) => state.currentMusic,
   )
 
-  const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
-    (state) => state.trackListRemote,
-  )
-
   const { handleMusicSelected } = useTrackPlayer()
 
   const listMusics = useMemo(() => {
-    const filter = trackListRemote.filter((music) => music.genre.includes(type))
-    return filter
-  }, [trackListRemote, type])
+    // const filter = trackListRemote.filter((music) => music.genre.includes(type))
+    return [] as MusicProps[]
+  }, [])
 
   return (
     <View className="flex-1 bg-gray-950">

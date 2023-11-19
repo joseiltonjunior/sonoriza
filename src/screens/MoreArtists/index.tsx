@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 
 import { useCallback, useEffect, useState } from 'react'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
-import { ArtistsProps } from '@storage/modules/artists/reducer'
+
 import { UserProps } from '@storage/modules/user/reducer'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import colors from 'tailwindcss/colors'
@@ -22,10 +22,6 @@ export function MoreArtists() {
   const [listArtists, setListArtists] = useState<ArtistsDataProps[]>()
   const { params } = useRoute<RouteParamsProps<'MoreArtists'>>()
   const { type, title } = params
-
-  const { artists } = useSelector<ReduxProps, ArtistsProps>(
-    (state) => state.artists,
-  )
 
   const { handleGetFavoritesArtists, handleFavoriteArtist } =
     useFirebaseServices()
@@ -48,14 +44,10 @@ export function MoreArtists() {
   )
 
   useEffect(() => {
-    if (type === 'default') {
-      setListArtists(artists)
-    } else if (user.favoritesArtists && user.favoritesArtists.length > 0) {
+    if (user.favoritesArtists && user.favoritesArtists.length > 0) {
       handleGetArtists(user.favoritesArtists)
-    } else {
-      setListArtists([])
     }
-  }, [artists, handleGetArtists, type, user.favoritesArtists])
+  }, [handleGetArtists, type, user.favoritesArtists])
 
   return (
     <View className="flex-1 bg-gray-950">

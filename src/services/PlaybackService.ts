@@ -20,4 +20,8 @@ export const PlaybackService = async function () {
   TrackPlayer.addEventListener(Event.RemoteStop, () => {
     TrackPlayer.reset()
   })
+
+  TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
+    console.log('Playback error', error)
+  })
 }

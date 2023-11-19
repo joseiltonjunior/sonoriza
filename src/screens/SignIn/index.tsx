@@ -30,10 +30,6 @@ import { useModal } from '@hooks/useModal'
 import { useDispatch } from 'react-redux'
 import { handleSetUser } from '@storage/modules/user/reducer'
 
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
-import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
-import { handleSetArtists } from '@storage/modules/artists/reducer'
-import { handleSetMusicalGenres } from '@storage/modules/musicalGenres/reducer'
 import { UserDataProps } from '@utils/Types/userProps'
 
 interface FormDataProps {
@@ -62,9 +58,6 @@ export function SignIn() {
 
   const { closeModal, openModal } = useModal()
 
-  const { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase } =
-    useFirebaseServices()
-
   const dispatch = useDispatch()
 
   GoogleSignin.configure({
@@ -84,14 +77,6 @@ export function SignIn() {
             user,
           }),
         )
-
-        const artists = await handleGetArtists()
-        const trackListRemote = await handleGetMusicsDatabase()
-        const musicalGenres = await handleGetMusicalGenres()
-
-        dispatch(handleTrackListRemote({ trackListRemote }))
-        dispatch(handleSetArtists({ artists }))
-        dispatch(handleSetMusicalGenres({ musicalGenres }))
 
         navigation.reset({
           index: 0,

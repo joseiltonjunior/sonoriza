@@ -2,7 +2,7 @@ import AnimatedLottieView from 'lottie-react-native'
 import { BackHandler, Dimensions, View } from 'react-native'
 
 import splash from '@assets/splash.json'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
@@ -10,44 +10,16 @@ import { StackNavigationProps } from '@routes/routes'
 import auth from '@react-native-firebase/auth'
 import { useModal } from '@hooks/useModal'
 
-import { useDispatch } from 'react-redux'
-
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
-import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
-import { handleSetArtists } from '@storage/modules/artists/reducer'
-import { handleSetMusicalGenres } from '@storage/modules/musicalGenres/reducer'
-
-import { useTrackPlayer } from '@hooks/useTrackPlayer'
-import { AppKilledPlaybackBehavior } from 'react-native-track-player'
-
 const size = Dimensions.get('window').width * 0.9
 
 export function SplashScreen() {
   const navigation = useNavigation<StackNavigationProps>()
   const { closeModal, openModal } = useModal()
-  const dispatch = useDispatch()
 
-  const { TrackPlayer, Capability } = useTrackPlayer()
-
-  const { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase } =
-    useFirebaseServices()
-
-  const handleVerifyUser = async () => {
+  const handleVerifyUser = useCallback(async () => {
     try {
       const user = auth().currentUser
       if (user) {
-        const artistsResponse = await handleGetArtists()
-        const trackListRemoteResponse = await handleGetMusicsDatabase()
-        const musicalGenresResponse = await handleGetMusicalGenres()
-
-        dispatch(
-          handleTrackListRemote({ trackListRemote: trackListRemoteResponse }),
-        )
-        dispatch(handleSetArtists({ artists: artistsResponse }))
-        dispatch(
-          handleSetMusicalGenres({ musicalGenres: musicalGenresResponse }),
-        )
-
         navigation.reset({
           index: 0,
           routes: [{ name: 'Home' }],
@@ -72,32 +44,11 @@ export function SplashScreen() {
         },
       })
     }
-  }
-
-  const handleInitializePlayer = async () => {
-    try {
-      await TrackPlayer.setupPlayer()
-
-      TrackPlayer.updateOptions({
-        android: {
-          appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
-        },
-
-        capabilities: [
-          Capability.Play,
-          Capability.Pause,
-          Capability.SkipToNext,
-          Capability.SkipToPrevious,
-        ],
-        compactCapabilities: [Capability.Play, Capability.Pause],
-      })
-    } catch (err) {}
-  }
+  }, [closeModal, navigation, openModal])
 
   useEffect(() => {
-    handleInitializePlayer()
     handleVerifyUser()
-  }, [])
+  }, [handleVerifyUser])
 
   return (
     <View className="flex-1 items-center justify-center bg-gray-950">

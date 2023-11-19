@@ -15,32 +15,28 @@ import { BoxCarousel } from '@components/BoxCarousel'
 
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 
-// import { useNavigation } from '@react-navigation/native'
-// import { StackNavigationProps } from '@routes/routes'
-
 import { RoundedCarousel } from '@components/RoundedCarousel'
 import { UserProps } from '@storage/modules/user/reducer'
 
 import { Section } from '@components/Section'
 
-import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
-import { ArtistsProps } from '@storage/modules/artists/reducer'
-import { MusicalGenresProps } from '@storage/modules/musicalGenres/reducer'
 import { MusicalGenres } from '@components/MusicalGenres'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import TrackPlayer, { Event, State } from 'react-native-track-player'
 
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { HistoricProps } from '@storage/modules/historic/reducer'
 import { ListCarousel } from '@components/ListCarousel'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { MusicProps } from '@utils/Types/musicProps'
+import { UserDataProps } from '@utils/Types/userProps'
+import { ArtistsDataProps } from '@utils/Types/artistsProps'
 
 export function Home() {
-  // const navigation = useNavigation<StackNavigationProps>()
-
-  const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
-    (state) => state.trackListRemote,
-  )
+  const [musicalGenres, setMusicalGenres] = useState<string[]>([])
+  const [musics, setMusics] = useState<MusicProps[]>([])
+  const [artists, setArtists] = useState<ArtistsDataProps[]>([])
 
   const { historic } = useSelector<ReduxProps, HistoricProps>(
     (state) => state.historic,
@@ -48,25 +44,50 @@ export function Home() {
 
   const { getCurrentMusic } = useTrackPlayer()
 
+  const { handleGetFavoritesMusics, handleGetFavoritesArtists } =
+    useFirebaseServices()
+
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
 
-  const { artists } = useSelector<ReduxProps, ArtistsProps>(
-    (state) => state.artists,
-  )
+  const handleSetMusicalGenres = (musics: MusicProps[]) => {
+    const filterGenres = musics.map((music) => music.genre)
+    const exludeDuplicates = [...new Set(filterGenres)]
+    setMusicalGenres(exludeDuplicates)
+  }
 
-  const { musicalGenres } = useSelector<ReduxProps, MusicalGenresProps>(
-    (state) => state.musicalGenres,
-  )
+  const handleGetDataUser = async (user: UserDataProps) => {
+    try {
+      if (user?.favoritesMusics) {
+        const result = await handleGetFavoritesMusics(user.favoritesMusics)
+        handleSetMusicalGenres(result)
+        setMusics(result)
+      }
+
+      if (user?.favoritesArtists) {
+        const result = await handleGetFavoritesArtists(user.favoritesArtists)
+        setArtists(result)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const { handleIsVisible } = useSideMenu()
 
   const handleGetCurrentMusic = () => {
     getCurrentMusic()
   }
+
+  useEffect(() => {
+    if (user) {
+      handleGetDataUser(user)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
 
   useEffect(() => {
     handleGetCurrentMusic()
@@ -100,54 +121,35 @@ export function Home() {
           </TouchableOpacity>
         </View>
 
-        {user.plan === 'premium' && (
-          <View>
-            {historic.length > 0 && (
-              <Section title="Tocado recentemente">
-                <BoxCarousel musics={historic} />
-              </Section>
-            )}
+        <View>
+          {historic.length > 0 && (
+            <Section title="Tocados recentemente">
+              <BoxCarousel musics={historic} />
+            </Section>
+          )}
 
-            {musicalGenres && (
-              <Section
-                title="Explore por gêneros musicais"
-                className={`${historic.length > 0 && 'mt-12'}`}
-              >
-                <MusicalGenres musicalGenres={musicalGenres} />
-              </Section>
-            )}
+          {musics && (
+            <Section
+              title="Mixes inspirador por"
+              description="Descubra faixas similares aos seus hits favoritos"
+              className={`${historic.length > 0 && 'mt-14'}`}
+            >
+              <ListCarousel musics={musics} />
+            </Section>
+          )}
 
-            {trackListRemote && (
-              <Section
-                title="Explore novas possibilidades"
-                className="mt-12"
-                // onPress={() =>
-                //   navigation.navigate('MoreMusic', {
-                //     type: 'default',
-                //     title: 'Explore novas possibilidades',
-                //   })
-                // }
-              >
-                <ListCarousel musics={trackListRemote} />
-              </Section>
-            )}
+          {musicalGenres && (
+            <Section title="Os seus top gêneros musicais" className={`mt-14`}>
+              <MusicalGenres musicalGenres={musicalGenres} />
+            </Section>
+          )}
 
-            {artists && (
-              <Section
-                title="Explore por artistas"
-                className="mt-12"
-                // onPress={() =>
-                //   navigation.navigate('MoreArtists', {
-                //     type: 'default',
-                //     title: 'Explore por artistas',
-                //   })
-                // }
-              >
-                <RoundedCarousel artists={artists} />
-              </Section>
-            )}
-          </View>
-        )}
+          {artists && (
+            <Section title="Artistas que você ama" className="mt-14">
+              <RoundedCarousel artists={artists} />
+            </Section>
+          )}
+        </View>
       </ScrollView>
       {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
       <BottomMenu />

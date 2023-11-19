@@ -32,7 +32,7 @@ type RootStackParamList = {
     title: string
   }
   MoreMusic: {
-    type: 'favorites' | 'default' | 'historic'
+    type: 'favorites' | 'default' | 'historic' | 'offline'
     title: string
   }
   GenreSelected: {
@@ -56,20 +56,11 @@ export function Routes() {
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: '#202024' },
-        cardStyleInterpolator: ({ current, layouts }) => {
-          return {
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }
-        },
+        cardStyleInterpolator: ({ current: { progress } }) => ({
+          cardStyle: {
+            opacity: progress,
+          },
+        }),
       }}
     >
       <Stack.Screen name="SplashScreen" component={SplashScreen} />

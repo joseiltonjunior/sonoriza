@@ -91,7 +91,7 @@ export function Queue() {
           renderItem={({ item, index }) => (
             <View className="flex-row justify-between items-center">
               <TouchableOpacity
-                className="flex-row items-center gap-2 max-w-[200px] "
+                className="flex-row items-center gap-2 w-10/12 overflow-hidden"
                 onPress={() => {
                   handleMusicSelected({
                     musicSelected: item as MusicProps,
@@ -123,7 +123,9 @@ export function Queue() {
                   )}
                 </View>
                 <View>
-                  <Text className="font-bold text-white">{item.title}</Text>
+                  <Text className="font-bold text-white" numberOfLines={1}>
+                    {item.title}
+                  </Text>
                   <Text className="font-regular text-gray-300">
                     {item.artists[0].name}
                   </Text>

@@ -9,12 +9,14 @@ import {
 import { handleSetHistoric } from '@storage/modules/historic/reducer'
 import { handleSetQueue } from '@storage/modules/queue/reducer'
 import { MusicProps } from '@utils/Types/musicProps'
+import { useState } from 'react'
 
 import TrackPlayer, {
   State,
   useProgress,
   Capability,
   Track,
+  AppKilledPlaybackBehavior,
 } from 'react-native-track-player'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -29,9 +31,33 @@ export function useTrackPlayer() {
   const dispatch = useDispatch()
   const navigation = useNavigation<StackNavigationProps>()
 
+  const [isInitialized, setIsInitialized] = useState(false)
+
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
+
+  const handleInitializePlayer = async () => {
+    try {
+      await TrackPlayer.setupPlayer()
+
+      TrackPlayer.updateOptions({
+        android: {
+          appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
+        },
+
+        capabilities: [
+          Capability.Play,
+          Capability.Pause,
+          Capability.SkipToNext,
+          Capability.SkipToPrevious,
+        ],
+        compactCapabilities: [Capability.Play, Capability.Pause],
+      })
+
+      setIsInitialized(true)
+    } catch (err) {}
+  }
 
   const getCurrentMusic = async () => {
     try {
@@ -48,10 +74,21 @@ export function useTrackPlayer() {
     } catch (error) {}
   }
 
+  const handleGetQueue = async () => {
+    try {
+      const queue = await TrackPlayer.getQueue()
+      dispatch(handleSetQueue({ queue }))
+    } catch (error) {}
+  }
+
   const handleMusicSelected = async ({
     listMusics,
     musicSelected,
   }: HandleMusicSelectedProps) => {
+    if (!isInitialized) {
+      await handleInitializePlayer()
+    }
+
     if (
       isCurrentMusic?.title &&
       isCurrentMusic.title.includes(musicSelected.title)
@@ -70,8 +107,11 @@ export function useTrackPlayer() {
     await TrackPlayer.add(listMusics)
     await TrackPlayer.skip(indexSelected)
     await TrackPlayer.play()
+
     dispatch(handleSetCurrentMusic({ isCurrentMusic: musicSelected }))
+    dispatch(handleChangeStateCurrentMusic(State.Playing))
     dispatch(handleSetHistoric({ music: musicSelected }))
+    handleGetQueue()
   }
 
   return {

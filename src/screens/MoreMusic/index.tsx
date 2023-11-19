@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux'
 import IconFather from 'react-native-vector-icons/Feather'
 import Icon from 'react-native-vector-icons/Ionicons'
 import colors from 'tailwindcss/colors'
-import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
+
 import { useEffect, useState } from 'react'
 import { MusicProps } from '@utils/Types/musicProps'
 import { UserProps } from '@storage/modules/user/reducer'
@@ -20,6 +20,7 @@ import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { HistoricProps } from '@storage/modules/historic/reducer'
 
 import playing from '@assets/playing.json'
+import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
 
 export function MoreMusic() {
   const { params } = useRoute<RouteParamsProps<'MoreMusic'>>()
@@ -30,9 +31,10 @@ export function MoreMusic() {
   const { handleGetFavoritesMusics, handleFavoriteMusic } =
     useFirebaseServices()
 
-  const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
-    (state) => state.trackListRemote,
+  const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
+    (state) => state.trackListOffline,
   )
+
   const { historic } = useSelector<ReduxProps, HistoricProps>(
     (state) => state.historic,
   )
@@ -59,9 +61,7 @@ export function MoreMusic() {
   useEffect(() => {
     let updatedListMusics = [] as MusicProps[]
 
-    if (type === 'default') {
-      updatedListMusics = trackListRemote
-    } else if (
+    if (
       type === 'favorites' &&
       user.favoritesMusics &&
       user.favoritesMusics.length > 0
@@ -70,6 +70,8 @@ export function MoreMusic() {
       return
     } else if (type === 'historic') {
       updatedListMusics = historic
+    } else if (type === 'offline') {
+      updatedListMusics = trackListOffline
     }
 
     setListMusics(updatedListMusics)

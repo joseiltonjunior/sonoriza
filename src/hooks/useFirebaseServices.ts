@@ -245,7 +245,7 @@ export function useFirebaseServices() {
       await firestore()
         .collection('artists')
         .where(firestore.FieldPath.documentId(), 'in', batch)
-        .get({ source: 'cache' })
+        .get()
         .then((querySnapshot) => {
           const artistsResponse = querySnapshot.docs.map((doc) =>
             doc.data(),
@@ -277,7 +277,7 @@ export function useFirebaseServices() {
       await firestore()
         .collection('musics')
         .where(firestore.FieldPath.documentId(), 'in', batch)
-        .get({ source: 'cache' })
+        .get()
         .then((querySnapshot) => {
           const musicsResponse = querySnapshot.docs.map((doc) =>
             doc.data(),
