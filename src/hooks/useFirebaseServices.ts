@@ -174,8 +174,6 @@ export function useFirebaseServices() {
     }
   }
 
-  // in cache
-
   const handleGetArtistById = async (
     artistID: string,
   ): Promise<ArtistsDataProps> => {
@@ -183,7 +181,7 @@ export function useFirebaseServices() {
     await firestore()
       .collection('artists')
       .doc(artistID)
-      .get({ source: 'cache' })
+      .get()
       .then(async (querySnapshot) => {
         const artistResponse = querySnapshot.data() as ArtistsDataProps
 
@@ -214,7 +212,7 @@ export function useFirebaseServices() {
       await firestore()
         .collection('musics')
         .where(firestore.FieldPath.documentId(), 'in', batch)
-        .get({ source: 'cache' })
+        .get()
         .then((querySnapshot) => {
           const musicsResponse = querySnapshot.docs.map((doc) =>
             doc.data(),
@@ -292,6 +290,19 @@ export function useFirebaseServices() {
     return musics
   }
 
+  const handleGetMusicsByFilter = async (
+    filter: string,
+  ): Promise<MusicProps[]> => {
+    const querySnapshot = await firestore()
+      .collection('musics')
+      .where('title', '>=', filter.toLowerCase())
+      .where('title', '<=', filter.toLowerCase() + '\uf8ff')
+      .get()
+
+    const musics = querySnapshot.docs.map((doc) => doc.data() as MusicProps)
+    return musics
+  }
+
   return {
     handleGetArtists,
     handleGetMusicalGenres,
@@ -302,5 +313,6 @@ export function useFirebaseServices() {
     handleGetMusicsById,
     handleGetFavoritesArtists,
     handleGetFavoritesMusics,
+    handleGetMusicsByFilter,
   }
 }

@@ -70,7 +70,11 @@ export function MoreArtists() {
           data={listArtists}
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item, index }) => (
-            <View className="flex-row items-center justify-between">
+            <View
+              className={`flex-row items-center justify-between ${
+                index + 1 === listArtists?.length && 'mb-32'
+              }`}
+            >
               <TouchableOpacity
                 key={index}
                 className="flex-row items-center gap-4 flex-1"
@@ -107,8 +111,10 @@ export function MoreArtists() {
         />
       </View>
 
-      {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
-      <BottomMenu />
+      <View className="absolute bottom-0 w-full">
+        {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
+        <BottomMenu />
+      </View>
     </View>
   )
 }

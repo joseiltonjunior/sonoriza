@@ -38,25 +38,23 @@ export function useTrackPlayer() {
   )
 
   const handleInitializePlayer = async () => {
-    try {
-      await TrackPlayer.setupPlayer()
+    await TrackPlayer.setupPlayer()
 
-      TrackPlayer.updateOptions({
-        android: {
-          appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
-        },
+    TrackPlayer.updateOptions({
+      android: {
+        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
+      },
 
-        capabilities: [
-          Capability.Play,
-          Capability.Pause,
-          Capability.SkipToNext,
-          Capability.SkipToPrevious,
-        ],
-        compactCapabilities: [Capability.Play, Capability.Pause],
-      })
+      capabilities: [
+        Capability.Play,
+        Capability.Pause,
+        Capability.SkipToNext,
+        Capability.SkipToPrevious,
+      ],
+      compactCapabilities: [Capability.Play, Capability.Pause],
+    })
 
-      setIsInitialized(true)
-    } catch (err) {}
+    setIsInitialized(true)
   }
 
   const getCurrentMusic = async () => {

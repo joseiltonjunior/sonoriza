@@ -37,6 +37,8 @@ export function Artist() {
   const [artist, setArtist] = useState<ArtistsDataProps>()
   const [musics, setMusics] = useState<MusicProps[]>()
 
+  const [numberIsVibleMusic, setNumberIsVibleMusic] = useState(4)
+
   const navigation = useNavigation<StackNavigationProps>()
   const { handleMusicSelected } = useTrackPlayer()
   const { handleFavoriteMusic, handleGetArtistById, handleGetMusicsById } =
@@ -89,7 +91,7 @@ export function Artist() {
   if (!artist) return
 
   return (
-    <>
+    <View className="relative flex-1">
       <ScrollView className="flex-1">
         <ImageBackground
           source={{ uri: artist.photoURL }}
@@ -148,10 +150,8 @@ export function Artist() {
           </View>
         </View>
 
-        <View className="p-4 ">
-          <Text className="font-nunito-bold text-xl text-white">
-            Top músicas
-          </Text>
+        <View className="p-4 mb-32">
+          <Text className="font-nunito-bold text-xl text-white">Músicas</Text>
 
           {musics
             ?.map((item) => (
@@ -204,12 +204,33 @@ export function Artist() {
                 </TouchableOpacity>
               </View>
             ))
-            .slice(0, 4)}
+            .slice(0, numberIsVibleMusic)}
+
+          {musics && musics.length > 4 && (
+            <TouchableOpacity
+              className="bg-purple-600 rounded-md items-center py-1 mt-2"
+              onPress={() => {
+                if (numberIsVibleMusic >= musics.length) {
+                  setNumberIsVibleMusic(4)
+                  return
+                }
+                setNumberIsVibleMusic((prev) => prev + 4)
+              }}
+            >
+              <Text className="font-nunito-medium text-white">
+                {numberIsVibleMusic >= musics.length
+                  ? 'Mostrar menos'
+                  : 'Mostrar mais'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
-      {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
-      <BottomMenu />
-    </>
+      <View className="absolute bottom-0 w-full">
+        {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
+        <BottomMenu />
+      </View>
+    </View>
   )
 }
 const styles = StyleSheet.create({

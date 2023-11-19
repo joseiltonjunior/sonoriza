@@ -79,7 +79,7 @@ export function MoreMusic() {
   }, [type, user.favoritesMusics])
 
   return (
-    <View className="flex-1 bg-gray-950">
+    <View className="flex-1 relative">
       <View className="px-4 flex-1 mt-2">
         <View className="items-center justify-center py-4">
           <TouchableOpacity
@@ -99,7 +99,11 @@ export function MoreMusic() {
           data={listMusics}
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item, index }) => (
-            <View className="flex-row justify-between items-center">
+            <View
+              className={`flex-row justify-between items-center ${
+                index + 1 === listMusics.length && 'mb-32'
+              }`}
+            >
               <TouchableOpacity
                 key={index}
                 className="flex-row items-center gap-2 max-w-[200px] "
@@ -155,9 +159,10 @@ export function MoreMusic() {
           )}
         />
       </View>
-
-      {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
-      <BottomMenu />
+      <View className="absolute bottom-0 w-full">
+        {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
+        <BottomMenu />
+      </View>
     </View>
   )
 }

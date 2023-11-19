@@ -17,6 +17,7 @@ import { Artist } from '@screens/Artist'
 import { GenreSelected } from '@screens/GenreSelected'
 import { Favorites } from '@screens/Favorites'
 import { Queue } from '@screens/Queue'
+import { Search } from '@screens/Search'
 
 type RootStackParamList = {
   Home: undefined
@@ -40,6 +41,7 @@ type RootStackParamList = {
   }
   Favorites: undefined
   Queue: undefined
+  Search: undefined
 }
 
 export type StackNavigationProps = StackNavigationProp<RootStackParamList>
@@ -74,6 +76,7 @@ export function Routes() {
       <Stack.Screen name="GenreSelected" component={GenreSelected} />
       <Stack.Screen name="Favorites" component={Favorites} />
       <Stack.Screen name="Queue" component={Queue} />
+      <Stack.Screen name="Search" component={Search} />
     </Stack.Navigator>
   )
 }

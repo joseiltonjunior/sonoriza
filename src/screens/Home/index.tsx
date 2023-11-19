@@ -111,8 +111,8 @@ export function Home() {
   }, [])
 
   return (
-    <>
-      <ScrollView className="flex-1 bg-gray-950">
+    <View className="flex-1 relative">
+      <ScrollView className="flex-1 bg-gray-950 mb-12">
         <View className="p-4 flex-row items-center justify-between">
           <Text className="text-white text-3xl font-nunito-bold">Início</Text>
 
@@ -121,7 +121,7 @@ export function Home() {
           </TouchableOpacity>
         </View>
 
-        <View>
+        <View className="pb-24">
           {historic.length > 0 && (
             <Section title="Tocados recentemente">
               <BoxCarousel musics={historic} />
@@ -131,7 +131,6 @@ export function Home() {
           {musics && (
             <Section
               title="Mixes inspirador por"
-              description="Descubra faixas similares aos seus hits favoritos"
               className={`${historic.length > 0 && 'mt-14'}`}
             >
               <ListCarousel musics={musics} />
@@ -151,8 +150,10 @@ export function Home() {
           )}
         </View>
       </ScrollView>
-      {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
-      <BottomMenu />
-    </>
+      <View className="absolute bottom-0 w-full">
+        {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
+        <BottomMenu />
+      </View>
+    </View>
   )
 }

@@ -81,11 +81,11 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
   return (
     <View
       style={{ backgroundColor: isCurrentMusic?.color }}
-      className="flex-row items-center justify-between p-2 mx-2  rounded-xl"
+      className="flex-row items-center justify-between p-2 mx-2 mb-2 rounded-xl"
     >
       <TouchableOpacity
         activeOpacity={0.8}
-        className="flex-row items-center w-9/12"
+        className="flex-row items-center w-10/12"
         onPress={() => navigation.navigate('Music')}
       >
         <ImageBackground

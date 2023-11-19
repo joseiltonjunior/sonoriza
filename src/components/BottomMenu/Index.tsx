@@ -18,9 +18,9 @@ export function BottomMenu() {
       </TouchableOpacity>
 
       <TouchableOpacity
-        disabled
         activeOpacity={0.6}
         className="items-center py-2"
+        onPress={() => navigation.navigate('Search')}
       >
         <Icon name="search" size={22} />
         <Text className="font-nunito-regular text-xs mt-1">Busca</Text>
