@@ -18,6 +18,7 @@ import { MusicProps } from '@utils/Types/musicProps'
 import { useEffect, useMemo, useState } from 'react'
 
 import {
+  Dimensions,
   Image,
   ImageBackground,
   ScrollView,
@@ -33,6 +34,8 @@ import colors from 'tailwindcss/colors'
 export function Artist() {
   const { params } = useRoute<RouteParamsProps<'Artist'>>()
   const { artistId } = params
+
+  const size = Dimensions.get('window').width * 1
 
   const [artist, setArtist] = useState<ArtistsDataProps>()
   const [musics, setMusics] = useState<MusicProps[]>()
@@ -91,12 +94,13 @@ export function Artist() {
   if (!artist) return
 
   return (
-    <View className="relative flex-1">
-      <ScrollView className="flex-1">
+    <>
+      <ScrollView className="flex-1 bg-gray-700">
         <ImageBackground
           source={{ uri: artist.photoURL }}
           alt={artist.name}
-          className="h-80 w-screen p-4"
+          style={{ height: size }}
+          className={`p-4 `}
         >
           <TouchableOpacity
             className="p-2 rounded-full w-12 h-12 "
@@ -230,7 +234,7 @@ export function Artist() {
         {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
         <BottomMenu />
       </View>
-    </View>
+    </>
   )
 }
 const styles = StyleSheet.create({

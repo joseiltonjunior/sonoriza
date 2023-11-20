@@ -7,7 +7,7 @@ export function BottomMenu() {
   const navigation = useNavigation<StackNavigationProps>()
 
   return (
-    <View className="bg-gray-950 px-8 flex-row justify-between">
+    <View className="bg-gray-950/90 px-8 flex-row justify-between border-t border-purple-600/50">
       <TouchableOpacity
         activeOpacity={0.6}
         className="items-center py-2"

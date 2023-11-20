@@ -19,6 +19,7 @@ import { CurrentMusicProps } from './modules/currentMusic/reducer'
 import { QueueProps } from './modules/queue/reducer'
 import { HistoricProps } from './modules/historic/reducer'
 import { TrackListOfflineProps } from './modules/trackListOffline/reducer'
+import { MusicalGenresProps } from './modules/musicalGenres/reducer'
 
 export interface ReduxProps {
   user: UserProps
@@ -26,6 +27,7 @@ export interface ReduxProps {
   queue: QueueProps
   historic: HistoricProps
   trackListOffline: TrackListOfflineProps
+  musicalGenres: MusicalGenresProps
 }
 
 const persistConfig = {

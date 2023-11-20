@@ -21,7 +21,7 @@ function App(): JSX.Element {
   return (
     <Hooks>
       <NavigationContainer>
-        <StatusBar backgroundColor={'#202024'} />
+        <StatusBar backgroundColor={'#312e38'} />
         <Routes />
         <SideMenu />
         <Modal />

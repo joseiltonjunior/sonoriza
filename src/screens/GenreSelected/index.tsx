@@ -1,5 +1,6 @@
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
@@ -8,16 +9,18 @@ import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 
 import { MusicProps } from '@utils/Types/musicProps'
 
-import { useMemo } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { FlatList, Image, Text, View } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 
-import Icon from 'react-native-vector-icons/AntDesign'
+import Icon from 'react-native-vector-icons/Ionicons'
 import { useSelector } from 'react-redux'
 
 export function GenreSelected() {
   const { params } = useRoute<RouteParamsProps<'GenreSelected'>>()
   const { type } = params
+
+  const [musics, setMusics] = useState<MusicProps[]>([])
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -25,43 +28,55 @@ export function GenreSelected() {
     (state) => state.currentMusic,
   )
 
+  const { handleGetMusicsByGenre } = useFirebaseServices()
   const { handleMusicSelected } = useTrackPlayer()
 
-  const listMusics = useMemo(() => {
-    // const filter = trackListRemote.filter((music) => music.genre.includes(type))
-    return [] as MusicProps[]
-  }, [])
+  const handleGetMusics = useCallback(async () => {
+    try {
+      const response = await handleGetMusicsByGenre(type)
+      setMusics(response)
+    } catch (error) {
+      console.log(error, 'err')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type])
+
+  useEffect(() => {
+    handleGetMusics()
+  }, [handleGetMusics])
 
   return (
-    <View className="flex-1 bg-gray-950">
+    <View className="flex-1 bg-gray-700">
       <View className="px-4 flex-1 mt-2">
         <View className="py-4">
           <TouchableOpacity
             onPress={() => {
               navigation.goBack()
             }}
-            className="absolute"
+            className="absolute p-2"
           >
-            <Icon name="back" size={30} color="#fff" />
+            <Icon name="chevron-back-outline" size={30} color="#fff" />
           </TouchableOpacity>
-          <Text className="text-lg font-nunito-bold text-white ml-auto mr-auto">
+          <Text className="text-lg  my-auto font-nunito-bold text-white ml-auto mr-auto mt-2">
             {type}
           </Text>
         </View>
 
-        {listMusics && (
+        {musics && (
           <FlatList
             className="mt-4"
             showsVerticalScrollIndicator={false}
-            data={listMusics}
+            data={musics}
             ItemSeparatorComponent={() => <View className="h-3" />}
             renderItem={({ item, index }) => (
               <TouchableOpacity
                 key={index}
-                className="flex-row items-center gap-2 "
+                className={`flex-row items-center gap-2 ${
+                  index + 1 === musics.length && 'mb-32'
+                }`}
                 onPress={() => {
                   handleMusicSelected({
-                    listMusics,
+                    listMusics: musics,
                     musicSelected: item,
                   })
                 }}
@@ -84,8 +99,10 @@ export function GenreSelected() {
           />
         )}
       </View>
-      {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
-      <BottomMenu />
+      <View className="absolute bottom-0 w-full">
+        {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
+        <BottomMenu />
+      </View>
     </View>
   )
 }

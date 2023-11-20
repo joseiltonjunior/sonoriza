@@ -9,14 +9,12 @@ import {
 import { handleSetHistoric } from '@storage/modules/historic/reducer'
 import { handleSetQueue } from '@storage/modules/queue/reducer'
 import { MusicProps } from '@utils/Types/musicProps'
-import { useState } from 'react'
 
 import TrackPlayer, {
   State,
   useProgress,
   Capability,
   Track,
-  AppKilledPlaybackBehavior,
 } from 'react-native-track-player'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -31,31 +29,9 @@ export function useTrackPlayer() {
   const dispatch = useDispatch()
   const navigation = useNavigation<StackNavigationProps>()
 
-  const [isInitialized, setIsInitialized] = useState(false)
-
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
-
-  const handleInitializePlayer = async () => {
-    await TrackPlayer.setupPlayer()
-
-    TrackPlayer.updateOptions({
-      android: {
-        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
-      },
-
-      capabilities: [
-        Capability.Play,
-        Capability.Pause,
-        Capability.SkipToNext,
-        Capability.SkipToPrevious,
-      ],
-      compactCapabilities: [Capability.Play, Capability.Pause],
-    })
-
-    setIsInitialized(true)
-  }
 
   const getCurrentMusic = async () => {
     try {
@@ -83,10 +59,6 @@ export function useTrackPlayer() {
     listMusics,
     musicSelected,
   }: HandleMusicSelectedProps) => {
-    if (!isInitialized) {
-      await handleInitializePlayer()
-    }
-
     if (
       isCurrentMusic?.title &&
       isCurrentMusic.title.includes(musicSelected.title)
@@ -101,13 +73,14 @@ export function useTrackPlayer() {
       (item) => item.id === musicSelected.id,
     )
 
+    dispatch(handleSetCurrentMusic({ isCurrentMusic: musicSelected }))
+    dispatch(handleChangeStateCurrentMusic(State.Playing))
+
     await TrackPlayer.reset()
     await TrackPlayer.add(listMusics)
     await TrackPlayer.skip(indexSelected)
     await TrackPlayer.play()
 
-    dispatch(handleSetCurrentMusic({ isCurrentMusic: musicSelected }))
-    dispatch(handleChangeStateCurrentMusic(State.Playing))
     dispatch(handleSetHistoric({ music: musicSelected }))
     handleGetQueue()
   }

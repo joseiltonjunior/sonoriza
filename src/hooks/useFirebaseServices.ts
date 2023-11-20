@@ -290,17 +290,54 @@ export function useFirebaseServices() {
     return musics
   }
 
+  const handleGetMusicsByGenre = async (
+    musicalGenre: string,
+  ): Promise<MusicProps[]> => {
+    let musics = [] as MusicProps[]
+
+    await firestore()
+      .collection('musics')
+      .where('genre', '==', musicalGenre)
+      .get()
+      .then((querySnapshot) => {
+        const musicsResponse = querySnapshot.docs.map((doc) =>
+          doc.data(),
+        ) as MusicProps[]
+        musics = musicsResponse
+      })
+      .catch((err) => {
+        crashlytics().recordError(err)
+      })
+
+    return musics
+  }
+
   const handleGetMusicsByFilter = async (
     filter: string,
   ): Promise<MusicProps[]> => {
     const querySnapshot = await firestore()
       .collection('musics')
-      .where('title', '>=', filter.toLowerCase())
-      .where('title', '<=', filter.toLowerCase() + '\uf8ff')
+      .where('title', '>=', filter)
+      .where('title', '<=', filter + '\uf8ff')
       .get()
 
     const musics = querySnapshot.docs.map((doc) => doc.data() as MusicProps)
     return musics
+  }
+
+  const handleGetArtistsByFilter = async (
+    filter: string,
+  ): Promise<ArtistsDataProps[]> => {
+    const querySnapshot = await firestore()
+      .collection('artists')
+      .where('name', '>=', filter)
+      .where('name', '<=', filter + '\uf8ff')
+      .get()
+
+    const artists = querySnapshot.docs.map(
+      (doc) => doc.data() as ArtistsDataProps,
+    )
+    return artists
   }
 
   return {
@@ -314,5 +351,7 @@ export function useFirebaseServices() {
     handleGetFavoritesArtists,
     handleGetFavoritesMusics,
     handleGetMusicsByFilter,
+    handleGetMusicsByGenre,
+    handleGetArtistsByFilter,
   }
 }

@@ -202,7 +202,7 @@ export function Music() {
           }}
           className="absolute left-0 p-2 rounded-full"
         >
-          <Icon name="chevron-back-outline" size={25} color={fontColor} />
+          <Icon name="chevron-back-outline" size={30} color={fontColor} />
         </TouchableOpacity>
         <View className="flex-col items-center">
           <Text

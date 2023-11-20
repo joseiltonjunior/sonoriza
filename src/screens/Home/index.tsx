@@ -34,7 +34,7 @@ import { UserDataProps } from '@utils/Types/userProps'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
 
 export function Home() {
-  const [musicalGenres, setMusicalGenres] = useState<string[]>([])
+  const [topMusicalGenres, setTopMusicalGenres] = useState<string[]>([])
   const [musics, setMusics] = useState<MusicProps[]>([])
   const [artists, setArtists] = useState<ArtistsDataProps[]>([])
 
@@ -53,17 +53,17 @@ export function Home() {
     (state) => state.currentMusic,
   )
 
-  const handleSetMusicalGenres = (musics: MusicProps[]) => {
+  const handleTopMusicalGenres = (musics: MusicProps[]) => {
     const filterGenres = musics.map((music) => music.genre)
     const exludeDuplicates = [...new Set(filterGenres)]
-    setMusicalGenres(exludeDuplicates)
+    setTopMusicalGenres(exludeDuplicates)
   }
 
   const handleGetDataUser = async (user: UserDataProps) => {
     try {
       if (user?.favoritesMusics) {
         const result = await handleGetFavoritesMusics(user.favoritesMusics)
-        handleSetMusicalGenres(result)
+        handleTopMusicalGenres(result)
         setMusics(result)
       }
 
@@ -111,8 +111,8 @@ export function Home() {
   }, [])
 
   return (
-    <View className="flex-1 relative">
-      <ScrollView className="flex-1 bg-gray-950 mb-12">
+    <>
+      <ScrollView className="bg-gray-700">
         <View className="p-4 flex-row items-center justify-between">
           <Text className="text-white text-3xl font-nunito-bold">Início</Text>
 
@@ -133,13 +133,13 @@ export function Home() {
               title="Mixes inspirador por"
               className={`${historic.length > 0 && 'mt-14'}`}
             >
-              <ListCarousel musics={musics} />
+              <ListCarousel musics={musics.slice(0, 12)} />
             </Section>
           )}
 
-          {musicalGenres && (
+          {topMusicalGenres && (
             <Section title="Os seus top gêneros musicais" className={`mt-14`}>
-              <MusicalGenres musicalGenres={musicalGenres} />
+              <MusicalGenres musicalGenres={topMusicalGenres.slice(0, 5)} />
             </Section>
           )}
 
@@ -154,6 +154,6 @@ export function Home() {
         {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
         <BottomMenu />
       </View>
-    </View>
+    </>
   )
 }

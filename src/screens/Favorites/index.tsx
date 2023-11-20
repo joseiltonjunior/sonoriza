@@ -32,7 +32,7 @@ export function Favorites() {
   const { handleIsVisible } = useSideMenu()
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 bg-gray-700">
       <View className="p-4 flex-row items-center justify-between">
         <Text className="text-white text-3xl font-nunito-bold">Favoritos</Text>
 

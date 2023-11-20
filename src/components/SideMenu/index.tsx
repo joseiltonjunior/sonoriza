@@ -40,7 +40,7 @@ export function SideMenu() {
               displayName: '',
               email: '',
               photoURL: '',
-              plain: '',
+              plan: '',
               uid: '',
             },
           }),
@@ -72,7 +72,7 @@ export function SideMenu() {
           handleIsVisible()
         }}
       />
-      <View className="bg-gray-950 w-10/12 flex-1 ">
+      <View className="bg-gray-700 w-10/12 flex-1 ">
         <View className="flex-row items-center border-b border-gray-400/60 p-4">
           <View className="bg-white w-16 h-16 rounded-full overflow-hidden items-center justify-center">
             {user.photoURL ? (
@@ -91,7 +91,7 @@ export function SideMenu() {
               {user.displayName}
             </Text>
             <Text className="text-xs font-nunito-regular text-gray-300">
-              Sonoriza {user.plain === 'premium' ? 'Premium' : 'Free'}
+              Sonoriza {user.plan === 'premium' ? 'Premium' : 'Free'}
             </Text>
           </View>
         </View>

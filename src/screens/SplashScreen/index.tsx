@@ -9,6 +9,10 @@ import { StackNavigationProps } from '@routes/routes'
 
 import auth from '@react-native-firebase/auth'
 import { useModal } from '@hooks/useModal'
+import TrackPlayer, {
+  AppKilledPlaybackBehavior,
+  Capability,
+} from 'react-native-track-player'
 
 const size = Dimensions.get('window').width * 0.9
 
@@ -16,14 +20,35 @@ export function SplashScreen() {
   const navigation = useNavigation<StackNavigationProps>()
   const { closeModal, openModal } = useModal()
 
+  const handleInitializePlayer = async () => {
+    await TrackPlayer.setupPlayer()
+
+    TrackPlayer.updateOptions({
+      android: {
+        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
+      },
+
+      capabilities: [
+        Capability.Play,
+        Capability.Pause,
+        Capability.SkipToNext,
+        Capability.SkipToPrevious,
+      ],
+      compactCapabilities: [Capability.Play, Capability.Pause],
+    })
+  }
+
   const handleVerifyUser = useCallback(async () => {
     try {
       const user = auth().currentUser
       if (user) {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Home' }],
-        })
+        handleInitializePlayer()
+        setTimeout(() => {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Home', params: {} }],
+          })
+        }, 2000)
       } else {
         navigation.reset({
           index: 0,
@@ -51,7 +76,7 @@ export function SplashScreen() {
   }, [handleVerifyUser])
 
   return (
-    <View className="flex-1 items-center justify-center bg-gray-950">
+    <View className="flex-1 items-center justify-center bg-gray-700">
       <AnimatedLottieView
         source={splash}
         autoPlay

@@ -1,5 +1,6 @@
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
+
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useSideMenu } from '@hooks/useSideMenu'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
@@ -9,8 +10,16 @@ import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
 import { MusicProps } from '@utils/Types/musicProps'
+
 import { useEffect, useState } from 'react'
-import { FlatList, Image, Text, TextInput, View } from 'react-native'
+import {
+  Dimensions,
+  FlatList,
+  Image,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useSelector } from 'react-redux'
@@ -19,34 +28,33 @@ import colors from 'tailwindcss/colors'
 export function Search() {
   const { handleIsVisible } = useSideMenu()
 
-  const { handleGetMusicsDatabase, handleGetArtists } = useFirebaseServices()
+  const { handleGetMusicalGenres, handleGetArtistsByFilter } =
+    useFirebaseServices()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
 
-  const [musics, setMusics] = useState<MusicProps[]>([])
-  const [artists, setArtists] = useState<ArtistsDataProps[]>([])
+  const [musicalGenres, setMusicalGenres] = useState<string[]>([])
+
+  const [filter, setFilter] = useState('')
 
   const navigation = useNavigation<StackNavigationProps>()
 
+  const screenWidth = Dimensions.get('window').width
+
   const { handleMusicSelected } = useTrackPlayer()
+  const { handleGetMusicsByFilter } = useFirebaseServices()
 
   const [musicsFiltered, setMusicsFiltered] = useState<MusicProps[]>([])
   const [artistsFiltered, setArtistsFiltered] = useState<ArtistsDataProps[]>([])
 
-  const handleSearchData = async (filter: string) => {
+  const handleFilterData = async (filter: string) => {
     if (filter.length > 2) {
-      const resultMusic = musics.filter((music) =>
-        music.title.toLowerCase().includes(filter.toLowerCase()),
-      )
-
-      const resultArtist = artists.filter((artist) =>
-        artist.name.toLowerCase().includes(filter.toLowerCase()),
-      )
-
-      setMusicsFiltered(resultMusic)
-      setArtistsFiltered(resultArtist)
+      const response = await handleGetMusicsByFilter(filter)
+      const responseArtists = await handleGetArtistsByFilter(filter)
+      setMusicsFiltered(response)
+      setArtistsFiltered(responseArtists)
     } else {
       setArtistsFiltered([])
       setMusicsFiltered([])
@@ -55,11 +63,8 @@ export function Search() {
 
   const handleGetData = async () => {
     try {
-      const responseMusics = await handleGetMusicsDatabase()
-      setMusics(responseMusics)
-
-      const responseArtists = await handleGetArtists()
-      setArtists(responseArtists)
+      const resultMusicalGenres = await handleGetMusicalGenres()
+      setMusicalGenres(resultMusicalGenres.map((item) => item.name))
     } catch (error) {}
   }
 
@@ -69,7 +74,7 @@ export function Search() {
   }, [])
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 bg-gray-700">
       <View className="flex-1">
         <View className="p-4 flex-row items-center justify-between">
           <Text className="text-white text-3xl font-nunito-bold">Busca</Text>
@@ -80,13 +85,31 @@ export function Search() {
         </View>
 
         <View className="p-4">
-          <View className="bg-gray-700 rounded-xl overflow-hidden px-4 flex-row items-center">
-            <Icon name="search" size={22} />
-            <TextInput
-              className="ml-2 w-full"
-              placeholder="Artistas, faixas, podcasts..."
-              onChangeText={(e) => handleSearchData(e)}
-            />
+          <View className="bg-gray-950 rounded-xl overflow-hidden px-4 flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <Icon name="search" size={22} />
+              <TextInput
+                value={filter}
+                className="ml-2 w-10/12 bg-transparent"
+                placeholder="Artistas, faixas, podcasts..."
+                onChangeText={(e) => {
+                  setFilter(e)
+                  handleFilterData(e)
+                }}
+              />
+            </View>
+            {filter && (
+              <TouchableOpacity
+                className="ml-auto"
+                onPress={() => {
+                  setArtistsFiltered([])
+                  setMusicsFiltered([])
+                  setFilter('')
+                }}
+              >
+                <Icon name="close-circle" size={22} className="" />
+              </TouchableOpacity>
+            )}
           </View>
 
           <FlatList
@@ -158,6 +181,38 @@ export function Search() {
               </View>
             )}
           />
+
+          {artistsFiltered.length === 0 &&
+            musicsFiltered.length === 0 &&
+            musicalGenres && (
+              <>
+                <Text className="font-nunito-bold text-lg text-white mb-2">
+                  Navegar por todas as seções
+                </Text>
+                <FlatList
+                  data={musicalGenres}
+                  showsVerticalScrollIndicator={false}
+                  numColumns={2}
+                  horizontal={false}
+                  columnWrapperStyle={{ gap: 12 }}
+                  ItemSeparatorComponent={() => <View className="h-3" />}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={{ width: (screenWidth - 48) / 2 }}
+                      className="bg-purple-600 rounded-lg px-2 items-center justify-center h-[60px]"
+                      activeOpacity={0.8}
+                      onPress={() =>
+                        navigation.navigate('GenreSelected', { type: item })
+                      }
+                    >
+                      <Text className="font-nunito-bold text-center text-white text-base leading-5">
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </>
+            )}
         </View>
       </View>
 

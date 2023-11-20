@@ -79,7 +79,7 @@ export function MoreMusic() {
   }, [type, user.favoritesMusics])
 
   return (
-    <View className="flex-1 relative">
+    <View className="flex-1 relative bg-gray-700">
       <View className="px-4 flex-1 mt-2">
         <View className="items-center justify-center py-4">
           <TouchableOpacity
@@ -88,7 +88,7 @@ export function MoreMusic() {
             }}
             className="absolute left-0 p-2 rounded-full"
           >
-            <Icon name="chevron-back-outline" size={25} color="#fff" />
+            <Icon name="chevron-back-outline" size={30} color="#fff" />
           </TouchableOpacity>
           <Text className="text-lg font-bold text-white">{title}</Text>
         </View>
