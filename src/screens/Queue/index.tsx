@@ -77,7 +77,7 @@ export function Queue() {
             }}
             className="absolute left-0 p-2 rounded-full"
           >
-            <Icon name="chevron-back-outline" size={25} color="#fff" />
+            <Icon name="chevron-back-outline" size={30} color="#fff" />
           </TouchableOpacity>
 
           <Text className="text-white font-nunito-bold text-lg">Tocando</Text>

@@ -15,6 +15,7 @@ import {
 import RNFS from 'react-native-fs'
 import { ReduxProps } from '@storage/index'
 import { useMemo } from 'react'
+import { NetInfoProps } from '@storage/modules/netInfo/reducer'
 
 interface InfoPlayingMusicProps {
   currentMusic?: MusicProps
@@ -27,6 +28,10 @@ export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
     (state) => state.trackListOffline,
   )
+
+  const {
+    netInfo: { status },
+  } = useSelector<ReduxProps, NetInfoProps>((state) => state.netInfo)
 
   const { handleFavoriteMusic } = useFirebaseServices()
 
@@ -97,34 +102,38 @@ export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
         )}
       </View>
 
-      <TouchableOpacity
-        activeOpacity={0.6}
-        className="flex-row px-4 py-3"
-        onPress={() => {
-          if (currentMusic) {
-            handleFavoriteMusic(currentMusic)
-          }
-        }}
-      >
-        <Text className="ml-4 font-nunito-medium text-base">
-          {isFavoriteMusic
-            ? 'Remover dos favoritos'
-            : 'Adicionar aos favoritos'}
-        </Text>
-      </TouchableOpacity>
+      {status && (
+        <>
+          <TouchableOpacity
+            activeOpacity={0.6}
+            className="flex-row px-4 py-3"
+            onPress={() => {
+              if (currentMusic) {
+                handleFavoriteMusic(currentMusic)
+              }
+            }}
+          >
+            <Text className="ml-4 font-nunito-medium text-base">
+              {isFavoriteMusic
+                ? 'Remover dos favoritos'
+                : 'Adicionar aos favoritos'}
+            </Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity
-        activeOpacity={0.6}
-        className="flex-row px-4 py-3"
-        onPress={() => {
-          closeModal()
-          openModal()
-        }}
-      >
-        <Text className="ml-4 font-nunito-medium text-base">
-          Adicionar à playlist
-        </Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.6}
+            className="flex-row px-4 py-3"
+            onPress={() => {
+              closeModal()
+              openModal()
+            }}
+          >
+            <Text className="ml-4 font-nunito-medium text-base">
+              Adicionar à playlist
+            </Text>
+          </TouchableOpacity>
+        </>
+      )}
 
       <TouchableOpacity
         activeOpacity={0.6}

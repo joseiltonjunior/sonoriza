@@ -4,6 +4,9 @@ import { Rounded } from '@components/Rounded'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
+import { useSelector } from 'react-redux'
+import { ReduxProps } from '@storage/index'
+import { NetInfoProps } from '@storage/modules/netInfo/reducer'
 
 interface RoundedCourselProps {
   artists: ArtistsDataProps[]
@@ -18,6 +21,10 @@ export function RoundedCarousel({
 }: RoundedCourselProps) {
   const navigation = useNavigation<StackNavigationProps>()
 
+  const {
+    netInfo: { status },
+  } = useSelector<ReduxProps, NetInfoProps>((state) => state.netInfo)
+
   return (
     <Carousel
       loop={false}
@@ -28,6 +35,7 @@ export function RoundedCarousel({
       scrollAnimationDuration={1000}
       renderItem={({ item }) => (
         <Rounded
+          disabled={!status}
           artist={item.name}
           artwork={item.photoURL}
           roundedSmall={roundedSmall}

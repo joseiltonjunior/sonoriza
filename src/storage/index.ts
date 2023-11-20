@@ -20,6 +20,7 @@ import { QueueProps } from './modules/queue/reducer'
 import { HistoricProps } from './modules/historic/reducer'
 import { TrackListOfflineProps } from './modules/trackListOffline/reducer'
 import { MusicalGenresProps } from './modules/musicalGenres/reducer'
+import { NetInfoProps } from './modules/netInfo/reducer'
 
 export interface ReduxProps {
   user: UserProps
@@ -28,12 +29,13 @@ export interface ReduxProps {
   historic: HistoricProps
   trackListOffline: TrackListOfflineProps
   musicalGenres: MusicalGenresProps
+  netInfo: NetInfoProps
 }
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  blacklist: ['currentMusic'],
+  blacklist: ['currentMusic', 'netInfo'],
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

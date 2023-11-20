@@ -32,11 +32,17 @@ import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { MusicProps } from '@utils/Types/musicProps'
 import { UserDataProps } from '@utils/Types/userProps'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
+import { ReleasesProps } from '@utils/Types/releasesProps'
+import { ReleasesCarousel } from '@components/ReleasesCarousel'
+import { useNetwork } from '@hooks/useNetwork'
+import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
+import { NetInfoProps } from '@storage/modules/netInfo/reducer'
 
 export function Home() {
   const [topMusicalGenres, setTopMusicalGenres] = useState<string[]>([])
   const [musics, setMusics] = useState<MusicProps[]>([])
   const [artists, setArtists] = useState<ArtistsDataProps[]>([])
+  const [releases, setReleases] = useState<ReleasesProps[]>([])
 
   const { historic } = useSelector<ReduxProps, HistoricProps>(
     (state) => state.historic,
@@ -44,13 +50,26 @@ export function Home() {
 
   const { getCurrentMusic } = useTrackPlayer()
 
-  const { handleGetFavoritesMusics, handleGetFavoritesArtists } =
-    useFirebaseServices()
+  const { openModalErr } = useNetwork()
+
+  const {
+    handleGetFavoritesMusics,
+    handleGetFavoritesArtists,
+    handleGetReleases,
+  } = useFirebaseServices()
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
+  )
+
+  const { netInfo } = useSelector<ReduxProps, NetInfoProps>(
+    (state) => state.netInfo,
+  )
+
+  const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
+    (state) => state.trackListOffline,
   )
 
   const handleTopMusicalGenres = (musics: MusicProps[]) => {
@@ -71,6 +90,9 @@ export function Home() {
         const result = await handleGetFavoritesArtists(user.favoritesArtists)
         setArtists(result)
       }
+
+      const responseReleses = await handleGetReleases()
+      setReleases(responseReleses)
     } catch (error) {
       console.log(error)
     }
@@ -82,12 +104,19 @@ export function Home() {
     getCurrentMusic()
   }
 
-  useEffect(() => {
-    if (user) {
+  const handleVerifyNetInfo = async () => {
+    if (user && netInfo.status) {
       handleGetDataUser(user)
+    } else if (!netInfo.ignoreAlert) {
+      openModalErr()
     }
+  }
+
+  useEffect(() => {
+    handleVerifyNetInfo()
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user])
+  }, [])
 
   useEffect(() => {
     handleGetCurrentMusic()
@@ -121,14 +150,24 @@ export function Home() {
           </TouchableOpacity>
         </View>
 
-        <View className="pb-24">
+        <View className="pb-32">
           {historic.length > 0 && (
             <Section title="Tocados recentemente">
               <BoxCarousel musics={historic} />
             </Section>
           )}
 
-          {musics && (
+          {!netInfo.status && (
+            <Section
+              title="Mixes Offline"
+              description="Explore mixes mesmo sem conexão à internet"
+              className={`mt-14`}
+            >
+              <ListCarousel musics={trackListOffline.slice(0, 10)} />
+            </Section>
+          )}
+
+          {musics.length > 0 && (
             <Section
               title="Mixes inspirador por"
               className={`${historic.length > 0 && 'mt-14'}`}
@@ -137,13 +176,19 @@ export function Home() {
             </Section>
           )}
 
-          {topMusicalGenres && (
+          {topMusicalGenres.length > 0 && (
             <Section title="Os seus top gêneros musicais" className={`mt-14`}>
               <MusicalGenres musicalGenres={topMusicalGenres.slice(0, 5)} />
             </Section>
           )}
 
-          {artists && (
+          {releases.length > 0 && (
+            <Section title="Lançamento para você" className={`mt-14`}>
+              <ReleasesCarousel releases={releases} />
+            </Section>
+          )}
+
+          {artists.length > 0 && (
             <Section title="Artistas que você ama" className="mt-14">
               <RoundedCarousel artists={artists} />
             </Section>

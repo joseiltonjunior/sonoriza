@@ -18,6 +18,7 @@ import { MusicProps } from '@utils/Types/musicProps'
 import { useEffect, useMemo, useState } from 'react'
 
 import {
+  ActivityIndicator,
   Dimensions,
   Image,
   ImageBackground,
@@ -91,7 +92,12 @@ export function Artist() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [artistId])
 
-  if (!artist) return
+  if (!artist)
+    return (
+      <View className="flex-1 bg-gray-700 items-center flex justify-center">
+        <ActivityIndicator size="large" color={colors.white} />
+      </View>
+    )
 
   return (
     <>
@@ -103,7 +109,7 @@ export function Artist() {
           className={`p-4 `}
         >
           <TouchableOpacity
-            className="p-2 rounded-full w-12 h-12 "
+            className="p-2 rounded-full"
             onPress={() => {
               navigation.goBack()
             }}
@@ -130,12 +136,12 @@ export function Artist() {
               <Icon
                 name={isFavorite ? 'heart-sharp' : 'heart-outline'}
                 color={colors.white}
-                size={25}
+                size={28}
               />
             </TouchableOpacity>
           </View>
 
-          <View className="bg-gray-950 rounded-full overflow-hidden">
+          <View className="rounded-full overflow-hidden">
             <TouchableOpacity
               activeOpacity={0.6}
               className="bg-purple-600 p-3 items-center"
@@ -148,7 +154,7 @@ export function Artist() {
               }}
             >
               <View className="flex-row justify-center items-center">
-                <Icon name="play" size={20} color={colors.white} />
+                <Icon name="play" size={25} color={colors.white} />
               </View>
             </TouchableOpacity>
           </View>

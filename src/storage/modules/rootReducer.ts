@@ -9,6 +9,7 @@ import queue from './queue/reducer'
 import historic from './historic/reducer'
 
 import musicalGenres from './musicalGenres/reducer'
+import netInfo from './netInfo/reducer'
 
 export default combineReducers({
   user,
@@ -17,4 +18,5 @@ export default combineReducers({
   historic,
   trackListOffline,
   musicalGenres,
+  netInfo,
 })

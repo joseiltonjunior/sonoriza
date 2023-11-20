@@ -12,7 +12,7 @@ const initialState: UserProps = {
     displayName: '',
     photoURL: '',
     uid: '',
-    plain: '',
+    plan: '',
   },
 }
 

@@ -13,7 +13,7 @@ export function Modal() {
       <TouchableOpacity
         activeOpacity={1}
         onPress={closeModal}
-        className="h-full w-screen bg-gray-950/80 absolute"
+        className="h-full w-screen bg-gray-700/80 absolute"
       />
 
       <View className="flex-1 justify-center p-4">
@@ -33,7 +33,7 @@ export function Modal() {
                   onPress={twoActions.actionConfirm}
                   className="flex-1 border border-purple-600 h-12 rounded-lg items-center justify-center"
                 >
-                  <Text className="text-purple-600 font-bold">
+                  <Text className="text-purple-600 font-bold text-center">
                     {twoActions.textConfirm.toUpperCase()}
                   </Text>
                 </TouchableOpacity>
@@ -43,7 +43,7 @@ export function Modal() {
                   onPress={twoActions.actionCancel}
                   className="flex-1 bg-purple-600 h-12 rounded-lg items-center justify-center ml-4"
                 >
-                  <Text className="text-white font-bold">
+                  <Text className="text-white font-bold text-center">
                     {twoActions.textCancel.toUpperCase()}
                   </Text>
                 </TouchableOpacity>

@@ -15,6 +15,7 @@ import { useSelector } from 'react-redux'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useSideMenu } from '@hooks/useSideMenu'
 import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
+import { NetInfoProps } from '@storage/modules/netInfo/reducer'
 
 export function Favorites() {
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
@@ -24,6 +25,10 @@ export function Favorites() {
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
     (state) => state.trackListOffline,
   )
+
+  const {
+    netInfo: { status },
+  } = useSelector<ReduxProps, NetInfoProps>((state) => state.netInfo)
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
@@ -60,25 +65,47 @@ export function Favorites() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          activeOpacity={0.6}
-          onPress={() =>
-            navigation.navigate('MoreMusic', {
-              type: 'favorites',
-              title: 'Mais queridas',
-            })
-          }
-          className="flex-row justify-between items-center px-4 py-2"
-        >
-          <Text className="font-nunito-medium text-lg text-white">
-            Mais queridas
-          </Text>
-          <Text className="font-nunito-regular text-gray-300">
-            {user.favoritesMusics?.length}
-          </Text>
-        </TouchableOpacity>
+        {status && (
+          <>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={() =>
+                navigation.navigate('MoreArtists', {
+                  type: 'favorites',
+                  title: 'Artistas',
+                })
+              }
+              className="flex-row justify-between items-center px-4 py-2"
+            >
+              <Text className="font-nunito-medium text-lg text-white">
+                Artistas
+              </Text>
+              <Text className="font-nunito-regular text-gray-300">
+                {user.favoritesArtists?.length}
+              </Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={() =>
+                navigation.navigate('MoreMusic', {
+                  type: 'favorites',
+                  title: 'Mais queridas',
+                })
+              }
+              className="flex-row justify-between items-center px-4 py-2"
+            >
+              <Text className="font-nunito-medium text-lg text-white">
+                Mais queridas
+              </Text>
+              <Text className="font-nunito-regular text-gray-300">
+                {user.favoritesMusics?.length}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* <TouchableOpacity
           disabled
           activeOpacity={0.6}
           className="flex-row justify-between items-center px-4 py-2"
@@ -87,25 +114,7 @@ export function Favorites() {
             Playlists
           </Text>
           <Text className="font-nunito-regular text-gray-300">0</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.6}
-          onPress={() =>
-            navigation.navigate('MoreArtists', {
-              type: 'favorites',
-              title: 'Artistas',
-            })
-          }
-          className="flex-row justify-between items-center px-4 py-2"
-        >
-          <Text className="font-nunito-medium text-lg text-white">
-            Artistas
-          </Text>
-          <Text className="font-nunito-regular text-gray-300">
-            {user.favoritesArtists?.length}
-          </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}

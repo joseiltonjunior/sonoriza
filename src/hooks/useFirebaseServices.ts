@@ -7,6 +7,7 @@ import { ArtistsDataProps } from '@utils/Types/artistsProps'
 import { useDispatch, useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
 import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
+import { ReleasesProps } from '@utils/Types/releasesProps'
 
 export function useFirebaseServices() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
@@ -275,7 +276,7 @@ export function useFirebaseServices() {
       await firestore()
         .collection('musics')
         .where(firestore.FieldPath.documentId(), 'in', batch)
-        .get()
+        .get({ source: 'cache' })
         .then((querySnapshot) => {
           const musicsResponse = querySnapshot.docs.map((doc) =>
             doc.data(),
@@ -340,6 +341,16 @@ export function useFirebaseServices() {
     return artists
   }
 
+  const handleGetReleases = async (): Promise<ReleasesProps[]> => {
+    const querySnapshot = await firestore().collection('releases').get()
+
+    const releases = querySnapshot.docs.map(
+      (doc) => doc.data() as ReleasesProps,
+    )
+
+    return releases
+  }
+
   return {
     handleGetArtists,
     handleGetMusicalGenres,
@@ -353,5 +364,6 @@ export function useFirebaseServices() {
     handleGetMusicsByFilter,
     handleGetMusicsByGenre,
     handleGetArtistsByFilter,
+    handleGetReleases,
   }
 }

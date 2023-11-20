@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 
 import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
 
-import { Button } from './Button'
+// import { Button } from './Button'
 
 export function SideMenu() {
   const { isVisible, handleIsVisible } = useSideMenu()
@@ -97,11 +97,11 @@ export function SideMenu() {
         </View>
 
         <View className="p-4 pb-8 flex-1">
-          <Button icon="settings-sharp" title="Gerenciamento de conta" />
+          {/* <Button icon="settings-sharp" title="Gerenciamento de conta" />
 
           <Button icon="star" title="Avaliar o aplicativo" className="mt-5" />
 
-          <Button icon="reader" title="Sobre" className="mt-5" />
+          <Button icon="reader" title="Sobre" className="mt-5" /> */}
 
           <TouchableOpacity
             className="ml-auto mr-auto mt-auto bg-purple-600 h-14 items-center justify-center px-6 rounded-full"

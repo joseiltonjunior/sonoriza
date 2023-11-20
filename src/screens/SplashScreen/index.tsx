@@ -1,8 +1,8 @@
 import AnimatedLottieView from 'lottie-react-native'
-import { BackHandler, Dimensions, View } from 'react-native'
+import { BackHandler, Dimensions, LogBox, View } from 'react-native'
 
 import splash from '@assets/splash.json'
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
 
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
@@ -13,12 +13,14 @@ import TrackPlayer, {
   AppKilledPlaybackBehavior,
   Capability,
 } from 'react-native-track-player'
+import { useNetwork } from '@hooks/useNetwork'
 
 const size = Dimensions.get('window').width * 0.9
 
 export function SplashScreen() {
   const navigation = useNavigation<StackNavigationProps>()
   const { closeModal, openModal } = useModal()
+  const { checkNetwork } = useNetwork()
 
   const handleInitializePlayer = async () => {
     await TrackPlayer.setupPlayer()
@@ -38,10 +40,11 @@ export function SplashScreen() {
     })
   }
 
-  const handleVerifyUser = useCallback(async () => {
+  const handleVerifyUser = async () => {
     try {
       const user = auth().currentUser
       if (user) {
+        await checkNetwork()
         handleInitializePlayer()
         setTimeout(() => {
           navigation.reset({
@@ -69,11 +72,15 @@ export function SplashScreen() {
         },
       })
     }
-  }, [closeModal, navigation, openModal])
+  }
 
   useEffect(() => {
+    LogBox.ignoreLogs([
+      'The player has already been initialized via setupPlayer',
+    ])
     handleVerifyUser()
-  }, [handleVerifyUser])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <View className="flex-1 items-center justify-center bg-gray-700">
