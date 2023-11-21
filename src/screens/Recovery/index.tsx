@@ -205,10 +205,7 @@ export function SignIn() {
               <Text className="font-bold ml-1 underline">INSCREVA-SE</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              className="ml-auto mr-auto mt-8"
-              onPress={() => navigation.navigate('RecoveryPassword')}
-            >
+            <TouchableOpacity className="ml-auto mr-auto mt-8">
               <Text>REDEFINIR SENHA</Text>
             </TouchableOpacity>
           </View>

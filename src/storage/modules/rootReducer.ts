@@ -8,7 +8,12 @@ import currentMusic from './currentMusic/reducer'
 import queue from './queue/reducer'
 import historic from './historic/reducer'
 
-import musicalGenres from './musicalGenres/reducer'
+import releases from './releases/reducer'
+import favoriteMusics from './favoriteMusics/reducer'
+import favoriteArtists from './favoriteArtists/reducer'
+
+import trackPlayer from './trackPlayer/reducer'
+
 import netInfo from './netInfo/reducer'
 
 export default combineReducers({
@@ -17,6 +22,9 @@ export default combineReducers({
   queue,
   historic,
   trackListOffline,
-  musicalGenres,
   netInfo,
+  trackPlayer,
+  favoriteArtists,
+  releases,
+  favoriteMusics,
 })

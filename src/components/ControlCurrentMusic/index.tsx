@@ -85,7 +85,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
     >
       <TouchableOpacity
         activeOpacity={0.8}
-        className="flex-row items-center w-10/12"
+        className="flex-row items-center w-9/12"
         onPress={() => navigation.navigate('Music')}
       >
         <ImageBackground

@@ -21,9 +21,9 @@ export function RoundedCarousel({
 }: RoundedCourselProps) {
   const navigation = useNavigation<StackNavigationProps>()
 
-  const {
-    netInfo: { status },
-  } = useSelector<ReduxProps, NetInfoProps>((state) => state.netInfo)
+  const { status } = useSelector<ReduxProps, NetInfoProps>(
+    (state) => state.netInfo,
+  )
 
   return (
     <Carousel

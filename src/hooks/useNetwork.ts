@@ -1,35 +1,14 @@
-import NetInfo from '@react-native-community/netinfo'
 import { useModal } from './useModal'
 
 import { useDispatch } from 'react-redux'
-import {
-  handleIgnoreAlert,
-  handleSetNetStatus,
-} from '@storage/modules/netInfo/reducer'
+import { handleIgnoreAlert } from '@storage/modules/netInfo/reducer'
 
 export function useNetwork() {
   const { openModal, closeModal } = useModal()
 
   const dispatch = useDispatch()
 
-  const checkNetwork = async () => {
-    let status = false
-    await NetInfo.fetch().then((state) => {
-      if (!state.isConnected) {
-        dispatch(handleSetNetStatus(false))
-
-        status = false
-        return
-      }
-
-      status = true
-      dispatch(handleSetNetStatus(true))
-    })
-
-    return status
-  }
-
-  const openModalErr = () => {
+  const openModalErrNetwork = () => {
     openModal({
       title: 'Atenção',
       description:
@@ -44,5 +23,5 @@ export function useNetwork() {
     })
   }
 
-  return { checkNetwork, openModalErr }
+  return { openModalErrNetwork }
 }

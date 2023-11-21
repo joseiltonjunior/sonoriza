@@ -1,6 +1,6 @@
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { ReduxProps } from '@storage/index'
 
@@ -16,87 +16,74 @@ import { BoxCarousel } from '@components/BoxCarousel'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 
 import { RoundedCarousel } from '@components/RoundedCarousel'
-import { UserProps } from '@storage/modules/user/reducer'
 
 import { Section } from '@components/Section'
 
 import { MusicalGenres } from '@components/MusicalGenres'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import TrackPlayer, { Event, State } from 'react-native-track-player'
 
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { HistoricProps } from '@storage/modules/historic/reducer'
 import { ListCarousel } from '@components/ListCarousel'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
-import { MusicProps } from '@utils/Types/musicProps'
-import { UserDataProps } from '@utils/Types/userProps'
-import { ArtistsDataProps } from '@utils/Types/artistsProps'
-import { ReleasesProps } from '@utils/Types/releasesProps'
+
 import { ReleasesCarousel } from '@components/ReleasesCarousel'
 import { useNetwork } from '@hooks/useNetwork'
 import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
-import { NetInfoProps } from '@storage/modules/netInfo/reducer'
+import {
+  NetInfoProps,
+  handleSetNetStatus,
+} from '@storage/modules/netInfo/reducer'
+
+import { FavoriteArtistsProps } from '@storage/modules/favoriteArtists/reducer'
+import { ReleasesProps } from '@storage/modules/releases/reducer'
+import { FavoriteMusicsProps } from '@storage/modules/favoriteMusics/reducer'
+import { useNetInfo } from '@react-native-community/netinfo'
 
 export function Home() {
-  const [topMusicalGenres, setTopMusicalGenres] = useState<string[]>([])
-  const [musics, setMusics] = useState<MusicProps[]>([])
-  const [artists, setArtists] = useState<ArtistsDataProps[]>([])
-  const [releases, setReleases] = useState<ReleasesProps[]>([])
-
   const { historic } = useSelector<ReduxProps, HistoricProps>(
     (state) => state.historic,
   )
 
+  const dispatch = useDispatch()
+
   const { getCurrentMusic } = useTrackPlayer()
 
-  const { openModalErr } = useNetwork()
+  const { openModalErrNetwork } = useNetwork()
 
-  const {
-    handleGetFavoritesMusics,
-    handleGetFavoritesArtists,
-    handleGetReleases,
-  } = useFirebaseServices()
-
-  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+  const { isConnected } = useNetInfo()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
 
-  const { netInfo } = useSelector<ReduxProps, NetInfoProps>(
+  const { ignoreAlert, status } = useSelector<ReduxProps, NetInfoProps>(
     (state) => state.netInfo,
+  )
+
+  const { favoriteArtists } = useSelector<ReduxProps, FavoriteArtistsProps>(
+    (state) => state.favoriteArtists,
+  )
+
+  const { releases } = useSelector<ReduxProps, ReleasesProps>(
+    (state) => state.releases,
+  )
+
+  const { favoriteMusics } = useSelector<ReduxProps, FavoriteMusicsProps>(
+    (state) => state.favoriteMusics,
   )
 
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
     (state) => state.trackListOffline,
   )
 
-  const handleTopMusicalGenres = (musics: MusicProps[]) => {
-    const filterGenres = musics.map((music) => music.genre)
-    const exludeDuplicates = [...new Set(filterGenres)]
-    setTopMusicalGenres(exludeDuplicates)
-  }
+  const topMusicalGenres = useMemo(() => {
+    const filterGenres = favoriteMusics.map((music) => music.genre)
+    const excludeDuplicates = [...new Set(filterGenres)]
 
-  const handleGetDataUser = async (user: UserDataProps) => {
-    try {
-      if (user?.favoritesMusics) {
-        const result = await handleGetFavoritesMusics(user.favoritesMusics)
-        handleTopMusicalGenres(result)
-        setMusics(result)
-      }
-
-      if (user?.favoritesArtists) {
-        const result = await handleGetFavoritesArtists(user.favoritesArtists)
-        setArtists(result)
-      }
-
-      const responseReleses = await handleGetReleases()
-      setReleases(responseReleses)
-    } catch (error) {
-      console.log(error)
-    }
-  }
+    return excludeDuplicates
+  }, [favoriteMusics])
 
   const { handleIsVisible } = useSideMenu()
 
@@ -104,19 +91,18 @@ export function Home() {
     getCurrentMusic()
   }
 
-  const handleVerifyNetInfo = async () => {
-    if (user && netInfo.status) {
-      handleGetDataUser(user)
-    } else if (!netInfo.ignoreAlert) {
-      openModalErr()
-    }
-  }
-
   useEffect(() => {
-    handleVerifyNetInfo()
-
+    if (isConnected === null) return
+    if (isConnected) {
+      dispatch(handleSetNetStatus(true))
+    } else if (!isConnected) {
+      dispatch(handleSetNetStatus(false))
+      if (!ignoreAlert) {
+        openModalErrNetwork()
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [ignoreAlert, isConnected])
 
   useEffect(() => {
     handleGetCurrentMusic()
@@ -157,7 +143,7 @@ export function Home() {
             </Section>
           )}
 
-          {!netInfo.status && (
+          {!status && (
             <Section
               title="Mixes Offline"
               description="Explore mixes mesmo sem conexão à internet"
@@ -167,34 +153,35 @@ export function Home() {
             </Section>
           )}
 
-          {musics.length > 0 && (
+          {status && favoriteMusics.length > 0 && (
             <Section
               title="Mixes inspirador por"
               className={`${historic.length > 0 && 'mt-14'}`}
             >
-              <ListCarousel musics={musics.slice(0, 12)} />
+              <ListCarousel musics={favoriteMusics.slice(0, 12)} />
             </Section>
           )}
 
-          {topMusicalGenres.length > 0 && (
+          {status && topMusicalGenres.length > 0 && (
             <Section title="Os seus top gêneros musicais" className={`mt-14`}>
               <MusicalGenres musicalGenres={topMusicalGenres.slice(0, 5)} />
             </Section>
           )}
 
-          {releases.length > 0 && (
+          {status && releases.length > 0 && (
             <Section title="Lançamento para você" className={`mt-14`}>
               <ReleasesCarousel releases={releases} />
             </Section>
           )}
 
-          {artists.length > 0 && (
+          {status && favoriteArtists.length > 0 && (
             <Section title="Artistas que você ama" className="mt-14">
-              <RoundedCarousel artists={artists} />
+              <RoundedCarousel artists={favoriteArtists} />
             </Section>
           )}
         </View>
       </ScrollView>
+
       <View className="absolute bottom-0 w-full">
         {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
         <BottomMenu />

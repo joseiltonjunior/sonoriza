@@ -230,7 +230,7 @@ export function Register() {
 
   return (
     <>
-      <ScrollView>
+      <ScrollView className="bg-gray-700">
         <View className="p-4 items-center h-full ">
           <Image
             source={logo}

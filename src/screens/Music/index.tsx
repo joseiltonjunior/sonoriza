@@ -326,6 +326,7 @@ export function Music() {
         </Text>
         <Text
           className="font-nunito-regular text-gray-100"
+          numberOfLines={1}
           style={{ color: fontColor }}
         >
           {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}

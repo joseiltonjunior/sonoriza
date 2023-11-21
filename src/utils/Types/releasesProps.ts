@@ -1,4 +1,4 @@
-export interface ReleasesProps {
+export interface ReleasesDataProps {
   artwork: string
   name: string
   type: string

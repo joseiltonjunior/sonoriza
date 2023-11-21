@@ -29,9 +29,9 @@ export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
     (state) => state.trackListOffline,
   )
 
-  const {
-    netInfo: { status },
-  } = useSelector<ReduxProps, NetInfoProps>((state) => state.netInfo)
+  const { status } = useSelector<ReduxProps, NetInfoProps>(
+    (state) => state.netInfo,
+  )
 
   const { handleFavoriteMusic } = useFirebaseServices()
 

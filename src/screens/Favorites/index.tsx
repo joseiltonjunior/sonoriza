@@ -26,9 +26,9 @@ export function Favorites() {
     (state) => state.trackListOffline,
   )
 
-  const {
-    netInfo: { status },
-  } = useSelector<ReduxProps, NetInfoProps>((state) => state.netInfo)
+  const { status } = useSelector<ReduxProps, NetInfoProps>(
+    (state) => state.netInfo,
+  )
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 

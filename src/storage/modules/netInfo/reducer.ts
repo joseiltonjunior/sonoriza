@@ -2,14 +2,13 @@ import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
 export interface NetInfoProps {
-  netInfo: { status: boolean; ignoreAlert: boolean }
+  status: boolean
+  ignoreAlert: boolean
 }
 
 const initialState: NetInfoProps = {
-  netInfo: {
-    status: true,
-    ignoreAlert: false,
-  },
+  status: true,
+  ignoreAlert: false,
 }
 
 const netInfoSlice = createSlice({
@@ -17,11 +16,11 @@ const netInfoSlice = createSlice({
   initialState,
   reducers: {
     handleSetNetStatus(state, action: PayloadAction<boolean>) {
-      state.netInfo.status = action.payload
+      state.status = action.payload
     },
 
     handleIgnoreAlert(state, action: PayloadAction<boolean>) {
-      state.netInfo.ignoreAlert = action.payload
+      state.ignoreAlert = action.payload
     },
   },
 })

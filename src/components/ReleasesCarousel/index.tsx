@@ -1,12 +1,12 @@
 import Carousel from 'react-native-reanimated-carousel'
 
 import { Release } from '@components/Release'
-import { ReleasesProps } from '@utils/Types/releasesProps'
+import { ReleasesDataProps } from '@utils/Types/releasesProps'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 
 interface ReleasesCourselProps {
-  releases: ReleasesProps[]
+  releases: ReleasesDataProps[]
 }
 
 export function ReleasesCarousel({ releases }: ReleasesCourselProps) {

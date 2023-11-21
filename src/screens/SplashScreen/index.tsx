@@ -1,5 +1,5 @@
 import AnimatedLottieView from 'lottie-react-native'
-import { BackHandler, Dimensions, LogBox, View } from 'react-native'
+import { BackHandler, Dimensions, View } from 'react-native'
 
 import splash from '@assets/splash.json'
 import { useEffect } from 'react'
@@ -7,23 +7,52 @@ import { useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 
-import auth from '@react-native-firebase/auth'
 import { useModal } from '@hooks/useModal'
 import TrackPlayer, {
   AppKilledPlaybackBehavior,
   Capability,
 } from 'react-native-track-player'
-import { useNetwork } from '@hooks/useNetwork'
+import { UserDataProps } from '@utils/Types/userProps'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
+import { ReduxProps } from '@storage/index'
+import { useDispatch, useSelector } from 'react-redux'
+import { UserProps } from '@storage/modules/user/reducer'
+import { useNetInfo } from '@react-native-community/netinfo'
+import { handleSetNetStatus } from '@storage/modules/netInfo/reducer'
+import { handleSetFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
+
+import { handleSetFavoriteMusics } from '@storage/modules/favoriteMusics/reducer'
+import { handleSetReleases } from '@storage/modules/releases/reducer'
+import {
+  TrackPlayerProps,
+  handleInitializedTrackPlayer,
+} from '@storage/modules/trackPlayer/reducer'
 
 const size = Dimensions.get('window').width * 0.9
 
 export function SplashScreen() {
   const navigation = useNavigation<StackNavigationProps>()
   const { closeModal, openModal } = useModal()
-  const { checkNetwork } = useNetwork()
+  const { isConnected } = useNetInfo()
+
+  const dispatch = useDispatch()
+
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+  const { isInitialized } = useSelector<ReduxProps, TrackPlayerProps>(
+    (state) => state.trackPlayer,
+  )
+
+  const {
+    handleGetFavoritesMusics,
+    handleGetFavoritesArtists,
+    handleGetReleases,
+  } = useFirebaseServices()
 
   const handleInitializePlayer = async () => {
     await TrackPlayer.setupPlayer()
+
+    dispatch(handleInitializedTrackPlayer({ isInitialized: true }))
 
     TrackPlayer.updateOptions({
       android: {
@@ -40,18 +69,47 @@ export function SplashScreen() {
     })
   }
 
+  const handleGetDataUser = async (user: UserDataProps) => {
+    try {
+      if (isConnected) {
+        if (user?.favoritesMusics) {
+          const result = await handleGetFavoritesMusics(user.favoritesMusics)
+          dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
+        }
+
+        if (user?.favoritesArtists) {
+          const result = await handleGetFavoritesArtists(user.favoritesArtists)
+
+          dispatch(handleSetFavoriteArtists({ favoriteArtists: result }))
+        }
+
+        const responseReleses = await handleGetReleases()
+
+        dispatch(handleSetReleases({ releases: responseReleses }))
+
+        dispatch(handleSetNetStatus(true))
+
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        })
+      } else {
+        dispatch(handleSetNetStatus(false))
+
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        })
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const handleVerifyUser = async () => {
     try {
-      const user = auth().currentUser
-      if (user) {
-        await checkNetwork()
-        handleInitializePlayer()
-        setTimeout(() => {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Home', params: {} }],
-          })
-        }, 2000)
+      if (user.uid) {
+        handleGetDataUser(user)
       } else {
         navigation.reset({
           index: 0,
@@ -75,12 +133,13 @@ export function SplashScreen() {
   }
 
   useEffect(() => {
-    LogBox.ignoreLogs([
-      'The player has already been initialized via setupPlayer',
-    ])
+    if (isConnected === null) return
+    if (!isInitialized) {
+      handleInitializePlayer()
+    }
     handleVerifyUser()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isConnected, isInitialized])
 
   return (
     <View className="flex-1 items-center justify-center bg-gray-700">

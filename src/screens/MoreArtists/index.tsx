@@ -43,8 +43,6 @@ export function MoreArtists() {
     [handleGetFavoritesArtists],
   )
 
-  console.log(user)
-
   useEffect(() => {
     if (user.favoritesArtists && user.favoritesArtists.length > 0) {
       handleGetArtists(user.favoritesArtists)
