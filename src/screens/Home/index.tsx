@@ -1,207 +1,191 @@
-import { useCallback, useEffect } from 'react'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
 import { useDispatch, useSelector } from 'react-redux'
 
 import { ReduxProps } from '@storage/index'
 
-import {
-  MusicPlayerSettingsProps,
-  handleInitializedMusicPlayer,
-} from '@storage/modules/musicPlayerSettings/reducer'
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
-import { useTrackPlayer } from '@hooks/useTrackPlayer'
-import AnimatedLottieView from 'lottie-react-native'
 
-import notFiles from '@assets/not-files.json'
-
-import IconAnt from 'react-native-vector-icons/AntDesign'
+import Icon from 'react-native-vector-icons/Ionicons'
 
 import { useSideMenu } from '@hooks/useSideMenu'
 
-import { ConfigProps } from '@storage/modules/config/reducer'
 import { BoxCarousel } from '@components/BoxCarousel'
-import { TrackListLocalProps } from '@storage/modules/trackListLocal/reducer'
-import { TrackListRemoteProps } from '@storage/modules/trackListRemote/reducer'
+
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-import { MusicalGenres } from '@components/MusicalGenres'
-import { MusicalGenresProps } from '@storage/modules/musicalGenres/reducer'
-import { useNavigation } from '@react-navigation/native'
-import { StackNavigationProps } from '@routes/routes'
-import { ArtistsProps } from '@storage/modules/artists/reducer'
+
 import { RoundedCarousel } from '@components/RoundedCarousel'
-import { UserProps } from '@storage/modules/user/reducer'
-import { useLocalMusic } from '@hooks/useLocalMusic'
-import { Button } from '@components/Button'
+
+import { Section } from '@components/Section'
+
+import { MusicalGenres } from '@components/MusicalGenres'
+import { useEffect, useMemo } from 'react'
+
+import TrackPlayer, { Event, State } from 'react-native-track-player'
+
+import { useTrackPlayer } from '@hooks/useTrackPlayer'
+import { HistoricProps } from '@storage/modules/historic/reducer'
+import { ListCarousel } from '@components/ListCarousel'
+
+import { ReleasesCarousel } from '@components/ReleasesCarousel'
+import { useNetwork } from '@hooks/useNetwork'
+import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
+import {
+  NetInfoProps,
+  handleSetNetStatus,
+} from '@storage/modules/netInfo/reducer'
+
+import { FavoriteArtistsProps } from '@storage/modules/favoriteArtists/reducer'
+import { ReleasesProps } from '@storage/modules/releases/reducer'
+import { FavoriteMusicsProps } from '@storage/modules/favoriteMusics/reducer'
+import { useNetInfo } from '@react-native-community/netinfo'
 
 export function Home() {
+  const { historic } = useSelector<ReduxProps, HistoricProps>(
+    (state) => state.historic,
+  )
+
   const dispatch = useDispatch()
 
-  const navigation = useNavigation<StackNavigationProps>()
+  const { getCurrentMusic } = useTrackPlayer()
 
-  const { handleStoragePermission } = useLocalMusic()
+  const { openModalErrNetwork } = useNetwork()
 
-  const { musicalGenres } = useSelector<ReduxProps, MusicalGenresProps>(
-    (state) => state.musicalGenres,
-  )
-  const { artists } = useSelector<ReduxProps, ArtistsProps>(
-    (state) => state.artists,
-  )
-  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
-  const { isInitialized } = useSelector<ReduxProps, MusicPlayerSettingsProps>(
-    (state) => state.musicPlayerSettings,
-  )
-  const { trackListLocal } = useSelector<ReduxProps, TrackListLocalProps>(
-    (state) => state.trackListLocal,
-  )
+  const { isConnected } = useNetInfo()
+
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
-  const { trackListRemote } = useSelector<ReduxProps, TrackListRemoteProps>(
-    (state) => state.trackListRemote,
+
+  const { ignoreAlert, status } = useSelector<ReduxProps, NetInfoProps>(
+    (state) => state.netInfo,
   )
-  const { config } = useSelector<ReduxProps, ConfigProps>(
-    (state) => state.config,
+
+  const { favoriteArtists } = useSelector<ReduxProps, FavoriteArtistsProps>(
+    (state) => state.favoriteArtists,
   )
+
+  const { releases } = useSelector<ReduxProps, ReleasesProps>(
+    (state) => state.releases,
+  )
+
+  const { favoriteMusics } = useSelector<ReduxProps, FavoriteMusicsProps>(
+    (state) => state.favoriteMusics,
+  )
+
+  const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
+    (state) => state.trackListOffline,
+  )
+
+  const topMusicalGenres = useMemo(() => {
+    const filterGenres = favoriteMusics.map((music) => music.genre)
+    const excludeDuplicates = [...new Set(filterGenres)]
+
+    return excludeDuplicates
+  }, [favoriteMusics])
 
   const { handleIsVisible } = useSideMenu()
 
-  const { getCurrentMusic, TrackPlayer } = useTrackPlayer()
-
-  const handleInitializePlayer = useCallback(async () => {
-    await TrackPlayer.setupPlayer()
-      .then(async () => {
-        dispatch(handleInitializedMusicPlayer({ isInitialized: true }))
-      })
-      .catch((err) => console.error(err))
-  }, [TrackPlayer, dispatch])
+  const handleGetCurrentMusic = () => {
+    getCurrentMusic()
+  }
 
   useEffect(() => {
-    if (isInitialized) {
-      getCurrentMusic()
+    if (isConnected === null) return
+    if (isConnected) {
+      dispatch(handleSetNetStatus(true))
+    } else if (!isConnected) {
+      dispatch(handleSetNetStatus(false))
+      if (!ignoreAlert) {
+        openModalErrNetwork()
+      }
     }
-  }, [getCurrentMusic, isInitialized])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ignoreAlert, isConnected])
 
   useEffect(() => {
-    if (!isInitialized) {
-      handleInitializePlayer()
+    handleGetCurrentMusic()
+    const playbackStateListener = TrackPlayer.addEventListener(
+      Event.PlaybackState,
+      ({ state }) => {
+        if (
+          [State.Paused, State.Playing, State.Buffering, State.Ended].includes(
+            state,
+          )
+        ) {
+          handleGetCurrentMusic()
+        }
+      },
+    )
+
+    return () => {
+      playbackStateListener.remove()
     }
-  }, [handleInitializePlayer, isInitialized])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <>
-      <ScrollView className="flex-1 bg-gray-950">
+      <ScrollView className="bg-gray-700">
         <View className="p-4 flex-row items-center justify-between">
-          <Text className="text-white text-2xl font-bold">Início</Text>
+          <Text className="text-white text-3xl font-nunito-bold">Início</Text>
 
           <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
-            <IconAnt name="setting" size={26} />
+            <Icon name="settings-outline" size={26} />
           </TouchableOpacity>
         </View>
 
-        {user.plain === 'premium' && (
-          <View className="pl-4">
-            {musicalGenres.length > 0 && (
-              <View className="mt-2">
-                <View className="flex-row items-center mr-4 justify-between mb-3">
-                  <Text className="text-lg font-bold text-white">
-                    Explore por gêneros musicais
-                  </Text>
-                  <TouchableOpacity activeOpacity={0.6}>
-                    <Text className="text-gray-300">Ver mais</Text>
-                  </TouchableOpacity>
-                </View>
+        <View className="pb-32">
+          {historic.length > 0 && (
+            <Section title="Tocados recentemente">
+              <BoxCarousel musics={historic} />
+            </Section>
+          )}
 
-                <MusicalGenres musicalGenres={musicalGenres} />
-              </View>
-            )}
+          {!status && (
+            <Section
+              title="Mixes Offline"
+              description="Explore mixes mesmo sem conexão à internet"
+              className={`mt-14`}
+            >
+              <ListCarousel musics={trackListOffline.slice(0, 10)} />
+            </Section>
+          )}
 
-            {trackListRemote.length > 0 && (
-              <>
-                <View className="flex-row items-center justify-between mb-3 mr-4 mt-12">
-                  <Text className="text-lg font-bold text-white">
-                    Explore novas possibilidades
-                  </Text>
-                  <TouchableOpacity
-                    activeOpacity={0.6}
-                    onPress={() =>
-                      navigation.navigate('MoreMusic', {
-                        musics: trackListRemote,
-                        title: 'Explore novas possibilidades',
-                      })
-                    }
-                  >
-                    <Text className="text-gray-300">Ver mais</Text>
-                  </TouchableOpacity>
-                </View>
-                <BoxCarousel musics={trackListRemote} />
-              </>
-            )}
+          {status && favoriteMusics.length > 0 && (
+            <Section
+              title="Mixes inspirador por"
+              className={`${historic.length > 0 && 'mt-14'}`}
+            >
+              <ListCarousel musics={favoriteMusics.slice(0, 9)} />
+            </Section>
+          )}
 
-            {artists.length > 0 && (
-              <View className="mt-12">
-                <View className="flex-row items-center justify-between mb-3">
-                  <Text className="text-lg font-bold text-white">
-                    Explore por artistas
-                  </Text>
-                  <TouchableOpacity activeOpacity={0.6}>
-                    <Text className="text-gray-300 mr-4">Ver mais</Text>
-                  </TouchableOpacity>
-                </View>
-                <RoundedCarousel artists={artists} />
-              </View>
-            )}
-          </View>
-        )}
+          {status && topMusicalGenres.length > 0 && (
+            <Section title="Os seus top gêneros musicais" className={`mt-14`}>
+              <MusicalGenres musicalGenres={topMusicalGenres.slice(0, 5)} />
+            </Section>
+          )}
 
-        {user.plain === 'free' && !config.isLocal && (
-          <View className="p-4 items-center justify-center">
-            <AnimatedLottieView
-              source={notFiles}
-              autoPlay
-              loop
-              resizeMode="contain"
-              style={{ width: 300, height: 300 }}
-            />
-            <Text className="text-center text-xl text-white mt-8">
-              Permita o acesso às suas músicas locais e desfrute dos serviços
-              gratuitos.
-            </Text>
+          {status && releases.length > 0 && (
+            <Section title="Lançamento para você" className={`mt-14`}>
+              <ReleasesCarousel releases={releases} />
+            </Section>
+          )}
 
-            <Button
-              title="PERMITIR ACESSO"
-              onPress={handleStoragePermission}
-              className="mt-8 w-full"
-            />
-          </View>
-        )}
-
-        {config.isLocal && trackListLocal.length > 0 && (
-          <View className={`pl-4 ${user.plain !== 'free' && 'mt-12'}`}>
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-lg font-bold text-white">
-                Suas músicas locais
-              </Text>
-              <TouchableOpacity
-                activeOpacity={0.6}
-                onPress={() =>
-                  navigation.navigate('MoreMusic', {
-                    musics: trackListLocal,
-                    title: 'Suas músicas locais',
-                  })
-                }
-              >
-                <Text className="text-gray-300 mr-4">Ver mais</Text>
-              </TouchableOpacity>
-            </View>
-
-            <BoxCarousel musics={trackListLocal} />
-          </View>
-        )}
+          {status && favoriteArtists.length > 0 && (
+            <Section title="Artistas que você ama" className="mt-14">
+              <RoundedCarousel artists={favoriteArtists} />
+            </Section>
+          )}
+        </View>
       </ScrollView>
-      {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
-      <BottomMenu />
+
+      <View className="absolute bottom-0 w-full">
+        {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
+        <BottomMenu />
+      </View>
     </>
   )
 }

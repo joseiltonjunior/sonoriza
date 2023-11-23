@@ -25,14 +25,12 @@ import firestore from '@react-native-firebase/firestore'
 
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
-import { UserDataProps } from '@screens/Register'
+
 import { useModal } from '@hooks/useModal'
 import { useDispatch } from 'react-redux'
-import { handleSaveUser } from '@storage/modules/user/reducer'
-import { handleSetArtists } from '@storage/modules/artists/reducer'
-import { handleSetMusicalGenres } from '@storage/modules/musicalGenres/reducer'
-import { handleTrackListRemote } from '@storage/modules/trackListRemote/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { handleSetUser } from '@storage/modules/user/reducer'
+
+import { UserDataProps } from '@utils/Types/userProps'
 
 interface FormDataProps {
   email: string
@@ -56,9 +54,6 @@ export function SignIn() {
 
   const navigation = useNavigation<StackNavigationProps>()
 
-  const { handleGetArtists, handleGetMusicalGenres, handleGetMusicsDatabase } =
-    useFirebaseServices()
-
   const [isLoading, setIsLoading] = useState(false)
 
   const { closeModal, openModal } = useModal()
@@ -76,31 +71,16 @@ export function SignIn() {
       .get()
       .then(async (querySnapshot) => {
         const user = querySnapshot.data() as UserDataProps
-        const { displayName, email, photoURL, uid, plain } = user
+
         dispatch(
-          handleSaveUser({
-            user: { displayName, email, photoURL, uid, plain },
+          handleSetUser({
+            user,
           }),
         )
 
-        if (plain === 'premium') {
-          const responseArtists = await handleGetArtists()
-          const responseGenres = await handleGetMusicalGenres()
-          const responseMusics = await handleGetMusicsDatabase()
-
-          dispatch(handleSetArtists({ artists: responseArtists }))
-          dispatch(handleSetMusicalGenres({ musicalGenres: responseGenres }))
-          dispatch(handleTrackListRemote({ trackListRemote: responseMusics }))
-        }
-
         navigation.reset({
           index: 0,
-          routes: [
-            {
-              name: 'Home',
-              params: undefined,
-            },
-          ],
+          routes: [{ name: 'Home' }],
         })
       })
       .finally(() => {
@@ -157,7 +137,7 @@ export function SignIn() {
 
   return (
     <>
-      <ScrollView>
+      <ScrollView className="bg-gray-700">
         <View className="p-4 items-center h-full ">
           <Image
             source={logo}
@@ -225,7 +205,10 @@ export function SignIn() {
               <Text className="font-bold ml-1 underline">INSCREVA-SE</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="ml-auto mr-auto mt-8">
+            <TouchableOpacity
+              className="ml-auto mr-auto mt-8"
+              onPress={() => navigation.navigate('RecoveryPassword')}
+            >
               <Text>REDEFINIR SENHA</Text>
             </TouchableOpacity>
           </View>

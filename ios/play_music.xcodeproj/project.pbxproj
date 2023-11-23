@@ -14,11 +14,11 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		7699B88040F8A987B510C191 /* libPods-play_music-play_musicTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-play_music-play_musicTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		E4F31CD3A281439AAE00FA7B /* Baloo2-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 267DAF86E7A943DCA987165F /* Baloo2-Bold.ttf */; };
-		4B0CDB64D93844E693F5B216 /* Baloo2-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BF34F34E5E1E454793C99ED6 /* Baloo2-ExtraBold.ttf */; };
-		25BC26AB6F0F4868BD2AB87E /* Baloo2-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C1305DD32A2B41ABB73403B9 /* Baloo2-Medium.ttf */; };
-		9417DA58220941F58DAE0981 /* Baloo2-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7F1C3847080242E8BE0CE018 /* Baloo2-Regular.ttf */; };
-		659CB9BD8B2544C1856F22A3 /* Baloo2-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3A5E731D1AA84B6FBE294EF6 /* Baloo2-SemiBold.ttf */; };
+		2139BAD02B7E40B882A0C624 /* Nunito-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2FC63A79BA41490391279C34 /* Nunito-Bold.ttf */; };
+		FB3CFA9F591046AE860E75F3 /* Nunito-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2AFF1189F58947CD97DF6CE6 /* Nunito-Light.ttf */; };
+		4780AF73C4D44A7AB5C8A8EE /* Nunito-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 85AFE48AD09A4AFEAB39FE27 /* Nunito-Medium.ttf */; };
+		F5356575E86F4C4395619D7C /* Nunito-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9DF1FA9B5FEB4D758B507F1D /* Nunito-Regular.ttf */; };
+		33CF11D783F64CA29D9303CF /* Nunito-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 855D78C5711A4846B8112E93 /* Nunito-SemiBold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,11 +49,11 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = play_music/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-play_music-play_musicTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-play_music-play_musicTests.release.xcconfig"; path = "Target Support Files/Pods-play_music-play_musicTests/Pods-play_music-play_musicTests.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		267DAF86E7A943DCA987165F /* Baloo2-Bold.ttf */ = {isa = PBXFileReference; name = "Baloo2-Bold.ttf"; path = "../assets/fonts/Baloo2-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		BF34F34E5E1E454793C99ED6 /* Baloo2-ExtraBold.ttf */ = {isa = PBXFileReference; name = "Baloo2-ExtraBold.ttf"; path = "../assets/fonts/Baloo2-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		C1305DD32A2B41ABB73403B9 /* Baloo2-Medium.ttf */ = {isa = PBXFileReference; name = "Baloo2-Medium.ttf"; path = "../assets/fonts/Baloo2-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		7F1C3847080242E8BE0CE018 /* Baloo2-Regular.ttf */ = {isa = PBXFileReference; name = "Baloo2-Regular.ttf"; path = "../assets/fonts/Baloo2-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		3A5E731D1AA84B6FBE294EF6 /* Baloo2-SemiBold.ttf */ = {isa = PBXFileReference; name = "Baloo2-SemiBold.ttf"; path = "../assets/fonts/Baloo2-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		2FC63A79BA41490391279C34 /* Nunito-Bold.ttf */ = {isa = PBXFileReference; name = "Nunito-Bold.ttf"; path = "../assets/fonts/Nunito-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		2AFF1189F58947CD97DF6CE6 /* Nunito-Light.ttf */ = {isa = PBXFileReference; name = "Nunito-Light.ttf"; path = "../assets/fonts/Nunito-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		85AFE48AD09A4AFEAB39FE27 /* Nunito-Medium.ttf */ = {isa = PBXFileReference; name = "Nunito-Medium.ttf"; path = "../assets/fonts/Nunito-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		9DF1FA9B5FEB4D758B507F1D /* Nunito-Regular.ttf */ = {isa = PBXFileReference; name = "Nunito-Regular.ttf"; path = "../assets/fonts/Nunito-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		855D78C5711A4846B8112E93 /* Nunito-SemiBold.ttf */ = {isa = PBXFileReference; name = "Nunito-SemiBold.ttf"; path = "../assets/fonts/Nunito-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,11 +162,11 @@
 		16C6C1E176F54DFDBF142DE9 /* Resources */ = {
 			isa = "PBXGroup";
 			children = (
-				267DAF86E7A943DCA987165F /* Baloo2-Bold.ttf */,
-				BF34F34E5E1E454793C99ED6 /* Baloo2-ExtraBold.ttf */,
-				C1305DD32A2B41ABB73403B9 /* Baloo2-Medium.ttf */,
-				7F1C3847080242E8BE0CE018 /* Baloo2-Regular.ttf */,
-				3A5E731D1AA84B6FBE294EF6 /* Baloo2-SemiBold.ttf */,
+				2FC63A79BA41490391279C34 /* Nunito-Bold.ttf */,
+				2AFF1189F58947CD97DF6CE6 /* Nunito-Light.ttf */,
+				85AFE48AD09A4AFEAB39FE27 /* Nunito-Medium.ttf */,
+				9DF1FA9B5FEB4D758B507F1D /* Nunito-Regular.ttf */,
+				855D78C5711A4846B8112E93 /* Nunito-SemiBold.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -268,11 +268,11 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
-				E4F31CD3A281439AAE00FA7B /* Baloo2-Bold.ttf in Resources */,
-				4B0CDB64D93844E693F5B216 /* Baloo2-ExtraBold.ttf in Resources */,
-				25BC26AB6F0F4868BD2AB87E /* Baloo2-Medium.ttf in Resources */,
-				9417DA58220941F58DAE0981 /* Baloo2-Regular.ttf in Resources */,
-				659CB9BD8B2544C1856F22A3 /* Baloo2-SemiBold.ttf in Resources */,
+				2139BAD02B7E40B882A0C624 /* Nunito-Bold.ttf in Resources */,
+				FB3CFA9F591046AE860E75F3 /* Nunito-Light.ttf in Resources */,
+				4780AF73C4D44A7AB5C8A8EE /* Nunito-Medium.ttf in Resources */,
+				F5356575E86F4C4395619D7C /* Nunito-Regular.ttf in Resources */,
+				33CF11D783F64CA29D9303CF /* Nunito-SemiBold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

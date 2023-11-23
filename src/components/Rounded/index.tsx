@@ -12,17 +12,28 @@ import { twMerge } from 'tailwind-merge'
 interface RoundedProps extends TouchableOpacityProps {
   artwork: string
   artist: string
+  roundedSmall?: boolean
 }
 
-export function Rounded({ artist, artwork, className, ...rest }: RoundedProps) {
+export function Rounded({
+  artist,
+  artwork,
+  className,
+  roundedSmall,
+  ...rest
+}: RoundedProps) {
   return (
     <TouchableOpacity
       {...rest}
       activeOpacity={0.6}
-      className={twMerge('', className)}
+      className={twMerge('items-center', className)}
     >
       <View>
-        <View className="w-full h-[150px] bg-purple-600 rounded-full overflow-hidden items-center justify-center">
+        <View
+          className={`${
+            roundedSmall ? 'w-[110px] h-[110px]' : 'w-[130px] h-[130px]'
+          } bg-gray-950 rounded-full overflow-hidden items-center justify-center`}
+        >
           <Image
             source={{ uri: artwork }}
             alt="artwork"
@@ -32,7 +43,7 @@ export function Rounded({ artist, artwork, className, ...rest }: RoundedProps) {
 
         <View className="mt-auto pt-2">
           <Text
-            className="font-bold text-md text-white text-center"
+            className="font-nunito-bold text-base text-gray-300 text-center"
             numberOfLines={1}
           >
             {artist}

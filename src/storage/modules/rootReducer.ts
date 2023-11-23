@@ -1,21 +1,30 @@
 import { combineReducers } from '@reduxjs/toolkit'
 
-import musicPlayerSettings from './musicPlayerSettings/reducer'
-import trackListLocal from './trackListLocal/reducer'
-import trackListRemote from './trackListRemote/reducer'
+import trackListOffline from './trackListOffline/reducer'
 import user from './user/reducer'
-import config from './config/reducer'
+
 import currentMusic from './currentMusic/reducer'
-import musicalGenres from './musicalGenres/reducer'
-import artists from './artists/reducer'
+
+import queue from './queue/reducer'
+import historic from './historic/reducer'
+
+import releases from './releases/reducer'
+import favoriteMusics from './favoriteMusics/reducer'
+import favoriteArtists from './favoriteArtists/reducer'
+
+import trackPlayer from './trackPlayer/reducer'
+
+import netInfo from './netInfo/reducer'
 
 export default combineReducers({
-  musicPlayerSettings,
-  trackListLocal,
-  trackListRemote,
   user,
-  config,
   currentMusic,
-  musicalGenres,
-  artists,
+  queue,
+  historic,
+  trackListOffline,
+  netInfo,
+  trackPlayer,
+  favoriteArtists,
+  releases,
+  favoriteMusics,
 })

@@ -1,29 +1,49 @@
 import Carousel from 'react-native-reanimated-carousel'
 
 import { Rounded } from '@components/Rounded'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProps } from '@routes/routes'
+import { ArtistsDataProps } from '@utils/Types/artistsProps'
+import { useSelector } from 'react-redux'
+import { ReduxProps } from '@storage/index'
+import { NetInfoProps } from '@storage/modules/netInfo/reducer'
 
 interface RoundedCourselProps {
-  artists: {
-    name: string
-    photoURL: string
-  }[]
+  artists: ArtistsDataProps[]
+  roundedSmall?: boolean
+  onAction?: () => void
 }
 
-export function RoundedCarousel({ artists }: RoundedCourselProps) {
+export function RoundedCarousel({
+  artists,
+  roundedSmall,
+  onAction,
+}: RoundedCourselProps) {
+  const navigation = useNavigation<StackNavigationProps>()
+
+  const { status } = useSelector<ReduxProps, NetInfoProps>(
+    (state) => state.netInfo,
+  )
+
   return (
     <Carousel
       loop={false}
       style={{ width: 'auto' }}
-      width={170}
-      height={190}
+      width={roundedSmall ? 130 : 150}
+      height={roundedSmall ? 150 : 160}
       data={artists}
       scrollAnimationDuration={1000}
       renderItem={({ item }) => (
         <Rounded
+          disabled={!status}
           artist={item.name}
           artwork={item.photoURL}
-          //   onPress={() => console.log(item)}
-          className="mr-4"
+          roundedSmall={roundedSmall}
+          onPress={() => {
+            if (onAction) onAction()
+            navigation.navigate('Artist', { artistId: item.id })
+          }}
+          className={`ml-4`}
         />
       )}
     />

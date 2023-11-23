@@ -6,14 +6,22 @@ import {
   handleChangeStateCurrentMusic,
   handleSetCurrentMusic,
 } from '@storage/modules/currentMusic/reducer'
+import { handleSetHistoric } from '@storage/modules/historic/reducer'
+import { handleSetQueue } from '@storage/modules/queue/reducer'
 import { MusicProps } from '@utils/Types/musicProps'
-import { useCallback } from 'react'
-import TrackPlayer, { State, useProgress } from 'react-native-track-player'
+
+import TrackPlayer, {
+  State,
+  useProgress,
+  Capability,
+  Track,
+} from 'react-native-track-player'
 import { useDispatch, useSelector } from 'react-redux'
+
+export type TrackProps = Track
 
 interface HandleMusicSelectedProps {
   musicSelected: MusicProps
-  indexSelected: number
   listMusics: MusicProps[]
 }
 
@@ -25,41 +33,64 @@ export function useTrackPlayer() {
     (state) => state.currentMusic,
   )
 
-  const getCurrentMusic = useCallback(async () => {
-    const trackIndex = (await TrackPlayer.getCurrentTrack()) as number
+  const getCurrentMusic = async () => {
+    try {
+      const currentMusic = await TrackPlayer.getActiveTrack()
 
-    const trackObject = (await TrackPlayer.getTrack(trackIndex)) as MusicProps
+      const isCurrentMusic = currentMusic as MusicProps
+      dispatch(handleSetCurrentMusic({ isCurrentMusic }))
 
-    dispatch(handleSetCurrentMusic({ isCurrentMusic: trackObject }))
-  }, [dispatch])
+      const State = await TrackPlayer.getPlaybackState()
+      dispatch(handleChangeStateCurrentMusic(State.state))
 
-  const handleMusicSelected = useCallback(
-    async ({
-      indexSelected,
-      listMusics,
-      musicSelected,
-    }: HandleMusicSelectedProps) => {
-      if (isCurrentMusic?.title === musicSelected.title) {
-        navigation.navigate('Music')
-        return
-      }
+      const queue = await TrackPlayer.getQueue()
+      dispatch(handleSetQueue({ queue }))
+    } catch (error) {}
+  }
 
-      TrackPlayer.reset()
-      TrackPlayer.add(listMusics)
-      TrackPlayer.skip(indexSelected)
-      TrackPlayer.play()
+  const handleGetQueue = async () => {
+    try {
+      const queue = await TrackPlayer.getQueue()
+      dispatch(handleSetQueue({ queue }))
+    } catch (error) {}
+  }
+
+  const handleMusicSelected = async ({
+    listMusics,
+    musicSelected,
+  }: HandleMusicSelectedProps) => {
+    if (
+      isCurrentMusic?.title &&
+      isCurrentMusic.title.includes(musicSelected.title)
+    ) {
       navigation.navigate('Music')
-      dispatch(handleSetCurrentMusic({ isCurrentMusic: musicSelected }))
-      dispatch(handleChangeStateCurrentMusic(State.Playing))
-    },
-    [isCurrentMusic?.title, dispatch, navigation],
-  )
+      await TrackPlayer.play()
+
+      return
+    }
+
+    const indexSelected = listMusics.findIndex(
+      (item) => item.id === musicSelected.id,
+    )
+
+    dispatch(handleSetCurrentMusic({ isCurrentMusic: musicSelected }))
+    dispatch(handleChangeStateCurrentMusic(State.Playing))
+
+    await TrackPlayer.reset()
+    await TrackPlayer.add(listMusics)
+    await TrackPlayer.skip(indexSelected)
+    await TrackPlayer.play()
+
+    dispatch(handleSetHistoric({ music: musicSelected }))
+    handleGetQueue()
+  }
 
   return {
     getCurrentMusic,
-
     TrackPlayer,
     handleMusicSelected,
     useProgress,
+    Capability,
+    State,
   }
 }

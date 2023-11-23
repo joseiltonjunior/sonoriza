@@ -11,36 +11,39 @@ import {
   REGISTER,
 } from 'redux-persist'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { MusicPlayerSettingsProps } from './modules/musicPlayerSettings/reducer'
-import { TrackListLocalProps } from './modules/trackListLocal/reducer'
+
 import { UserProps } from './modules/user/reducer'
-import { ConfigProps } from './modules/config/reducer'
-import { TrackListRemoteProps } from './modules/trackListRemote/reducer'
+
 import { CurrentMusicProps } from './modules/currentMusic/reducer'
-import { MusicalGenresProps } from './modules/musicalGenres/reducer'
-import { ArtistsProps } from './modules/artists/reducer'
+
+import { QueueProps } from './modules/queue/reducer'
+import { HistoricProps } from './modules/historic/reducer'
+import { TrackListOfflineProps } from './modules/trackListOffline/reducer'
+import { ReleasesProps } from './modules/releases/reducer'
+import { FavoriteArtistsProps } from './modules/favoriteArtists/reducer'
+import { FavoriteMusicsProps } from './modules/favoriteMusics/reducer'
+import { NetInfoProps } from './modules/netInfo/reducer'
+import { TrackPlayerProps } from './modules/trackPlayer/reducer'
 
 export interface ReduxProps {
-  musicPlayerSettings: MusicPlayerSettingsProps
-  trackListLocal: TrackListLocalProps
-  trackListRemote: TrackListRemoteProps
   user: UserProps
-  config: ConfigProps
   currentMusic: CurrentMusicProps
-  musicalGenres: MusicalGenresProps
-  artists: ArtistsProps
+  queue: QueueProps
+  historic: HistoricProps
+  trackListOffline: TrackListOfflineProps
+
+  releases: ReleasesProps
+  favoriteMusics: FavoriteMusicsProps
+  favoriteArtists: FavoriteArtistsProps
+
+  netInfo: NetInfoProps
+  trackPlayer: TrackPlayerProps
 }
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  blacklist: [
-    'musicPlayerSettings',
-    'currentMusic',
-    'artists',
-    'musicalGenres',
-    'trackListRemote',
-  ],
+  blacklist: ['currentMusic', 'netInfo', 'trackPlayer'],
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
@@ -49,6 +52,7 @@ const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
+      immutableCheck: false,
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },

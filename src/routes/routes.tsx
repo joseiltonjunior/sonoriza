@@ -12,8 +12,13 @@ import { Music } from '@screens/Music'
 import { SignIn } from '@screens/SignIn'
 import { Register } from '@screens/Register'
 import { MoreMusic } from '@screens/MoreMusic'
-
-import { MusicProps } from '@utils/Types/musicProps'
+import { MoreArtists } from '@screens/MoreArtists'
+import { Artist } from '@screens/Artist'
+import { GenreSelected } from '@screens/GenreSelected'
+import { Favorites } from '@screens/Favorites'
+import { Queue } from '@screens/Queue'
+import { Search } from '@screens/Search'
+import { RecoveryPassword } from '@screens/RecoveryPassword'
 
 type RootStackParamList = {
   Home: undefined
@@ -21,10 +26,25 @@ type RootStackParamList = {
   Music: undefined
   SignIn: undefined
   Register: undefined
-  MoreMusic: {
-    musics: MusicProps[]
+  Artist: {
+    artistId: string
+  }
+  MoreArtists: {
+    type: 'favorites' | 'default'
     title: string
   }
+  MoreMusic: {
+    type: 'favorites' | 'default' | 'historic' | 'offline' | 'artist'
+    title: string
+    artistFlow?: string[]
+  }
+  GenreSelected: {
+    type: string
+  }
+  Favorites: undefined
+  Queue: undefined
+  Search: undefined
+  RecoveryPassword: undefined
 }
 
 export type StackNavigationProps = StackNavigationProp<RootStackParamList>
@@ -41,20 +61,11 @@ export function Routes() {
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: '#202024' },
-        cardStyleInterpolator: ({ current, layouts }) => {
-          return {
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0],
-                  }),
-                },
-              ],
-            },
-          }
-        },
+        cardStyleInterpolator: ({ current: { progress } }) => ({
+          cardStyle: {
+            opacity: progress,
+          },
+        }),
       }}
     >
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
@@ -63,6 +74,13 @@ export function Routes() {
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Music" component={Music} />
       <Stack.Screen name="MoreMusic" component={MoreMusic} />
+      <Stack.Screen name="MoreArtists" component={MoreArtists} />
+      <Stack.Screen name="Artist" component={Artist} />
+      <Stack.Screen name="GenreSelected" component={GenreSelected} />
+      <Stack.Screen name="Favorites" component={Favorites} />
+      <Stack.Screen name="Queue" component={Queue} />
+      <Stack.Screen name="Search" component={Search} />
+      <Stack.Screen name="RecoveryPassword" component={RecoveryPassword} />
     </Stack.Navigator>
   )
 }

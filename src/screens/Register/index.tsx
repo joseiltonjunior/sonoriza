@@ -27,22 +27,8 @@ import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
 import { useModal } from '@hooks/useModal'
 import { useDispatch } from 'react-redux'
-import { handleSaveUser } from '@storage/modules/user/reducer'
-
-interface FormDataProps {
-  name: string
-  email: string
-  password: string
-  confirmPassword: string
-}
-
-export interface UserDataProps {
-  email: string | null
-  displayName: string | null
-  photoURL: string | null
-  uid: string
-  plain: string | null
-}
+import { handleSetUser } from '@storage/modules/user/reducer'
+import { FormDataProps, UserDataProps } from '@utils/Types/userProps'
 
 const schema = z
   .object({
@@ -94,7 +80,7 @@ export function Register() {
     displayName,
     photoURL,
     uid,
-    plain,
+    plan,
   }: UserDataProps) {
     const userRef = firestore().collection('users').doc(uid)
 
@@ -132,17 +118,17 @@ export function Register() {
               displayName,
               photoURL,
               uid,
-              plain,
+              plan,
             })
             .then(() => {
               dispatch(
-                handleSaveUser({
+                handleSetUser({
                   user: {
                     displayName,
                     email,
                     photoURL,
                     uid,
-                    plain,
+                    plan,
                   },
                 }),
               )
@@ -188,7 +174,7 @@ export function Register() {
 
       const { uid, email, displayName, photoURL } = response.user
 
-      handleSaveInDatabase({ displayName, email, photoURL, uid, plain: 'free' })
+      handleSaveInDatabase({ displayName, email, photoURL, uid, plan: 'free' })
     } catch (error) {
       openModal({
         title: 'Atenção',
@@ -226,7 +212,7 @@ export function Register() {
               email,
               photoURL,
               uid,
-              plain: 'free',
+              plan: 'free',
             })
           })
       })
@@ -244,7 +230,7 @@ export function Register() {
 
   return (
     <>
-      <ScrollView>
+      <ScrollView className="bg-gray-700">
         <View className="p-4 items-center h-full ">
           <Image
             source={logo}

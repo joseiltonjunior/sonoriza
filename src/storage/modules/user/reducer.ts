@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import { UserDataProps } from '@screens/Register'
+import { UserDataProps } from '@utils/Types/userProps'
 
 export interface UserProps {
   user: UserDataProps
@@ -12,7 +12,7 @@ const initialState: UserProps = {
     displayName: '',
     photoURL: '',
     uid: '',
-    plain: '',
+    plan: '',
   },
 }
 
@@ -20,12 +20,12 @@ const userDataSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    handleSaveUser(state, action: PayloadAction<UserProps>) {
+    handleSetUser(state, action: PayloadAction<UserProps>) {
       state.user = action.payload.user
     },
   },
 })
 
-export const { handleSaveUser } = userDataSlice.actions
+export const { handleSetUser } = userDataSlice.actions
 
 export default userDataSlice.reducer
