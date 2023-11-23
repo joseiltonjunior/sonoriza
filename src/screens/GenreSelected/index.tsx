@@ -1,5 +1,6 @@
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
+import { Loading } from '@components/Loading'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -44,6 +45,10 @@ export function GenreSelected() {
   useEffect(() => {
     handleGetMusics()
   }, [handleGetMusics])
+
+  if (musics.length === 0) {
+    return <Loading />
+  }
 
   return (
     <View className="flex-1 bg-gray-700">

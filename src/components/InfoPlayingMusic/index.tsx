@@ -2,26 +2,30 @@ import { RoundedCarousel } from '@components/RoundedCarousel'
 import { useBottomModal } from '@hooks/useBottomModal'
 
 import { MusicProps } from '@utils/Types/musicProps'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useFavorites } from '@hooks/useFavorites'
 import { usePlaylistModal } from '@hooks/usePlaylistModal'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   TrackListOfflineProps,
-  handleTrackListOffline,
+  removeTrackOffline,
+  setTrackListOffline,
 } from '@storage/modules/trackListOffline/reducer'
 
 import RNFS from 'react-native-fs'
 import { ReduxProps } from '@storage/index'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { NetInfoProps } from '@storage/modules/netInfo/reducer'
+import colors from 'tailwindcss/colors'
 
 interface InfoPlayingMusicProps {
   currentMusic?: MusicProps
 }
 
 export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
+  const [isLoading, setIsLoading] = useState(false)
+
   const { closeModal } = useBottomModal()
   const { openModal } = usePlaylistModal()
 
@@ -42,6 +46,8 @@ export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
   async function downloadResource(url: string) {
     if (!currentMusic) return
 
+    setIsLoading(true)
+
     try {
       const filePath = `${RNFS.DocumentDirectoryPath}/${currentMusic.title
         .replaceAll(' ', '-')
@@ -57,7 +63,7 @@ export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
 
       if ((await response.promise).statusCode === 200) {
         dispatch(
-          handleTrackListOffline({
+          setTrackListOffline({
             newMusic: { ...currentMusic, url: `file://${filePath}` },
           }),
         )
@@ -68,8 +74,25 @@ export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
           }`,
         )
       }
+
+      setIsLoading(false)
     } catch (error) {
+      setIsLoading(false)
       console.log('Erro ao baixar o recurso:', error)
+    }
+  }
+
+  async function removeDownload(music: MusicProps) {
+    const pathWithoutFileScheme = music.url.replace('file://', '')
+    setIsLoading(true)
+
+    try {
+      await RNFS.unlink(pathWithoutFileScheme)
+      dispatch(removeTrackOffline({ newMusic: music }))
+      setIsLoading(false)
+    } catch (error) {
+      setIsLoading(false)
+      console.log('Erro ao remover o download:', error)
     }
   }
 
@@ -141,14 +164,19 @@ export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
         onPress={() => {
           if (!isOffline && currentMusic) {
             downloadResource(currentMusic.url)
+          } else if (isOffline) {
+            removeDownload(isOffline)
           }
         }}
       >
-        <Text className="ml-4 font-nunito-medium text-base">
-          {isOffline
-            ? 'Remover da playlist offline'
-            : 'Adicionar à playlist offline'}
-        </Text>
+        <View className="flex-row items-center justify-between flex-1">
+          <Text className="ml-4 font-nunito-medium text-base">
+            {isOffline
+              ? 'Remover da playlist offline'
+              : 'Adicionar à playlist offline'}
+          </Text>
+          {isLoading && <ActivityIndicator color={colors.purple[600]} />}
+        </View>
       </TouchableOpacity>
     </View>
   )

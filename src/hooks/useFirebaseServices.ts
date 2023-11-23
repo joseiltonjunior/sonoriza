@@ -7,7 +7,7 @@ import { ArtistsDataProps } from '@utils/Types/artistsProps'
 import { useDispatch, useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
 import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
-import { ReleasesProps } from '@utils/Types/releasesProps'
+import { ReleasesDataProps } from '@utils/Types/releasesProps'
 
 export function useFirebaseServices() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
@@ -198,95 +198,89 @@ export function useFirebaseServices() {
 
   const handleGetMusicsById = async (
     musicsId: string[],
+    page = 1,
+    pageSize = 10,
   ): Promise<MusicProps[]> => {
     let musics = [] as MusicProps[]
 
-    const batches = []
-    const batchSize = 10
+    const startIndex = (page - 1) * pageSize
 
-    for (let i = 0; i < musicsId.length; i += batchSize) {
-      const batch = musicsId.slice(i, i + batchSize)
-      batches.push(batch)
-    }
-
-    for (const batch of batches) {
-      await firestore()
-        .collection('musics')
-        .where(firestore.FieldPath.documentId(), 'in', batch)
-        .get()
-        .then((querySnapshot) => {
-          const musicsResponse = querySnapshot.docs.map((doc) =>
-            doc.data(),
-          ) as MusicProps[]
-          musics = musics.concat(musicsResponse)
-        })
-        .catch((err) => {
-          crashlytics().recordError(err)
-        })
-    }
+    await firestore()
+      .collection('musics')
+      .where(
+        firestore.FieldPath.documentId(),
+        'in',
+        musicsId.slice(startIndex, startIndex + pageSize),
+      )
+      .get()
+      .then((querySnapshot) => {
+        const musicsResponse = querySnapshot.docs.map((doc) =>
+          doc.data(),
+        ) as MusicProps[]
+        musics = musics.concat(musicsResponse)
+      })
+      .catch((err) => {
+        crashlytics().recordError(err)
+      })
 
     return musics
   }
 
   const handleGetFavoritesArtists = async (
     artistsId: string[],
+    page = 1,
+    pageSize = 10,
   ): Promise<ArtistsDataProps[]> => {
     let artists = [] as ArtistsDataProps[]
-    const batches = []
-    const batchSize = 10
 
-    for (let i = 0; i < artistsId.length; i += batchSize) {
-      const batch = artistsId.slice(i, i + batchSize)
-      batches.push(batch)
-    }
+    const startIndex = (page - 1) * pageSize
 
-    for (const batch of batches) {
-      await firestore()
-        .collection('artists')
-        .where(firestore.FieldPath.documentId(), 'in', batch)
-        .get()
-        .then((querySnapshot) => {
-          const artistsResponse = querySnapshot.docs.map((doc) =>
-            doc.data(),
-          ) as ArtistsDataProps[]
-          artists = artists.concat(artistsResponse)
-        })
-        .catch((err) => {
-          crashlytics().recordError(err)
-        })
-    }
+    await firestore()
+      .collection('artists')
+      .where(
+        firestore.FieldPath.documentId(),
+        'in',
+        artistsId.slice(startIndex, startIndex + pageSize),
+      )
+      .get()
+      .then((querySnapshot) => {
+        const artistsResponse = querySnapshot.docs.map((doc) =>
+          doc.data(),
+        ) as ArtistsDataProps[]
+        artists = artists.concat(artistsResponse)
+      })
+      .catch((err) => {
+        crashlytics().recordError(err)
+      })
 
     return artists
   }
 
   const handleGetFavoritesMusics = async (
     musicsId: string[],
+    page = 1,
+    pageSize = 10,
   ): Promise<MusicProps[]> => {
     let musics = [] as MusicProps[]
 
-    const batches = []
-    const batchSize = 10
-
-    for (let i = 0; i < musicsId.length; i += batchSize) {
-      const batch = musicsId.slice(i, i + batchSize)
-      batches.push(batch)
-    }
-
-    for (const batch of batches) {
-      await firestore()
-        .collection('musics')
-        .where(firestore.FieldPath.documentId(), 'in', batch)
-        .get({ source: 'cache' })
-        .then((querySnapshot) => {
-          const musicsResponse = querySnapshot.docs.map((doc) =>
-            doc.data(),
-          ) as MusicProps[]
-          musics = musics.concat(musicsResponse)
-        })
-        .catch((err) => {
-          crashlytics().recordError(err)
-        })
-    }
+    const startIndex = (page - 1) * pageSize
+    await firestore()
+      .collection('musics')
+      .where(
+        firestore.FieldPath.documentId(),
+        'in',
+        musicsId.slice(startIndex, startIndex + pageSize),
+      )
+      .get({ source: 'cache' })
+      .then((querySnapshot) => {
+        const musicsResponse = querySnapshot.docs.map((doc) =>
+          doc.data(),
+        ) as MusicProps[]
+        musics = musics.concat(musicsResponse)
+      })
+      .catch((err) => {
+        crashlytics().recordError(err)
+      })
 
     return musics
   }
@@ -341,11 +335,11 @@ export function useFirebaseServices() {
     return artists
   }
 
-  const handleGetReleases = async (): Promise<ReleasesProps[]> => {
+  const handleGetReleases = async (): Promise<ReleasesDataProps[]> => {
     const querySnapshot = await firestore().collection('releases').get()
 
     const releases = querySnapshot.docs.map(
-      (doc) => doc.data() as ReleasesProps,
+      (doc) => doc.data() as ReleasesDataProps,
     )
 
     return releases

@@ -1,6 +1,7 @@
 import { BottomMenu } from '@components/BottomMenu/Index'
 
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
+import { Loading } from '@components/Loading'
 
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
@@ -18,7 +19,6 @@ import { MusicProps } from '@utils/Types/musicProps'
 import { useEffect, useMemo, useState } from 'react'
 
 import {
-  ActivityIndicator,
   Dimensions,
   Image,
   ImageBackground,
@@ -92,12 +92,7 @@ export function Artist() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [artistId])
 
-  if (!artist)
-    return (
-      <View className="flex-1 bg-gray-700 items-center flex justify-center">
-        <ActivityIndicator size="large" color={colors.white} />
-      </View>
-    )
+  if (!artist) return <Loading />
 
   return (
     <>
@@ -160,7 +155,7 @@ export function Artist() {
           </View>
         </View>
 
-        <View className="p-4 mb-32">
+        <View className={`p-4 ${isCurrentMusic ? 'mb-32' : 'mb-16'}`}>
           <Text className="font-nunito-bold text-xl text-white">Músicas</Text>
 
           {musics

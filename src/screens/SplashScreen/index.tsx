@@ -26,7 +26,7 @@ import { handleSetFavoriteMusics } from '@storage/modules/favoriteMusics/reducer
 import { handleSetReleases } from '@storage/modules/releases/reducer'
 import {
   TrackPlayerProps,
-  handleInitializedTrackPlayer,
+  setIsInitialized,
 } from '@storage/modules/trackPlayer/reducer'
 
 const size = Dimensions.get('window').width * 0.9
@@ -52,7 +52,7 @@ export function SplashScreen() {
   const handleInitializePlayer = async () => {
     await TrackPlayer.setupPlayer()
 
-    dispatch(handleInitializedTrackPlayer({ isInitialized: true }))
+    dispatch(setIsInitialized({ isInitialized: true }))
 
     TrackPlayer.updateOptions({
       android: {

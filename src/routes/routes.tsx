@@ -34,8 +34,9 @@ type RootStackParamList = {
     title: string
   }
   MoreMusic: {
-    type: 'favorites' | 'default' | 'historic' | 'offline'
+    type: 'favorites' | 'default' | 'historic' | 'offline' | 'artist'
     title: string
+    artistFlow?: string[]
   }
   GenreSelected: {
     type: string

@@ -158,7 +158,7 @@ export function Home() {
               title="Mixes inspirador por"
               className={`${historic.length > 0 && 'mt-14'}`}
             >
-              <ListCarousel musics={favoriteMusics.slice(0, 12)} />
+              <ListCarousel musics={favoriteMusics.slice(0, 9)} />
             </Section>
           )}
 

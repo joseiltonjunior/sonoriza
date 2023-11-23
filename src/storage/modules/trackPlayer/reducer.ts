@@ -13,15 +13,12 @@ const trackPlayerSlice = createSlice({
   name: 'trackPlayer',
   initialState,
   reducers: {
-    handleInitializedTrackPlayer(
-      state,
-      action: PayloadAction<TrackPlayerProps>,
-    ) {
+    setIsInitialized(state, action: PayloadAction<TrackPlayerProps>) {
       state.isInitialized = action.payload.isInitialized
     },
   },
 })
 
-export const { handleInitializedTrackPlayer } = trackPlayerSlice.actions
+export const { setIsInitialized } = trackPlayerSlice.actions
 
 export default trackPlayerSlice.reducer

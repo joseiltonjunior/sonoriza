@@ -18,10 +18,16 @@ import { UserProps } from '@storage/modules/user/reducer'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import colors from 'tailwindcss/colors'
 
+import { Loading } from '@components/Loading'
+
 export function MoreArtists() {
-  const [listArtists, setListArtists] = useState<ArtistsDataProps[]>()
+  const [listArtists, setListArtists] = useState<ArtistsDataProps[]>([])
   const { params } = useRoute<RouteParamsProps<'MoreArtists'>>()
   const { type, title } = params
+
+  const [page, setPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isEndList, setIsEndList] = useState(false)
 
   const { handleGetFavoritesArtists, handleFavoriteArtist } =
     useFirebaseServices()
@@ -34,20 +40,30 @@ export function MoreArtists() {
     (state) => state.currentMusic,
   )
 
-  const handleGetArtists = useCallback(
-    async (ids: string[]) => {
-      await handleGetFavoritesArtists(ids).then((result) => {
-        setListArtists(result)
+  const handleGetArtists = useCallback(async () => {
+    if (!user.favoritesArtists || isLoading || isEndList) return
+
+    setIsLoading(true)
+    await handleGetFavoritesArtists(user.favoritesArtists, page)
+      .then((result) => {
+        setPage((prev) => prev + 1)
+        setListArtists((prev) => [...prev, ...result])
+        if (result.length < 10) {
+          setIsEndList(true)
+        }
       })
-    },
-    [handleGetFavoritesArtists],
-  )
+      .finally(() => setIsLoading(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isLoading, isEndList, page])
 
   useEffect(() => {
-    if (user.favoritesArtists && user.favoritesArtists.length > 0) {
-      handleGetArtists(user.favoritesArtists)
-    }
-  }, [handleGetArtists, type, user.favoritesArtists])
+    handleGetArtists()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  if (listArtists.length === 0) {
+    return <Loading />
+  }
 
   return (
     <View className="flex-1 bg-gray-700">
@@ -65,16 +81,15 @@ export function MoreArtists() {
         </View>
 
         <FlatList
-          className="mt-4"
+          className={`mt-4 ${isCurrentMusic ? 'mb-32' : 'mb-20'} ${
+            isLoading && 'm-0'
+          }`}
           showsVerticalScrollIndicator={false}
           data={listArtists}
-          ItemSeparatorComponent={() => <View className="h-3" />}
+          onEndReached={handleGetArtists}
+          onEndReachedThreshold={0.1}
           renderItem={({ item, index }) => (
-            <View
-              className={`flex-row items-center justify-between ${
-                index + 1 === listArtists?.length && 'mb-32'
-              }`}
-            >
+            <View className={`flex-row items-center justify-between`}>
               <TouchableOpacity
                 key={index}
                 className="flex-row items-center gap-4 flex-1"
@@ -108,10 +123,20 @@ export function MoreArtists() {
               )}
             </View>
           )}
+          ItemSeparatorComponent={() => <View className="h-3" />}
         />
+        {isLoading && (
+          <Text
+            className={`${
+              isCurrentMusic ? 'mb-32' : 'mb-20'
+            } mt-4 text-center font-nunito-bold text-gray-300`}
+          >
+            Carregando...
+          </Text>
+        )}
       </View>
 
-      <View className="absolute bottom-0 w-full">
+      <View className="absolute bottom-0 w-full ">
         {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
         <BottomMenu />
       </View>

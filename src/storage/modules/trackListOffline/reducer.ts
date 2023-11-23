@@ -19,12 +19,20 @@ const trackListSlice = createSlice({
   name: 'trackListOffline',
   initialState,
   reducers: {
-    handleTrackListOffline(state, action: PayloadAction<AddOfflineMusicProps>) {
+    setTrackListOffline(state, action: PayloadAction<AddOfflineMusicProps>) {
       state.trackListOffline.push(action.payload.newMusic)
+    },
+
+    removeTrackOffline(state, action: PayloadAction<AddOfflineMusicProps>) {
+      const filter = state.trackListOffline.filter(
+        (music) => music.id !== action.payload.newMusic.id,
+      )
+      state.trackListOffline = filter
     },
   },
 })
 
-export const { handleTrackListOffline } = trackListSlice.actions
+export const { setTrackListOffline, removeTrackOffline } =
+  trackListSlice.actions
 
 export default trackListSlice.reducer
