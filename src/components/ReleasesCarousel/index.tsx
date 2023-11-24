@@ -24,7 +24,9 @@ export function ReleasesCarousel({ releases }: ReleasesCourselProps) {
         <Release
           name={item.name}
           artwork={item.artwork}
-          onPress={() => navigation.navigate('Artist', { artistId: item.id })}
+          onPress={() => {
+            navigation.navigate('Artist', { artistId: item.id })
+          }}
           className="ml-4"
         />
       )}

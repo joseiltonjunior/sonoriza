@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
 import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
 import { ReleasesDataProps } from '@utils/Types/releasesProps'
+import { UserDataProps } from '@utils/Types/userProps'
 
 export function useFirebaseServices() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
@@ -271,15 +272,12 @@ export function useFirebaseServices() {
         'in',
         musicsId.slice(startIndex, startIndex + pageSize),
       )
-      .get({ source: 'cache' })
+      .get()
       .then((querySnapshot) => {
         const musicsResponse = querySnapshot.docs.map((doc) =>
           doc.data(),
         ) as MusicProps[]
         musics = musics.concat(musicsResponse)
-      })
-      .catch((err) => {
-        crashlytics().recordError(err)
       })
 
     return musics
@@ -305,6 +303,43 @@ export function useFirebaseServices() {
       })
 
     return musics
+  }
+
+  const handleGetArtistsByGenre = async (
+    musicalGenre: string,
+    page = 1,
+    pageSize = 10,
+  ): Promise<ArtistsDataProps[]> => {
+    let artists = [] as ArtistsDataProps[]
+
+    const startIndex = (page - 1) * pageSize
+
+    let query = firestore()
+      .collection('artists')
+      .where('musicalGenres', 'array-contains', { name: musicalGenre })
+      .limit(pageSize)
+
+    if (startIndex > 0) {
+      const startAfterDoc = await firestore()
+        .collection('artists')
+        .where('musicalGenres', 'array-contains', { name: musicalGenre })
+        .limit(startIndex)
+        .get()
+
+      if (!startAfterDoc.empty) {
+        query = query.startAfter(startAfterDoc.docs[startAfterDoc.size - 1])
+      }
+    }
+
+    const querySnapshot = await query.get()
+
+    if (!querySnapshot.empty) {
+      artists = querySnapshot.docs.map((doc) => doc.data() as ArtistsDataProps)
+    } else {
+      console.log('Não há mais resultados.')
+    }
+
+    return artists
   }
 
   const handleGetMusicsByFilter = async (
@@ -345,6 +380,22 @@ export function useFirebaseServices() {
     return releases
   }
 
+  async function handleFetchDataUser(userUid: string) {
+    firestore()
+      .collection('users')
+      .doc(userUid)
+      .get()
+      .then(async (querySnapshot) => {
+        const user = querySnapshot.data() as UserDataProps
+
+        dispatch(
+          handleSetUser({
+            user,
+          }),
+        )
+      })
+  }
+
   return {
     handleGetArtists,
     handleGetMusicalGenres,
@@ -359,5 +410,7 @@ export function useFirebaseServices() {
     handleGetMusicsByGenre,
     handleGetArtistsByFilter,
     handleGetReleases,
+    handleFetchDataUser,
+    handleGetArtistsByGenre,
   }
 }

@@ -2,6 +2,24 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
 import { useDispatch, useSelector } from 'react-redux'
 
+import {
+  handleSetNetStatus,
+  NetInfoProps,
+} from '@storage/modules/netInfo/reducer'
+import {
+  setFavoriteArtists,
+  FavoriteArtistsProps,
+} from '@storage/modules/favoriteArtists/reducer'
+
+import {
+  handleSetFavoriteMusics,
+  FavoriteMusicsProps,
+} from '@storage/modules/favoriteMusics/reducer'
+import {
+  handleSetReleases,
+  ReleasesProps,
+} from '@storage/modules/releases/reducer'
+
 import { ReduxProps } from '@storage/index'
 
 import { BottomMenu } from '@components/BottomMenu/Index'
@@ -31,15 +49,10 @@ import { ListCarousel } from '@components/ListCarousel'
 import { ReleasesCarousel } from '@components/ReleasesCarousel'
 import { useNetwork } from '@hooks/useNetwork'
 import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
-import {
-  NetInfoProps,
-  handleSetNetStatus,
-} from '@storage/modules/netInfo/reducer'
 
-import { FavoriteArtistsProps } from '@storage/modules/favoriteArtists/reducer'
-import { ReleasesProps } from '@storage/modules/releases/reducer'
-import { FavoriteMusicsProps } from '@storage/modules/favoriteMusics/reducer'
 import { useNetInfo } from '@react-native-community/netinfo'
+import { UserProps } from '@storage/modules/user/reducer'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 export function Home() {
   const { historic } = useSelector<ReduxProps, HistoricProps>(
@@ -49,6 +62,12 @@ export function Home() {
   const dispatch = useDispatch()
 
   const { getCurrentMusic } = useTrackPlayer()
+
+  const {
+    handleGetFavoritesMusics,
+    handleGetFavoritesArtists,
+    handleGetReleases,
+  } = useFirebaseServices()
 
   const { openModalErrNetwork } = useNetwork()
 
@@ -69,6 +88,8 @@ export function Home() {
   const { releases } = useSelector<ReduxProps, ReleasesProps>(
     (state) => state.releases,
   )
+
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const { favoriteMusics } = useSelector<ReduxProps, FavoriteMusicsProps>(
     (state) => state.favoriteMusics,
@@ -91,10 +112,36 @@ export function Home() {
     getCurrentMusic()
   }
 
+  const handleGetDataUser = async () => {
+    try {
+      if (isConnected) {
+        if (user?.favoritesMusics) {
+          const result = await handleGetFavoritesMusics(user.favoritesMusics)
+          dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
+        }
+
+        if (user?.favoritesArtists) {
+          const result = await handleGetFavoritesArtists(user.favoritesArtists)
+          dispatch(setFavoriteArtists({ favoriteArtists: result }))
+        }
+
+        const responseReleses = await handleGetReleases()
+
+        dispatch(handleSetReleases({ releases: responseReleses }))
+
+        dispatch(handleSetNetStatus(true))
+      } else {
+        dispatch(handleSetNetStatus(false))
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   useEffect(() => {
     if (isConnected === null) return
     if (isConnected) {
-      dispatch(handleSetNetStatus(true))
+      handleGetDataUser()
     } else if (!isConnected) {
       dispatch(handleSetNetStatus(false))
       if (!ignoreAlert) {
@@ -139,7 +186,15 @@ export function Home() {
         <View className="pb-32">
           {historic.length > 0 && (
             <Section title="Tocados recentemente">
-              <BoxCarousel musics={historic} />
+              <BoxCarousel
+                musics={
+                  !status
+                    ? historic.filter((item) =>
+                        trackListOffline.find((track) => track.id === item.id),
+                      )
+                    : historic
+                }
+              />
             </Section>
           )}
 

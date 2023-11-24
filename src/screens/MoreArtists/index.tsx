@@ -7,7 +7,7 @@ import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 import { Text, TouchableOpacity, View, Image } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import Icon from 'react-native-vector-icons/Ionicons'
 
@@ -19,6 +19,7 @@ import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import colors from 'tailwindcss/colors'
 
 import { Loading } from '@components/Loading'
+import { setFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
 
 export function MoreArtists() {
   const [listArtists, setListArtists] = useState<ArtistsDataProps[]>([])
@@ -36,6 +37,8 @@ export function MoreArtists() {
 
   const navigation = useNavigation<StackNavigationProps>()
 
+  const dispatch = useDispatch()
+
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
@@ -48,13 +51,24 @@ export function MoreArtists() {
       .then((result) => {
         setPage((prev) => prev + 1)
         setListArtists((prev) => [...prev, ...result])
-        if (result.length < 10) {
+        if (
+          result.length < 10 ||
+          (user.favoritesArtists && user.favoritesArtists.length <= 10)
+        ) {
           setIsEndList(true)
         }
       })
       .finally(() => setIsLoading(false))
+      .catch((e) => console.log(e))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isLoading, isEndList, page])
+
+  const handleChangeFavoriteArtist = async (artist: ArtistsDataProps) => {
+    await handleFavoriteArtist(artist)
+    const filter = listArtists.filter((item) => item.id !== artist.id)
+    setListArtists(filter)
+    dispatch(setFavoriteArtists({ favoriteArtists: filter }))
+  }
 
   useEffect(() => {
     handleGetArtists()
@@ -81,15 +95,19 @@ export function MoreArtists() {
         </View>
 
         <FlatList
-          className={`mt-4 ${isCurrentMusic ? 'mb-32' : 'mb-20'} ${
-            isLoading && 'm-0'
-          }`}
+          className={`mt-4 `}
           showsVerticalScrollIndicator={false}
+          keyExtractor={(item) => item.id.toString()}
           data={listArtists}
           onEndReached={handleGetArtists}
-          onEndReachedThreshold={0.1}
+          onEndReachedThreshold={0.3}
           renderItem={({ item, index }) => (
-            <View className={`flex-row items-center justify-between`}>
+            <View
+              className={`flex-row items-center justify-between ${
+                index + 1 === listArtists.length &&
+                `${isCurrentMusic ? 'mb-32' : 'mb-16'}`
+              }`}
+            >
               <TouchableOpacity
                 key={index}
                 className="flex-row items-center gap-4 flex-1"
@@ -113,7 +131,7 @@ export function MoreArtists() {
               {type === 'favorites' && (
                 <TouchableOpacity
                   onPress={() => {
-                    handleFavoriteArtist(item)
+                    handleChangeFavoriteArtist(item)
                   }}
                   activeOpacity={0.6}
                   className="p-4"
@@ -128,8 +146,8 @@ export function MoreArtists() {
         {isLoading && (
           <Text
             className={`${
-              isCurrentMusic ? 'mb-32' : 'mb-20'
-            } mt-4 text-center font-nunito-bold text-gray-300`}
+              isCurrentMusic ? 'mb-32' : 'mb-16'
+            } text-center font-nunito-bold text-gray-300`}
           >
             Carregando...
           </Text>

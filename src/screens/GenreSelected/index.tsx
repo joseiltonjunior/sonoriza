@@ -2,13 +2,12 @@ import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 import { Loading } from '@components/Loading'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
-import { useTrackPlayer } from '@hooks/useTrackPlayer'
+
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-
-import { MusicProps } from '@utils/Types/musicProps'
+import { ArtistsDataProps } from '@utils/Types/artistsProps'
 
 import { useCallback, useEffect, useState } from 'react'
 import { FlatList, Image, Text, View } from 'react-native'
@@ -21,7 +20,11 @@ export function GenreSelected() {
   const { params } = useRoute<RouteParamsProps<'GenreSelected'>>()
   const { type } = params
 
-  const [musics, setMusics] = useState<MusicProps[]>([])
+  const [page, setPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isEndList, setIsEndList] = useState(false)
+
+  const [artists, setArtists] = useState<ArtistsDataProps[]>([])
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -29,24 +32,33 @@ export function GenreSelected() {
     (state) => state.currentMusic,
   )
 
-  const { handleGetMusicsByGenre } = useFirebaseServices()
-  const { handleMusicSelected } = useTrackPlayer()
+  const { handleGetArtistsByGenre } = useFirebaseServices()
 
-  const handleGetMusics = useCallback(async () => {
+  const handleGetArtistsData = useCallback(async () => {
+    if (isLoading || isEndList) return
+    setIsLoading(true)
     try {
-      const response = await handleGetMusicsByGenre(type)
-      setMusics(response)
+      const response = await handleGetArtistsByGenre(type, page)
+      setPage((prev) => prev + 1)
+      setArtists((prev) => [...prev, ...response])
+
+      if (response.length < 10) {
+        setIsEndList(true)
+      }
+
+      setIsLoading(false)
     } catch (error) {
-      console.log(error, 'err')
+      setIsLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type])
+  }, [type, isLoading, isEndList])
 
   useEffect(() => {
-    handleGetMusics()
-  }, [handleGetMusics])
+    handleGetArtistsData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  if (musics.length === 0) {
+  if (artists.length === 0) {
     return <Loading />
   }
 
@@ -67,41 +79,48 @@ export function GenreSelected() {
           </Text>
         </View>
 
-        {musics && (
+        {artists && (
           <FlatList
-            className="mt-4"
+            className={` mt-4`}
             showsVerticalScrollIndicator={false}
-            data={musics}
+            data={artists}
+            keyExtractor={(item) => item.id.toString()}
+            onEndReached={handleGetArtistsData}
+            onEndReachedThreshold={0.2}
             ItemSeparatorComponent={() => <View className="h-3" />}
             renderItem={({ item, index }) => (
               <TouchableOpacity
                 key={index}
                 className={`flex-row items-center gap-2 ${
-                  index + 1 === musics.length && 'mb-32'
+                  index + 1 === artists.length &&
+                  `${isCurrentMusic ? 'mb-32' : 'mb-16'}`
                 }`}
                 onPress={() => {
-                  handleMusicSelected({
-                    listMusics: musics,
-                    musicSelected: item,
-                  })
+                  navigation.navigate('Artist', { artistId: item.id })
                 }}
               >
                 <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
                   <Image
-                    source={{ uri: item.artwork }}
-                    alt="artwork"
+                    source={{ uri: item.photoURL }}
+                    alt="photo artist"
                     className="h-full w-full"
                   />
                 </View>
                 <View>
-                  <Text className="font-bold text-white">{item.title}</Text>
-                  <Text className="font-regular text-gray-300">
-                    {item.artists[0].name}
-                  </Text>
+                  <Text className="font-bold text-white">{item.name}</Text>
                 </View>
               </TouchableOpacity>
             )}
           />
+        )}
+        {isLoading && (
+          <Text
+            className={`${
+              isCurrentMusic ? 'mb-32' : 'mb-16'
+            } text-center font-nunito-bold text-gray-300`}
+          >
+            Carregando...
+          </Text>
         )}
       </View>
       <View className="absolute bottom-0 w-full">

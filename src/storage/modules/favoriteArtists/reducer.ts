@@ -14,15 +14,12 @@ const favoriteArtistsSlice = createSlice({
   name: 'favoriteArtists',
   initialState,
   reducers: {
-    handleSetFavoriteArtists(
-      state,
-      action: PayloadAction<FavoriteArtistsProps>,
-    ) {
+    setFavoriteArtists(state, action: PayloadAction<FavoriteArtistsProps>) {
       state.favoriteArtists = action.payload.favoriteArtists
     },
   },
 })
 
-export const { handleSetFavoriteArtists } = favoriteArtistsSlice.actions
+export const { setFavoriteArtists } = favoriteArtistsSlice.actions
 
 export default favoriteArtistsSlice.reducer

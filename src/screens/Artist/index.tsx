@@ -41,8 +41,6 @@ export function Artist() {
   const [artist, setArtist] = useState<ArtistsDataProps>()
   const [musics, setMusics] = useState<MusicProps[]>()
 
-  const [numberIsVibleMusic, setNumberIsVibleMusic] = useState(4)
-
   const navigation = useNavigation<StackNavigationProps>()
   const { handleMusicSelected } = useTrackPlayer()
   const { handleFavoriteMusic, handleGetArtistById, handleGetMusicsById } =
@@ -156,7 +154,9 @@ export function Artist() {
         </View>
 
         <View className={`p-4 ${isCurrentMusic ? 'mb-32' : 'mb-16'}`}>
-          <Text className="font-nunito-bold text-xl text-white">Músicas</Text>
+          <Text className="font-nunito-bold text-xl text-white">
+            Top Músicas
+          </Text>
 
           {musics
             ?.map((item) => (
@@ -209,23 +209,21 @@ export function Artist() {
                 </TouchableOpacity>
               </View>
             ))
-            .slice(0, numberIsVibleMusic)}
+            .slice(0, 4)}
 
           {musics && musics.length > 4 && (
             <TouchableOpacity
               className="bg-purple-600 rounded-md items-center py-1 mt-2"
               onPress={() => {
-                if (numberIsVibleMusic >= musics.length) {
-                  setNumberIsVibleMusic(4)
-                  return
-                }
-                setNumberIsVibleMusic((prev) => prev + 4)
+                navigation.navigate('MoreMusic', {
+                  title: `${artist.name}`,
+                  type: 'artist',
+                  artistFlow: artist.musics,
+                })
               }}
             >
               <Text className="font-nunito-medium text-white">
-                {numberIsVibleMusic >= musics.length
-                  ? 'Mostrar menos'
-                  : 'Mostrar mais'}
+                Mostrar mais
               </Text>
             </TouchableOpacity>
           )}

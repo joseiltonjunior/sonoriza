@@ -13,7 +13,7 @@ import IconFather from 'react-native-vector-icons/Feather'
 import Icon from 'react-native-vector-icons/Ionicons'
 import colors from 'tailwindcss/colors'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { MusicProps } from '@utils/Types/musicProps'
 import { UserProps } from '@storage/modules/user/reducer'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
@@ -25,7 +25,7 @@ import { Loading } from '@components/Loading'
 
 export function MoreMusic() {
   const { params } = useRoute<RouteParamsProps<'MoreMusic'>>()
-  const { type, title } = params
+  const { type, title, artistFlow } = params
 
   const [page, setPage] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
@@ -33,7 +33,7 @@ export function MoreMusic() {
 
   const [listMusics, setListMusics] = useState<MusicProps[]>([])
 
-  const { handleGetFavoritesMusics, handleFavoriteMusic } =
+  const { handleGetFavoritesMusics, handleFavoriteMusic, handleGetMusicsById } =
     useFirebaseServices()
 
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
@@ -54,6 +54,25 @@ export function MoreMusic() {
     (state) => state.currentMusic,
   )
 
+  const handleGetMusicsByArtist = useCallback(async () => {
+    if (!artistFlow || isLoading || isEndList) return
+
+    setIsLoading(true)
+
+    await handleGetMusicsById(artistFlow, page)
+      .then((result) => {
+        setPage((prev) => prev + 1)
+        setListMusics((prev) => [...prev, ...result])
+
+        if (result.length < 10 || artistFlow.length <= 10) {
+          setIsEndList(true)
+        }
+      })
+      .catch((err) => console.log(err, 'hmm'))
+      .finally(() => setIsLoading(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEndList, isLoading, user.favoritesMusics, page])
+
   const handleGetMusics = useCallback(async () => {
     if (!user.favoritesMusics || isLoading || isEndList) return
 
@@ -68,6 +87,7 @@ export function MoreMusic() {
           setIsEndList(true)
         }
       })
+      .catch((err) => console.log(err, 'err'))
       .finally(() => setIsLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEndList, isLoading, user.favoritesMusics, page])
@@ -86,6 +106,19 @@ export function MoreMusic() {
     setIsLoading(false)
   }, [isEndList, page, trackListOffline])
 
+  const verifyType = useMemo(() => {
+    switch (type) {
+      case 'offline':
+        return handlePaginatedOffline
+
+      case 'artist':
+        return handleGetMusicsByArtist
+
+      default:
+        return handleGetMusics
+    }
+  }, [handleGetMusics, handleGetMusicsByArtist, handlePaginatedOffline, type])
+
   useEffect(() => {
     let updatedListMusics = [] as MusicProps[]
 
@@ -95,11 +128,12 @@ export function MoreMusic() {
       user.favoritesMusics.length > 0
     ) {
       handleGetMusics()
-      return
     } else if (type === 'historic') {
       updatedListMusics = historic
     } else if (type === 'offline') {
       updatedListMusics = trackListOffline.slice(0, 10)
+    } else if (type === 'artist') {
+      handleGetMusicsByArtist()
     }
 
     setListMusics(updatedListMusics)
@@ -126,21 +160,23 @@ export function MoreMusic() {
         </View>
 
         <FlatList
-          className={`${isCurrentMusic ? 'mb-32' : 'mb-20'} ${
-            isLoading && 'm-0'
-          } mt-4`}
+          className={`mt-4`}
           showsVerticalScrollIndicator={false}
+          keyExtractor={(item) => item.id.toString()}
           data={listMusics}
-          onEndReached={
-            type !== 'offline' ? handleGetMusics : handlePaginatedOffline
-          }
-          onEndReachedThreshold={0.1}
+          onEndReached={verifyType}
+          onEndReachedThreshold={0.2}
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item, index }) => (
-            <View className={`flex-row justify-between items-center`}>
+            <View
+              className={`flex-row justify-between items-center ${
+                index + 1 === listMusics.length &&
+                `${isCurrentMusic ? 'mb-32' : 'mb-16'}`
+              }`}
+            >
               <TouchableOpacity
                 key={index}
-                className="flex-row items-center gap-2 max-w-[200px] "
+                className="flex-row items-center gap-2 flex-1 overflow-hidden"
                 onPress={() => {
                   handleMusicSelected({
                     musicSelected: item,
@@ -195,8 +231,8 @@ export function MoreMusic() {
         {isLoading && (
           <Text
             className={`${
-              isCurrentMusic ? 'mb-32' : 'mb-20'
-            } mt-4 text-center font-nunito-bold text-gray-300`}
+              isCurrentMusic ? 'mb-32' : 'mb-16'
+            } text-center font-nunito-bold text-gray-300`}
           >
             Carregando...
           </Text>

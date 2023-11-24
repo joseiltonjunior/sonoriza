@@ -8,6 +8,11 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import {
+  SearchHistoricProps,
+  removeSearchHistoric,
+  setSearchHistoric,
+} from '@storage/modules/searchHistoric/reducer'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
 import { MusicProps } from '@utils/Types/musicProps'
 
@@ -22,7 +27,7 @@ import {
 } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import Icon from 'react-native-vector-icons/Ionicons'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
 
 export function Search() {
@@ -35,6 +40,10 @@ export function Search() {
     (state) => state.currentMusic,
   )
 
+  const { historic } = useSelector<ReduxProps, SearchHistoricProps>(
+    (state) => state.searchHistoric,
+  )
+
   const [musicalGenres, setMusicalGenres] = useState<string[]>([])
 
   const [filter, setFilter] = useState('')
@@ -42,6 +51,8 @@ export function Search() {
   const navigation = useNavigation<StackNavigationProps>()
 
   const screenWidth = Dimensions.get('window').width
+
+  const dispatch = useDispatch()
 
   const { handleMusicSelected } = useTrackPlayer()
   const { handleGetMusicsByFilter } = useFirebaseServices()
@@ -112,6 +123,40 @@ export function Search() {
             )}
           </View>
 
+          {!filter && historic.length > 0 && (
+            <View className="mt-4">
+              <Text>Buscas recentes</Text>
+              {historic.map((item) => (
+                <View
+                  key={item.name}
+                  className="flex-row items-center justify-between mt-2"
+                >
+                  <TouchableOpacity
+                    className="flex-row items-center w-80"
+                    onPress={() =>
+                      navigation.navigate('Artist', { artistId: item.id })
+                    }
+                  >
+                    <Image
+                      source={{ uri: item.photoURL }}
+                      alt="pic"
+                      className="w-12 h-12 rounded-full"
+                    />
+                    <Text className="ml-2 font-nunito-bold text-gray-300">
+                      {item.name}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="p-2"
+                    onPress={() => dispatch(removeSearchHistoric(item))}
+                  >
+                    <Icon name="trash" size={20} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+
           <FlatList
             className="mt-4"
             showsVerticalScrollIndicator={false}
@@ -123,6 +168,13 @@ export function Search() {
                   key={index}
                   className="flex-row items-center gap-4 flex-1"
                   onPress={() => {
+                    dispatch(
+                      setSearchHistoric({
+                        name: item.name,
+                        photoURL: item.photoURL,
+                        id: item.id,
+                      }),
+                    )
                     navigation.navigate('Artist', { artistId: item.id })
                   }}
                 >
