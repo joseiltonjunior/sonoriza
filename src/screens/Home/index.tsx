@@ -38,7 +38,7 @@ import { RoundedCarousel } from '@components/RoundedCarousel'
 import { Section } from '@components/Section'
 
 import { MusicalGenres } from '@components/MusicalGenres'
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 
 import TrackPlayer, { Event, State } from 'react-native-track-player'
 
@@ -54,6 +54,13 @@ import { useNetInfo } from '@react-native-community/netinfo'
 import { UserProps } from '@storage/modules/user/reducer'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
+import {
+  InspiredMixesProps,
+  setInspiredMixes,
+} from '@storage/modules/inspiredMixes/reducer'
+import { shuffleArray } from '@utils/Types/shuffleArray'
+import { MusicProps } from '@utils/Types/musicProps'
+
 export function Home() {
   const { historic } = useSelector<ReduxProps, HistoricProps>(
     (state) => state.historic,
@@ -67,6 +74,9 @@ export function Home() {
     handleGetFavoritesMusics,
     handleGetFavoritesArtists,
     handleGetReleases,
+    handleGetInspiredMixes,
+    handleGetMusicsNewUser,
+    handleGetArtistsNewUser,
   } = useFirebaseServices()
 
   const { openModalErrNetwork } = useNetwork()
@@ -85,6 +95,10 @@ export function Home() {
     (state) => state.favoriteArtists,
   )
 
+  const { musics: inspiredMixes } = useSelector<ReduxProps, InspiredMixesProps>(
+    (state) => state.inspiredMixes,
+  )
+
   const { releases } = useSelector<ReduxProps, ReleasesProps>(
     (state) => state.releases,
   )
@@ -100,30 +114,61 @@ export function Home() {
   )
 
   const topMusicalGenres = useMemo(() => {
-    const filterGenres = favoriteMusics.map((music) => music.genre)
+    const filterGenres = shuffleArray(
+      favoriteMusics.map((music) => music.genre),
+    )
+
     const excludeDuplicates = [...new Set(filterGenres)]
 
-    return excludeDuplicates
+    return excludeDuplicates.slice(0, 5)
   }, [favoriteMusics])
 
   const { handleIsVisible } = useSideMenu()
 
-  const handleGetCurrentMusic = () => {
-    getCurrentMusic()
+  const handleGetCurrentMusic = async () => {
+    await getCurrentMusic()
   }
 
-  const handleGetDataUser = async () => {
+  const handleGetDataUser = useCallback(async () => {
     try {
       if (isConnected) {
-        if (user?.favoritesMusics) {
+        let musics = [] as MusicProps[]
+
+        if (user?.favoritesMusics && user.favoritesMusics) {
           const result = await handleGetFavoritesMusics(user.favoritesMusics)
+          musics = result
+          dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
+        } else {
+          const result = await handleGetMusicsNewUser()
+          musics = result
           dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
         }
 
         if (user?.favoritesArtists) {
           const result = await handleGetFavoritesArtists(user.favoritesArtists)
+
+          dispatch(setFavoriteArtists({ favoriteArtists: result }))
+        } else {
+          const result = await handleGetArtistsNewUser()
+
           dispatch(setFavoriteArtists({ favoriteArtists: result }))
         }
+
+        const excludesMusics = musics.map((item) => item.id)
+
+        const filterGenres = shuffleArray(musics.map((music) => music.genre))
+
+        const excludeGenres = [...new Set(filterGenres)]
+
+        const responseInspiredMixes = await handleGetInspiredMixes(
+          excludeGenres,
+          excludesMusics,
+        )
+        dispatch(
+          setInspiredMixes({
+            musics: responseInspiredMixes,
+          }),
+        )
 
         const responseReleses = await handleGetReleases()
 
@@ -136,7 +181,15 @@ export function Home() {
     } catch (error) {
       console.log(error)
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    dispatch,
+    favoriteMusics,
+    isConnected,
+    topMusicalGenres,
+    user.favoritesArtists,
+    user.favoritesMusics,
+  ])
 
   useEffect(() => {
     if (isConnected === null) return
@@ -174,7 +227,7 @@ export function Home() {
 
   return (
     <>
-      <ScrollView className="bg-gray-700">
+      <ScrollView className="bg-gray-700" showsVerticalScrollIndicator={false}>
         <View className="p-4 flex-row items-center justify-between">
           <Text className="text-white text-3xl font-nunito-bold">Início</Text>
 
@@ -183,7 +236,7 @@ export function Home() {
           </TouchableOpacity>
         </View>
 
-        <View className="pb-32">
+        <View className={isCurrentMusic ? 'pb-32' : 'pb-16'}>
           {historic.length > 0 && (
             <Section title="Tocados recentemente">
               <BoxCarousel
@@ -208,18 +261,34 @@ export function Home() {
             </Section>
           )}
 
-          {status && favoriteMusics.length > 0 && (
+          {status && inspiredMixes.length > 0 && (
             <Section
-              title="Mixes inspirador por"
+              title={
+                user.favoritesMusics
+                  ? 'Mixes inspirador por'
+                  : 'Explore novas possibilidades'
+              }
+              description={
+                user.favoritesMusics
+                  ? 'Descrubra faixas similiares aos seus hits favoritos'
+                  : ''
+              }
               className={`${historic.length > 0 && 'mt-14'}`}
             >
-              <ListCarousel musics={favoriteMusics.slice(0, 9)} />
+              <ListCarousel musics={inspiredMixes.slice(0, 15)} />
             </Section>
           )}
 
           {status && topMusicalGenres.length > 0 && (
-            <Section title="Os seus top gêneros musicais" className={`mt-14`}>
-              <MusicalGenres musicalGenres={topMusicalGenres.slice(0, 5)} />
+            <Section
+              title={
+                user?.favoritesMusics
+                  ? 'Os seus top gêneros musicais'
+                  : 'Explore por gêneros musicais'
+              }
+              className={`mt-14`}
+            >
+              <MusicalGenres musicalGenres={topMusicalGenres} />
             </Section>
           )}
 
@@ -230,7 +299,14 @@ export function Home() {
           )}
 
           {status && favoriteArtists.length > 0 && (
-            <Section title="Artistas que você ama" className="mt-14">
+            <Section
+              title={
+                user.favoritesArtists
+                  ? 'Artistas que você ama'
+                  : 'Explore por artistas'
+              }
+              className="mt-14"
+            >
               <RoundedCarousel artists={favoriteArtists} />
             </Section>
           )}

@@ -1,7 +1,12 @@
+import { AlbumsCarousel } from '@components/AlbumCarousel'
 import { BottomMenu } from '@components/BottomMenu/Index'
 
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
+import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 import { Loading } from '@components/Loading'
+
+import { Section } from '@components/Section'
+import { useBottomModal } from '@hooks/useBottomModal'
 
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
@@ -32,19 +37,27 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import { useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
 
+interface AlbumProps {
+  name: string
+  artwork: string
+}
+
 export function Artist() {
   const { params } = useRoute<RouteParamsProps<'Artist'>>()
   const { artistId } = params
 
   const size = Dimensions.get('window').width * 1
 
+  const { openModal } = useBottomModal()
+
   const [artist, setArtist] = useState<ArtistsDataProps>()
-  const [musics, setMusics] = useState<MusicProps[]>()
+  const [albums, setAlbums] = useState<AlbumProps[]>([])
+  const [topMusics, setTopMusics] = useState<MusicProps[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
   const navigation = useNavigation<StackNavigationProps>()
   const { handleMusicSelected } = useTrackPlayer()
-  const { handleFavoriteMusic, handleGetArtistById, handleGetMusicsById } =
-    useFirebaseServices()
+  const { handleGetArtistById, handleGetAllMusicsById } = useFirebaseServices()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
@@ -54,15 +67,32 @@ export function Artist() {
 
   const { handleFavoriteArtist } = useFirebaseServices()
 
+  const removeDuplicates = (arr: AlbumProps[]): AlbumProps[] => {
+    return arr.filter((value, index, self) => {
+      return self.findIndex((m) => m.name === value.name) === index
+    })
+  }
+
   const handleGetMusics = async (musicsId: string[]) => {
-    await handleGetMusicsById(musicsId)
+    await handleGetAllMusicsById(musicsId)
       .then((result) => {
-        setMusics(result)
+        setTopMusics(result)
+
+        const filterAlbums = result.map((music) => ({
+          name: music.album,
+          artwork: music.artwork,
+        }))
+
+        const uniqueAlbumList = removeDuplicates(filterAlbums)
+        console.log(uniqueAlbumList)
+        setAlbums(uniqueAlbumList)
       })
       .catch((err) => console.log(err, 'err'))
+      .finally(() => setIsLoading(false))
   }
 
   const handleGetArtist = async () => {
+    setIsLoading(true)
     await handleGetArtistById(artistId)
       .then((result) => {
         handleGetMusics(result.musics)
@@ -77,12 +107,6 @@ export function Artist() {
     return !!filter
   }, [artist?.id, user.favoritesArtists])
 
-  const hanfleFilterFavorites = (musicId: string) => {
-    const filter = user.favoritesMusics?.find((item) => item === musicId)
-
-    return !!filter
-  }
-
   useEffect(() => {
     if (artistId) {
       handleGetArtist()
@@ -90,14 +114,17 @@ export function Artist() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [artistId])
 
-  if (!artist) return <Loading />
+  if (isLoading || !artist) return <Loading />
 
   return (
     <>
-      <ScrollView className="flex-1 bg-gray-700">
+      <ScrollView
+        className="flex-1 bg-gray-700"
+        showsVerticalScrollIndicator={false}
+      >
         <ImageBackground
-          source={{ uri: artist.photoURL }}
-          alt={artist.name}
+          source={{ uri: artist?.photoURL }}
+          alt={artist?.name}
           style={{ height: size }}
           className={`p-4 `}
         >
@@ -121,6 +148,7 @@ export function Artist() {
           <View className="rounded-full overflow-hidden">
             <TouchableOpacity
               onPress={() => {
+                if (!artist) return
                 handleFavoriteArtist(artist)
               }}
               activeOpacity={0.6}
@@ -139,10 +167,10 @@ export function Artist() {
               activeOpacity={0.6}
               className="bg-purple-600 p-3 items-center"
               onPress={() => {
-                if (!musics) return
+                if (!topMusics) return
                 handleMusicSelected({
-                  listMusics: musics,
-                  musicSelected: musics[0],
+                  listMusics: topMusics,
+                  musicSelected: topMusics[0],
                 })
               }}
             >
@@ -153,20 +181,20 @@ export function Artist() {
           </View>
         </View>
 
-        <View className={`p-4 ${isCurrentMusic ? 'mb-32' : 'mb-16'}`}>
+        <View className={`p-4 `}>
           <Text className="font-nunito-bold text-xl text-white">
             Top Músicas
           </Text>
 
-          {musics
+          {topMusics
             ?.map((item) => (
               <View className="flex-row items-center mt-3" key={item.id}>
                 <TouchableOpacity
                   className="flex-row items-center gap-2 flex-1 overflow-hidden"
                   onPress={() => {
-                    if (!musics) return
+                    if (!topMusics) return
                     handleMusicSelected({
-                      listMusics: musics,
+                      listMusics: topMusics,
                       musicSelected: item,
                     })
                   }}
@@ -191,34 +219,31 @@ export function Artist() {
                   </View>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  activeOpacity={0.6}
-                  className="ml-8"
-                  onPress={() => {
-                    handleFavoriteMusic(item)
-                  }}
+                  className="p-2"
+                  onPress={() =>
+                    openModal({
+                      children: <InfoPlayingMusic currentMusic={item} />,
+                    })
+                  }
                 >
                   <Icon
-                    name={
-                      hanfleFilterFavorites(item.id)
-                        ? 'heart-sharp'
-                        : 'heart-outline'
-                    }
+                    name="ellipsis-vertical"
+                    size={24}
                     color={colors.white}
-                    size={22}
                   />
                 </TouchableOpacity>
               </View>
             ))
             .slice(0, 4)}
 
-          {musics && musics.length > 4 && (
+          {topMusics && topMusics.length > 4 && (
             <TouchableOpacity
               className="bg-purple-600 rounded-md items-center py-1 mt-2"
               onPress={() => {
                 navigation.navigate('MoreMusic', {
-                  title: `${artist.name}`,
+                  title: `${artist?.name}`,
                   type: 'artist',
-                  artistFlow: artist.musics,
+                  artistFlow: artist?.musics,
                 })
               }}
             >
@@ -228,6 +253,18 @@ export function Artist() {
             </TouchableOpacity>
           )}
         </View>
+        {albums.length > 0 && (
+          <Section
+            title="Albums"
+            className={`mt-6 ${isCurrentMusic ? 'mb-32' : 'mb-16'}`}
+          >
+            <AlbumsCarousel
+              albums={albums}
+              artist={artist}
+              musics={topMusics}
+            />
+          </Section>
+        )}
       </ScrollView>
       <View className="absolute bottom-0 w-full">
         {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}

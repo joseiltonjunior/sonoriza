@@ -5,7 +5,13 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-import { Text, TouchableOpacity, View, Image } from 'react-native'
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+  ActivityIndicator,
+} from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -143,14 +149,17 @@ export function MoreArtists() {
           )}
           ItemSeparatorComponent={() => <View className="h-3" />}
         />
+
         {isLoading && (
-          <Text
-            className={`${
+          <View
+            className={`absolute bottom-0 ${
               isCurrentMusic ? 'mb-32' : 'mb-16'
-            } text-center font-nunito-bold text-gray-300`}
+            } items-center w-full`}
           >
-            Carregando...
-          </Text>
+            <View className={`bg-gray-700 rounded-full`}>
+              <ActivityIndicator color={colors.gray[300]} size={'large'} />
+            </View>
+          </View>
         )}
       </View>
 

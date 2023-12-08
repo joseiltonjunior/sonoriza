@@ -13,8 +13,12 @@ import { ReduxProps } from '@storage/index'
 import Icon from 'react-native-vector-icons/Ionicons'
 
 import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
-
-// import { Button } from './Button'
+import { handleSetFavoriteMusics } from '@storage/modules/favoriteMusics/reducer'
+import { setFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
+import { setInspiredMixes } from '@storage/modules/inspiredMixes/reducer'
+import { handleSetReleases } from '@storage/modules/releases/reducer'
+import { handleClearHistoric } from '@storage/modules/historic/reducer'
+import { clearSearchHistoric } from '@storage/modules/searchHistoric/reducer'
 
 export function SideMenu() {
   const { isVisible, handleIsVisible } = useSideMenu()
@@ -29,11 +33,21 @@ export function SideMenu() {
   const dispatch = useDispatch()
 
   const handleSignOutApp = () => {
-    TrackPlayer.reset()
+    TrackPlayer.stop()
     auth()
       .signOut()
       .then(() => {
         handleIsVisible()
+        dispatch(setFavoriteArtists({ favoriteArtists: [] }))
+        dispatch(handleSetFavoriteMusics({ favoriteMusics: [] }))
+        dispatch(handleClearHistoric())
+        dispatch(clearSearchHistoric())
+        dispatch(
+          setInspiredMixes({
+            musics: [],
+          }),
+        )
+        dispatch(handleSetReleases({ releases: [] }))
         dispatch(
           handleSetUser({
             user: {

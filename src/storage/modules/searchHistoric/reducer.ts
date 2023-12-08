@@ -19,6 +19,12 @@ const searchHistoricSlice = createSlice({
   name: 'searchHistoric',
   initialState,
   reducers: {
+    clearSearchHistoric() {
+      return {
+        historic: [],
+      }
+    },
+
     removeSearchHistoric(state, action: PayloadAction<SearchProps>) {
       const { name } = action.payload
       const filter = state.historic.filter((item) => item.name !== name)
@@ -46,7 +52,7 @@ const searchHistoricSlice = createSlice({
         newHistoric = [newSearch, ...state.historic]
       }
 
-      newHistoric = newHistoric.slice(0, 4)
+      newHistoric = newHistoric.slice(0, 6)
 
       return {
         ...state,
@@ -56,7 +62,7 @@ const searchHistoricSlice = createSlice({
   },
 })
 
-export const { setSearchHistoric, removeSearchHistoric } =
+export const { setSearchHistoric, removeSearchHistoric, clearSearchHistoric } =
   searchHistoricSlice.actions
 
 export default searchHistoricSlice.reducer

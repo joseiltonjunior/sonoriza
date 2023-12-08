@@ -5,7 +5,13 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-import { Text, TouchableOpacity, View, ImageBackground } from 'react-native'
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  ImageBackground,
+  ActivityIndicator,
+} from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import AnimatedLottieView from 'lottie-react-native'
 import { useSelector } from 'react-redux'
@@ -22,6 +28,9 @@ import { HistoricProps } from '@storage/modules/historic/reducer'
 import playing from '@assets/playing.json'
 import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
 import { Loading } from '@components/Loading'
+import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
+
+import { useBottomModal } from '@hooks/useBottomModal'
 
 export function MoreMusic() {
   const { params } = useRoute<RouteParamsProps<'MoreMusic'>>()
@@ -31,9 +40,10 @@ export function MoreMusic() {
   const [isLoading, setIsLoading] = useState(false)
   const [isEndList, setIsEndList] = useState(false)
 
+  const { openModal } = useBottomModal()
   const [listMusics, setListMusics] = useState<MusicProps[]>([])
 
-  const { handleGetFavoritesMusics, handleFavoriteMusic, handleGetMusicsById } =
+  const { handleGetFavoritesMusics, handleGetMusicsById } =
     useFirebaseServices()
 
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
@@ -169,7 +179,7 @@ export function MoreMusic() {
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item, index }) => (
             <View
-              className={`flex-row justify-between items-center ${
+              className={`flex-row gap-4 justify-between items-center ${
                 index + 1 === listMusics.length &&
                 `${isCurrentMusic ? 'mb-32' : 'mb-16'}`
               }`}
@@ -214,7 +224,21 @@ export function MoreMusic() {
                   </Text>
                 </View>
               </TouchableOpacity>
-              {type === 'favorites' && (
+
+              <TouchableOpacity
+                className="p-2"
+                onPress={() =>
+                  openModal({
+                    children: (
+                      <InfoPlayingMusic currentMusic={item} isCloseModal />
+                    ),
+                  })
+                }
+              >
+                <Icon name="ellipsis-vertical" size={24} color={colors.white} />
+              </TouchableOpacity>
+
+              {/* {type === 'favorites' && (
                 <TouchableOpacity
                   onPress={() => {
                     handleFavoriteMusic(item)
@@ -224,18 +248,20 @@ export function MoreMusic() {
                 >
                   <Icon name={'heart'} color={colors.white} size={22} />
                 </TouchableOpacity>
-              )}
+              )} */}
             </View>
           )}
         />
         {isLoading && (
-          <Text
-            className={`${
+          <View
+            className={`absolute bottom-0 ${
               isCurrentMusic ? 'mb-32' : 'mb-16'
-            } text-center font-nunito-bold text-gray-300`}
+            } items-center w-full`}
           >
-            Carregando...
-          </Text>
+            <View className={`bg-gray-700 rounded-full`}>
+              <ActivityIndicator color={colors.gray[300]} size={'large'} />
+            </View>
+          </View>
         )}
       </View>
       <View className="absolute bottom-0 w-full">

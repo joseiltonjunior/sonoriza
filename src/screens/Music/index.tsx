@@ -30,9 +30,6 @@ import { State as StatePlayer } from 'react-native-track-player'
 
 import { useBottomModal } from '@hooks/useBottomModal'
 
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
-
-import { useFavorites } from '@hooks/useFavorites'
 import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 
 import { QueueProps } from '@storage/modules/queue/reducer'
@@ -40,12 +37,15 @@ import { MusicProps } from '@utils/Types/musicProps'
 
 import { DynamicBackgroundColor } from '@components/DynamicBackgroundColor'
 
+import { useFavorites } from '@hooks/useFavorites'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
 
-  const size = Dimensions.get('window').width * 1
-
   const { TrackPlayer, useProgress } = useTrackPlayer()
+
+  const size = Dimensions.get('window').width * 1
 
   const { openModal } = useBottomModal()
 
@@ -62,9 +62,9 @@ export function Music() {
 
   const { queue } = useSelector<ReduxProps, QueueProps>((state) => state.queue)
 
-  const { isFavoriteMusic } = useFavorites()
-
   const dispatch = useDispatch()
+
+  const { isFavoriteMusic } = useFavorites()
 
   const { handleFavoriteMusic } = useFirebaseServices()
 
@@ -195,50 +195,66 @@ export function Music() {
 
   return (
     <DynamicBackgroundColor color={isCurrentMusic?.color}>
-      <View className="flex-row items-center justify-center m-4 ">
+      <View className="flex-row items-center justify-between m-4">
         <TouchableOpacity
           onPress={() => {
             navigation.goBack()
           }}
-          className="absolute left-0 p-2 rounded-full"
+          className="p-2 rounded-full"
         >
           <Icon name="chevron-back-outline" size={30} color={fontColor} />
         </TouchableOpacity>
         <View className="flex-col items-center">
           <Text
-            className="text-gray-100 font-nunito-light"
+            className="text-gray-300 font-nunito-regular"
             style={{ color: fontColor }}
           >
             Tocando do artista
           </Text>
           <Text
-            className="text-white font-nunito-bold"
+            className="text-white font-nunito-bold text-base"
             style={{ color: fontColor }}
           >
             {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
           </Text>
         </View>
+        <TouchableOpacity
+          style={{ borderColor: fontColor }}
+          className={`rounded-full p-2`}
+          activeOpacity={0.5}
+        >
+          <Icon
+            name="ellipsis-vertical"
+            size={24}
+            color={fontColor}
+            onPress={() =>
+              openModal({
+                children: <InfoPlayingMusic currentMusic={isCurrentMusic} />,
+              })
+            }
+          />
+        </TouchableOpacity>
       </View>
 
-      <View className="items-center mx-4 mt-8">
+      <View className="items-center mx-8 mt-12">
         <Carousel
           loop={false}
           width={size}
-          height={370}
+          height={380}
           data={queue}
           onSnapToItem={(index) => {
             handleSlideThumb(index)
           }}
           defaultIndex={currentIndex}
-          scrollAnimationDuration={1000}
+          scrollAnimationDuration={500}
           renderItem={({ item }) => (
-            <View className="px-4">
-              <View className="w-full h-[360px] overflow-hidden rounded-lg bg-purple-600 items-center justify-center shadow-lg shadow-gray-950">
+            <View className="px-2 my-auto mx-auto">
+              <View className="w-[350px] h-[350px] overflow-hidden rounded-lg bg-purple-600 items-center justify-center shadow-lg shadow-gray-950">
                 {item?.artwork ? (
                   <ImageBackground
                     source={{ uri: item.artwork }}
                     alt=""
-                    className="w-full h-full object-cover items-center justify-center "
+                    className="w-full h-full object-cover items-center justify-center"
                   >
                     {state === StatePlayer.Buffering && (
                       <AnimatedLottieView
@@ -257,28 +273,26 @@ export function Music() {
           )}
         />
 
-        <View className="pt-8 flex-row items-center gap-8">
-          <View className="w-[22px]" />
+        <View className="flex-row mt-16 w-full items-center justify-between">
+          <View className="overflow-hidden w-[250px]">
+            <Text
+              className="font-nunito-bold text-white text-xl"
+              numberOfLines={1}
+              style={{ color: fontColor }}
+            >
+              {isCurrentMusic?.title}
+            </Text>
+            <Text
+              className="font-nunito-regular text-gray-100"
+              numberOfLines={1}
+              style={{ color: fontColor }}
+            >
+              {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
+              {isCurrentMusic?.album && ` - ${isCurrentMusic.album}`}
+            </Text>
+          </View>
 
           <TouchableOpacity
-            style={{ borderColor: fontColor }}
-            className={`border rounded-full p-2`}
-            activeOpacity={0.5}
-          >
-            <Icon
-              name="ellipsis-vertical"
-              size={30}
-              color={fontColor}
-              onPress={() =>
-                openModal({
-                  children: <InfoPlayingMusic currentMusic={isCurrentMusic} />,
-                })
-              }
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.5}
             onPress={() => {
               if (isCurrentMusic) {
                 handleFavoriteMusic(isCurrentMusic)
@@ -287,14 +301,21 @@ export function Music() {
           >
             <Icon
               name={isFavoriteMusic ? 'heart-sharp' : 'heart-outline'}
-              size={22}
+              size={28}
               color={fontColor}
             />
           </TouchableOpacity>
         </View>
 
         <View className="mt-4 w-full items-center">
-          <View className="flex-row justify-between w-11/12 px-2">
+          <ProgressBar
+            styleAttr="Horizontal"
+            indeterminate={false}
+            progress={actualProgress}
+            color={fontColor}
+            style={{ width: '100%' }}
+          />
+          <View className="flex-row justify-between w-full">
             <Text
               className="font-nunito-regular text-xs text-white"
               style={{ color: fontColor }}
@@ -308,38 +329,14 @@ export function Music() {
               {formatTime(progress.duration)}
             </Text>
           </View>
-          <ProgressBar
-            styleAttr="Horizontal"
-            indeterminate={false}
-            progress={actualProgress}
-            color={fontColor}
-            style={{ width: '90%' }}
-          />
         </View>
-
-        <Text
-          className="font-nunito-bold text-white text-xl mt-4 px-4 text-center"
-          numberOfLines={1}
-          style={{ color: fontColor }}
-        >
-          {isCurrentMusic?.title}
-        </Text>
-        <Text
-          className="font-nunito-regular text-gray-100"
-          numberOfLines={1}
-          style={{ color: fontColor }}
-        >
-          {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
-          {isCurrentMusic?.album && ` - ${isCurrentMusic.album}`}
-        </Text>
       </View>
 
       <View className="flex-row justify-around  items-center px-20 mt-6">
         <TouchableOpacity
-          activeOpacity={0.6}
           disabled={havePrevious}
           onPress={handleSkipToPrevius}
-          className="p-2 rounded-full "
+          className="p-2 rounded-full"
         >
           <Icon name="play-skip-back" size={25} color={fontColor} />
         </TouchableOpacity>
@@ -360,7 +357,6 @@ export function Music() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          activeOpacity={0.6}
           disabled={haveNext}
           onPress={handleSkipToNext}
           className="p-2 rounded-full"
@@ -368,10 +364,9 @@ export function Music() {
           <Icon name="play-skip-forward" size={25} color={fontColor} />
         </TouchableOpacity>
       </View>
-      <View className="mt-6 mx-4">
+      <View className="m-4">
         <TouchableOpacity
           className="w-8 h-8 ml-auto"
-          activeOpacity={0.6}
           onPress={() => navigation.navigate('Queue')}
         >
           <MaterialIcons name="queue-music" size={30} color={fontColor} />

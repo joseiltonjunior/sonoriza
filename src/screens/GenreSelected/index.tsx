@@ -10,11 +10,12 @@ import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
 
 import { useCallback, useEffect, useState } from 'react'
-import { FlatList, Image, Text, View } from 'react-native'
+import { ActivityIndicator, FlatList, Image, Text, View } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useSelector } from 'react-redux'
+import colors from 'tailwindcss/colors'
 
 export function GenreSelected() {
   const { params } = useRoute<RouteParamsProps<'GenreSelected'>>()
@@ -39,6 +40,7 @@ export function GenreSelected() {
     setIsLoading(true)
     try {
       const response = await handleGetArtistsByGenre(type, page)
+
       setPage((prev) => prev + 1)
       setArtists((prev) => [...prev, ...response])
 
@@ -114,13 +116,15 @@ export function GenreSelected() {
           />
         )}
         {isLoading && (
-          <Text
-            className={`${
+          <View
+            className={`absolute bottom-0 ${
               isCurrentMusic ? 'mb-32' : 'mb-16'
-            } text-center font-nunito-bold text-gray-300`}
+            } items-center w-full`}
           >
-            Carregando...
-          </Text>
+            <View className={`bg-gray-700 p-2 rounded-md`}>
+              <ActivityIndicator color={colors.gray[300]} size={'large'} />
+            </View>
+          </View>
         )}
       </View>
       <View className="absolute bottom-0 w-full">
