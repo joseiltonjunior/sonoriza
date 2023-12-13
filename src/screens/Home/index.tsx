@@ -1,5 +1,13 @@
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
-
+import {
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  Dimensions,
+  BackHandler,
+} from 'react-native'
+import AnimatedLottieView from 'lottie-react-native'
+import splash from '@assets/access-denied.json'
 import { useDispatch, useSelector } from 'react-redux'
 
 import {
@@ -60,11 +68,14 @@ import {
 } from '@storage/modules/inspiredMixes/reducer'
 import { shuffleArray } from '@utils/Types/shuffleArray'
 import { MusicProps } from '@utils/Types/musicProps'
+import { Button } from '@components/Button'
 
 export function Home() {
   const { historic } = useSelector<ReduxProps, HistoricProps>(
     (state) => state.historic,
   )
+
+  const size = Dimensions.get('window').width * 0.7
 
   const dispatch = useDispatch()
 
@@ -164,6 +175,7 @@ export function Home() {
           excludeGenres,
           excludesMusics,
         )
+
         dispatch(
           setInspiredMixes({
             musics: responseInspiredMixes,
@@ -201,6 +213,7 @@ export function Home() {
         openModalErrNetwork()
       }
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ignoreAlert, isConnected])
 
@@ -224,6 +237,31 @@ export function Home() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  if (user.plan === 'free') {
+    return (
+      <View className="bg-gray-700 flex-1 items-center justify-center p-8">
+        <AnimatedLottieView
+          source={splash}
+          autoPlay
+          // loop
+          resizeMode="contain"
+          style={{ width: size, height: size }}
+        />
+        <Text className="font-nunito-bold text-lg text-center">
+          Acesso não autorizado. Por favor, regularize o seu plano para
+          continuar.
+        </Text>
+        <Button
+          title="Sair da aplicação"
+          className="mt-8 rounded-md w-full"
+          onPress={() => {
+            BackHandler.exitApp()
+          }}
+        />
+      </View>
+    )
+  }
 
   return (
     <>

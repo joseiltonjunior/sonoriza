@@ -21,11 +21,13 @@ import {
   TrackPlayerProps,
   setIsInitialized,
 } from '@storage/modules/trackPlayer/reducer'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 const size = Dimensions.get('window').width * 0.9
 
 export function SplashScreen() {
   const navigation = useNavigation<StackNavigationProps>()
+  const { handleFetchDataUser } = useFirebaseServices()
 
   const { isConnected } = useNetInfo()
 
@@ -63,6 +65,7 @@ export function SplashScreen() {
         routes: [{ name: 'SignIn' }],
       })
     } else {
+      await handleFetchDataUser(user.uid)
       navigation.reset({
         index: 0,
         routes: [{ name: 'Home' }],
