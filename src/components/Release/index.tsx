@@ -11,12 +11,17 @@ import {
 import { twMerge } from 'tailwind-merge'
 import colors from 'tailwindcss/colors'
 
-interface ReleaseProps extends TouchableOpacityProps {
+interface AlbumCarouselProps extends TouchableOpacityProps {
   artwork: string
   name: string
 }
 
-export function Release({ artwork, name, className, ...rest }: ReleaseProps) {
+export function Release({
+  artwork,
+  name,
+  className,
+  ...rest
+}: AlbumCarouselProps) {
   return (
     <TouchableOpacity
       {...rest}

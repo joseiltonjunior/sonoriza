@@ -8,18 +8,20 @@ import { useDispatch, useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
 import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
 import { ReleasesDataProps } from '@utils/Types/releasesProps'
+import { UserDataProps } from '@utils/Types/userProps'
+
+import { shuffleArray } from '@utils/Types/shuffleArray'
 
 export function useFirebaseServices() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const dispatch = useDispatch()
 
-  // get
-
-  const handleGetMusicsDatabase = async (): Promise<MusicProps[]> => {
+  const handleGetMusicsNewUser = async (): Promise<MusicProps[]> => {
     let musics = [] as MusicProps[]
     await firestore()
       .collection('musics')
+      .limit(10)
       .get()
       .then(async (querySnapshot) => {
         const musicsResponse = querySnapshot.docs.map((doc) =>
@@ -55,10 +57,11 @@ export function useFirebaseServices() {
     return musicalGenres
   }
 
-  const handleGetArtists = async (): Promise<ArtistsDataProps[]> => {
+  const handleGetArtistsNewUser = async (): Promise<ArtistsDataProps[]> => {
     let artists = [] as ArtistsDataProps[]
     await firestore()
       .collection('artists')
+      .limit(10)
       .get()
       .then(async (querySnapshot) => {
         const artistsResponse = querySnapshot.docs.map((doc) =>
@@ -226,6 +229,42 @@ export function useFirebaseServices() {
     return musics
   }
 
+  const handleGetAllMusicsById = async (
+    musicsId: string[],
+    pageSize = 10,
+  ): Promise<MusicProps[]> => {
+    let musics = [] as MusicProps[]
+    const totalItems = musicsId.length
+    const totalPages = Math.ceil(totalItems / pageSize)
+
+    for (let page = 1; page <= totalPages; page++) {
+      const startIndex = (page - 1) * pageSize
+      const endIndex = Math.min(startIndex + pageSize, totalItems)
+
+      const batchIds = musicsId.slice(startIndex, endIndex)
+
+      if (batchIds.length === 0) {
+        break // Não há mais lotes para buscar
+      }
+
+      await firestore()
+        .collection('musics')
+        .where(firestore.FieldPath.documentId(), 'in', batchIds)
+        .get()
+        .then((querySnapshot) => {
+          const musicsResponse = querySnapshot.docs.map((doc) =>
+            doc.data(),
+          ) as MusicProps[]
+          musics = musics.concat(musicsResponse)
+        })
+        .catch((err) => {
+          crashlytics().recordError(err)
+        })
+    }
+
+    return musics
+  }
+
   const handleGetFavoritesArtists = async (
     artistsId: string[],
     page = 1,
@@ -271,15 +310,12 @@ export function useFirebaseServices() {
         'in',
         musicsId.slice(startIndex, startIndex + pageSize),
       )
-      .get({ source: 'cache' })
+      .get()
       .then((querySnapshot) => {
         const musicsResponse = querySnapshot.docs.map((doc) =>
           doc.data(),
         ) as MusicProps[]
         musics = musics.concat(musicsResponse)
-      })
-      .catch((err) => {
-        crashlytics().recordError(err)
       })
 
     return musics
@@ -300,11 +336,68 @@ export function useFirebaseServices() {
         ) as MusicProps[]
         musics = musicsResponse
       })
-      .catch((err) => {
-        crashlytics().recordError(err)
-      })
 
     return musics
+  }
+
+  const handleGetInspiredMixes = async (
+    musicalGenres: string[],
+    noIncludes: string[],
+  ): Promise<MusicProps[]> => {
+    let musics = [] as MusicProps[]
+
+    for (const musicalGenre of musicalGenres) {
+      const genreMusics = await firestore()
+        .collection('musics')
+        .where('genre', '==', musicalGenre)
+        .where(firestore.FieldPath.documentId(), 'not-in', noIncludes)
+        .limit(5)
+        .get()
+        .then((querySnapshot) =>
+          querySnapshot.docs.map((doc) => doc.data() as MusicProps),
+        )
+
+      musics = [...musics, ...genreMusics]
+    }
+
+    return shuffleArray(musics)
+  }
+
+  const handleGetArtistsByGenre = async (
+    musicalGenre: string,
+    page = 1,
+    pageSize = 10,
+  ): Promise<ArtistsDataProps[]> => {
+    let artists = [] as ArtistsDataProps[]
+
+    const startIndex = (page - 1) * pageSize
+
+    let query = firestore()
+      .collection('artists')
+      .where('musicalGenres', 'array-contains', { name: musicalGenre })
+      .limit(pageSize)
+
+    if (startIndex > 0) {
+      const startAfterDoc = await firestore()
+        .collection('artists')
+        .where('musicalGenres', 'array-contains', { name: musicalGenre })
+        .limit(startIndex)
+        .get()
+
+      if (!startAfterDoc.empty) {
+        query = query.startAfter(startAfterDoc.docs[startAfterDoc.size - 1])
+      }
+    }
+
+    const querySnapshot = await query.get()
+
+    if (!querySnapshot.empty) {
+      artists = querySnapshot.docs.map((doc) => doc.data() as ArtistsDataProps)
+    } else {
+      console.log('Não há mais resultados.')
+    }
+
+    return artists
   }
 
   const handleGetMusicsByFilter = async (
@@ -345,10 +438,26 @@ export function useFirebaseServices() {
     return releases
   }
 
+  async function handleFetchDataUser(userUid: string) {
+    firestore()
+      .collection('users')
+      .doc(userUid)
+      .get()
+      .then(async (querySnapshot) => {
+        const user = querySnapshot.data() as UserDataProps
+
+        dispatch(
+          handleSetUser({
+            user,
+          }),
+        )
+      })
+  }
+
   return {
-    handleGetArtists,
+    handleGetArtistsNewUser,
     handleGetMusicalGenres,
-    handleGetMusicsDatabase,
+    handleGetMusicsNewUser,
     handleFavoriteMusic,
     handleFavoriteArtist,
     handleGetArtistById,
@@ -359,5 +468,9 @@ export function useFirebaseServices() {
     handleGetMusicsByGenre,
     handleGetArtistsByFilter,
     handleGetReleases,
+    handleFetchDataUser,
+    handleGetArtistsByGenre,
+    handleGetInspiredMixes,
+    handleGetAllMusicsById,
   }
 }

@@ -16,30 +16,30 @@ export function BottomMenu() {
     <View className="bg-gray-950/90 px-8 flex-row justify-between border-t border-purple-600/30">
       <TouchableOpacity
         activeOpacity={0.6}
-        className="items-center py-2"
+        className="items-center py-2 px-4"
         onPress={() => navigation.navigate('Home')}
       >
         <Icon name="home" size={22} />
-        <Text className="font-nunito-regular text-xs mt-1">Início</Text>
+        <Text className="font-nunito-regular text-xs">Início</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         activeOpacity={0.6}
         disabled={!status}
-        className="items-center py-2"
+        className="items-center py-2 px-4"
         onPress={() => navigation.navigate('Search')}
       >
         <Icon name="search" size={22} />
-        <Text className="font-nunito-regular text-xs mt-1">Busca</Text>
+        <Text className="font-nunito-regular text-xs">Busca</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         activeOpacity={0.6}
-        className="items-center py-2"
+        className="items-center py-2 px-4"
         onPress={() => navigation.navigate('Favorites')}
       >
         <Icon name="heart-outline" size={22} />
-        <Text className="font-nunito-regular text-xs mt-1">Favoritos</Text>
+        <Text className="font-nunito-regular text-xs">Favoritos</Text>
       </TouchableOpacity>
     </View>
   )

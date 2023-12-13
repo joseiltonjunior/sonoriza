@@ -1,15 +1,24 @@
 import Carousel from 'react-native-reanimated-carousel'
 
 import { Release } from '@components/Release'
-import { ReleasesDataProps } from '@utils/Types/releasesProps'
+
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
+import { ArtistsDataProps } from '@utils/Types/artistsProps'
+import { MusicProps } from '@utils/Types/musicProps'
 
-interface ReleasesCourselProps {
-  releases: ReleasesDataProps[]
+export interface AlbumProps {
+  name: string
+  artwork: string
 }
 
-export function ReleasesCarousel({ releases }: ReleasesCourselProps) {
+interface AlbumCourselProps {
+  albums: AlbumProps[]
+  artist: ArtistsDataProps
+  musics: MusicProps[]
+}
+
+export function AlbumsCarousel({ albums, artist, musics }: AlbumCourselProps) {
   const navigation = useNavigation<StackNavigationProps>()
 
   return (
@@ -18,14 +27,14 @@ export function ReleasesCarousel({ releases }: ReleasesCourselProps) {
       style={{ width: 'auto' }}
       width={140}
       height={160}
-      data={releases}
+      data={albums}
       scrollAnimationDuration={1000}
       renderItem={({ item }) => (
         <Release
           name={item.name}
           artwork={item.artwork}
           onPress={() => {
-            navigation.navigate('Artist', { artistId: item.id })
+            navigation.navigate('Album', { album: item, artist, musics })
           }}
           className="ml-4"
         />

@@ -24,6 +24,8 @@ import { FavoriteArtistsProps } from './modules/favoriteArtists/reducer'
 import { FavoriteMusicsProps } from './modules/favoriteMusics/reducer'
 import { NetInfoProps } from './modules/netInfo/reducer'
 import { TrackPlayerProps } from './modules/trackPlayer/reducer'
+import { SearchHistoricProps } from './modules/searchHistoric/reducer'
+import { InspiredMixesProps } from './modules/inspiredMixes/reducer'
 
 export interface ReduxProps {
   user: UserProps
@@ -38,6 +40,9 @@ export interface ReduxProps {
 
   netInfo: NetInfoProps
   trackPlayer: TrackPlayerProps
+
+  searchHistoric: SearchHistoricProps
+  inspiredMixes: InspiredMixesProps
 }
 
 const persistConfig = {

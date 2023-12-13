@@ -5,7 +5,7 @@ import { MusicProps } from '@utils/Types/musicProps'
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useFavorites } from '@hooks/useFavorites'
-import { usePlaylistModal } from '@hooks/usePlaylistModal'
+// import { usePlaylistModal } from '@hooks/usePlaylistModal'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   TrackListOfflineProps,
@@ -21,13 +21,16 @@ import colors from 'tailwindcss/colors'
 
 interface InfoPlayingMusicProps {
   currentMusic?: MusicProps
+  isCloseModal?: boolean
 }
 
-export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
+export function InfoPlayingMusic({
+  currentMusic,
+  isCloseModal,
+}: InfoPlayingMusicProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   const { closeModal } = useBottomModal()
-  const { openModal } = usePlaylistModal()
 
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
     (state) => state.trackListOffline,
@@ -132,6 +135,7 @@ export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
             className="flex-row px-4 py-3"
             onPress={() => {
               if (currentMusic) {
+                if (isCloseModal) closeModal()
                 handleFavoriteMusic(currentMusic)
               }
             }}
@@ -143,7 +147,7 @@ export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             activeOpacity={0.6}
             className="flex-row px-4 py-3"
             onPress={() => {
@@ -154,7 +158,7 @@ export function InfoPlayingMusic({ currentMusic }: InfoPlayingMusicProps) {
             <Text className="ml-4 font-nunito-medium text-base">
               Adicionar à playlist
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </>
       )}
 

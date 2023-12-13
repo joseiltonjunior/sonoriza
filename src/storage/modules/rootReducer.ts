@@ -15,6 +15,8 @@ import favoriteArtists from './favoriteArtists/reducer'
 import trackPlayer from './trackPlayer/reducer'
 
 import netInfo from './netInfo/reducer'
+import searchHistoric from './searchHistoric/reducer'
+import inspiredMixes from './inspiredMixes/reducer'
 
 export default combineReducers({
   user,
@@ -27,4 +29,6 @@ export default combineReducers({
   favoriteArtists,
   releases,
   favoriteMusics,
+  searchHistoric,
+  inspiredMixes,
 })

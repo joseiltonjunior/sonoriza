@@ -19,6 +19,12 @@ const historicSlice = createSlice({
   name: 'historic',
   initialState,
   reducers: {
+    handleClearHistoric: () => {
+      return {
+        historic: [],
+      }
+    },
+
     handleSetHistoric: (state, action: PayloadAction<AddMusicProps>) => {
       const { music } = action.payload
       const existingIndex = state.historic.findIndex(
@@ -47,6 +53,6 @@ const historicSlice = createSlice({
   },
 })
 
-export const { handleSetHistoric } = historicSlice.actions
+export const { handleSetHistoric, handleClearHistoric } = historicSlice.actions
 
 export default historicSlice.reducer

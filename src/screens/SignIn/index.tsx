@@ -21,16 +21,13 @@ import { Button } from '@components/Button'
 import { useState } from 'react'
 
 import auth from '@react-native-firebase/auth'
-import firestore from '@react-native-firebase/firestore'
 
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
 
 import { useModal } from '@hooks/useModal'
-import { useDispatch } from 'react-redux'
-import { handleSetUser } from '@storage/modules/user/reducer'
 
-import { UserDataProps } from '@utils/Types/userProps'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 interface FormDataProps {
   email: string
@@ -58,34 +55,22 @@ export function SignIn() {
 
   const { closeModal, openModal } = useModal()
 
-  const dispatch = useDispatch()
+  const { handleFetchDataUser } = useFirebaseServices()
 
   GoogleSignin.configure({
     webClientId: WEB_CLIENT_ID,
   })
 
-  async function handleFetchDataUser(userUid: string) {
-    firestore()
-      .collection('users')
-      .doc(userUid)
-      .get()
-      .then(async (querySnapshot) => {
-        const user = querySnapshot.data() as UserDataProps
-
-        dispatch(
-          handleSetUser({
-            user,
-          }),
-        )
-
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Home' }],
-        })
+  async function handleDataUser(userUid: string) {
+    try {
+      await handleFetchDataUser(userUid)
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
       })
-      .finally(() => {
-        setIsLoading(false)
-      })
+    } catch (error) {
+      setIsLoading(false)
+    }
   }
 
   async function handleSignInWithGoogle() {
@@ -98,7 +83,7 @@ export function SignIn() {
       const response = await auth().signInWithCredential(googleCredential)
 
       const { uid } = response.user
-      handleFetchDataUser(uid)
+      handleDataUser(uid)
     } catch (error) {
       setIsLoading(false)
       openModal({
@@ -126,7 +111,7 @@ export function SignIn() {
       .signInWithEmailAndPassword(data.email, data.password)
       .then(async (result) => {
         const { uid } = result.user
-        handleFetchDataUser(uid)
+        handleDataUser(uid)
       })
       .catch(() => {
         setError('email', { message: '* credenciais inválidas' })

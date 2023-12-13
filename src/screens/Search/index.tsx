@@ -8,22 +8,23 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import {
+  SearchHistoricProps,
+  removeSearchHistoric,
+  setSearchHistoric,
+} from '@storage/modules/searchHistoric/reducer'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
 import { MusicProps } from '@utils/Types/musicProps'
 
 import { useEffect, useState } from 'react'
-import {
-  Dimensions,
-  FlatList,
-  Image,
-  Text,
-  TextInput,
-  View,
-} from 'react-native'
+import { Image, ScrollView, Text, TextInput, View } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import Icon from 'react-native-vector-icons/Ionicons'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
+
+import { Section } from '@components/Section'
+import { MusicalGenres } from '@components/MusicalGenres'
 
 export function Search() {
   const { handleIsVisible } = useSideMenu()
@@ -35,13 +36,17 @@ export function Search() {
     (state) => state.currentMusic,
   )
 
+  const { historic } = useSelector<ReduxProps, SearchHistoricProps>(
+    (state) => state.searchHistoric,
+  )
+
   const [musicalGenres, setMusicalGenres] = useState<string[]>([])
 
   const [filter, setFilter] = useState('')
 
   const navigation = useNavigation<StackNavigationProps>()
 
-  const screenWidth = Dimensions.get('window').width
+  const dispatch = useDispatch()
 
   const { handleMusicSelected } = useTrackPlayer()
   const { handleGetMusicsByFilter } = useFirebaseServices()
@@ -75,7 +80,7 @@ export function Search() {
 
   return (
     <View className="flex-1 bg-gray-700">
-      <View className="flex-1">
+      <ScrollView className="flex-1">
         <View className="p-4 flex-row items-center justify-between">
           <Text className="text-white text-3xl font-nunito-bold">Busca</Text>
 
@@ -112,109 +117,124 @@ export function Search() {
             )}
           </View>
 
-          <FlatList
-            className="mt-4"
-            showsVerticalScrollIndicator={false}
-            data={artistsFiltered}
-            ItemSeparatorComponent={() => <View className="h-3" />}
-            renderItem={({ item, index }) => (
-              <View className={`flex-row items-center justify-between `}>
-                <TouchableOpacity
-                  key={index}
-                  className="flex-row items-center gap-4 flex-1"
-                  onPress={() => {
-                    navigation.navigate('Artist', { artistId: item.id })
-                  }}
+          {!filter && historic.length > 0 && (
+            <View className="mt-4">
+              <Text>Buscas recentes</Text>
+              {historic.map((item) => (
+                <View
+                  key={item.name}
+                  className="flex-row items-center justify-between mt-2"
                 >
-                  <View className="w-20 h-20 bg-purple-600 rounded-full overflow-hidden items-center justify-center">
+                  <TouchableOpacity
+                    className="flex-row items-center w-80"
+                    onPress={() =>
+                      navigation.navigate('Artist', { artistId: item.id })
+                    }
+                  >
                     <Image
                       source={{ uri: item.photoURL }}
-                      alt="artwork"
-                      className="h-full w-full"
+                      alt="pic"
+                      className={`w-12 h-12 ${
+                        item.photoURL.includes('artists')
+                          ? 'rounded-full'
+                          : 'rounded-md'
+                      }`}
                     />
-                  </View>
-                  <View>
-                    <Text className="font-nunito-bold text-white text-base">
+                    <Text className="ml-2 font-nunito-bold text-gray-300">
                       {item.name}
                     </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            )}
-          />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="p-2"
+                    onPress={() => dispatch(removeSearchHistoric(item))}
+                  >
+                    <Icon name="trash" size={20} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
 
-          <FlatList
-            className="mt-4"
-            showsVerticalScrollIndicator={false}
-            data={musicsFiltered}
-            ItemSeparatorComponent={() => <View className="h-3" />}
-            renderItem={({ item, index }) => (
-              <View className={`flex-row justify-between items-center `}>
-                <TouchableOpacity
-                  key={index}
-                  className="flex-row items-center gap-2 max-w-[200px] "
-                  onPress={() => {
-                    handleMusicSelected({
-                      musicSelected: item,
-                      listMusics: [item],
-                    })
-                  }}
-                >
-                  <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
-                    {item.artwork ? (
-                      <Image
-                        source={{ uri: item.artwork }}
-                        alt="artwork"
-                        className="h-full w-full items-center justify-center"
-                      />
-                    ) : (
-                      <Icon name="music" size={28} color={colors.white} />
-                    )}
-                  </View>
-                  <View>
-                    <Text className="font-bold text-white">{item.title}</Text>
-                    <Text className="font-regular text-gray-300">
-                      {item.artists[0].name}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            )}
-          />
+          <View>
+            {artistsFiltered.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                className="flex-row items-center gap-4 flex-1 mt-2"
+                onPress={() => {
+                  dispatch(
+                    setSearchHistoric({
+                      name: item.name,
+                      photoURL: item.photoURL,
+                      id: item.id,
+                    }),
+                  )
+                  navigation.navigate('Artist', { artistId: item.id })
+                }}
+              >
+                <View className="w-20 h-20 bg-purple-600 rounded-full overflow-hidden items-center justify-center">
+                  <Image
+                    source={{ uri: item.photoURL }}
+                    alt="artwork"
+                    className="h-full w-full"
+                  />
+                </View>
 
-          {artistsFiltered.length === 0 &&
-            musicsFiltered.length === 0 &&
-            musicalGenres && (
-              <>
-                <Text className="font-nunito-bold text-lg text-white mb-2">
-                  Navegar por todas as seções
+                <Text className="font-nunito-bold text-white text-base">
+                  {item.name}
                 </Text>
-                <FlatList
-                  data={musicalGenres}
-                  showsVerticalScrollIndicator={false}
-                  numColumns={2}
-                  horizontal={false}
-                  columnWrapperStyle={{ gap: 12 }}
-                  ItemSeparatorComponent={() => <View className="h-3" />}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={{ width: (screenWidth - 48) / 2 }}
-                      className="bg-purple-600 rounded-lg px-2 items-center justify-center h-[60px]"
-                      activeOpacity={0.8}
-                      onPress={() =>
-                        navigation.navigate('GenreSelected', { type: item })
-                      }
-                    >
-                      <Text className="font-nunito-bold text-center text-white text-base leading-5">
-                        {item}
-                      </Text>
-                    </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View>
+            {musicsFiltered.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                className="flex-row items-center gap-2 max-w-[200px] mt-2 "
+                onPress={() => {
+                  dispatch(
+                    setSearchHistoric({
+                      name: item.title,
+                      photoURL: item.artwork,
+                      id: item.id,
+                    }),
+                  )
+                  handleMusicSelected({
+                    musicSelected: item,
+                    listMusics: [item],
+                  })
+                }}
+              >
+                <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
+                  {item.artwork ? (
+                    <Image
+                      source={{ uri: item.artwork }}
+                      alt="artwork"
+                      className="h-full w-full items-center justify-center"
+                    />
+                  ) : (
+                    <Icon name="music" size={28} color={colors.white} />
                   )}
-                />
-              </>
-            )}
+                </View>
+                <View>
+                  <Text className="font-bold text-white">{item.title}</Text>
+                  <Text className="font-regular text-gray-300">
+                    {item.artists[0].name}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      </View>
+
+        {artistsFiltered.length === 0 &&
+          musicsFiltered.length === 0 &&
+          musicalGenres.length > 0 && (
+            <Section title=" Explore por gêneros musicais" className="mt-4">
+              <MusicalGenres musicalGenres={musicalGenres} />
+            </Section>
+          )}
+      </ScrollView>
 
       <View className="absolute bottom-0 w-full">
         {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}

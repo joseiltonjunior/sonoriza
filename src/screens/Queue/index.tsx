@@ -89,7 +89,12 @@ export function Queue() {
           data={queue}
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item, index }) => (
-            <View className="flex-row justify-between items-center">
+            <View
+              className={`flex-row justify-between items-center ${
+                index + 1 === queue.length &&
+                `${isCurrentMusic ? 'mb-32' : 'mb-16'} `
+              } `}
+            >
               <TouchableOpacity
                 className="flex-row items-center gap-2 w-10/12 overflow-hidden"
                 onPress={() => {
@@ -148,8 +153,10 @@ export function Queue() {
           )}
         />
       </View>
-      {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
-      <BottomMenu />
+      <View className="absolute bottom-0 w-full">
+        {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}
+        <BottomMenu />
+      </View>
     </View>
   )
 }
