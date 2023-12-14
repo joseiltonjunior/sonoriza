@@ -14,7 +14,7 @@ import TrackPlayer, {
 
 import { ReduxProps } from '@storage/index'
 import { useDispatch, useSelector } from 'react-redux'
-import { UserProps } from '@storage/modules/user/reducer'
+import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
 import { useNetInfo } from '@react-native-community/netinfo'
 
 import {
@@ -65,7 +65,13 @@ export function SplashScreen() {
         routes: [{ name: 'SignIn' }],
       })
     } else {
-      await handleFetchDataUser(user.uid)
+      const userResponse = await handleFetchDataUser(user.uid)
+
+      dispatch(
+        handleSetUser({
+          user: userResponse,
+        }),
+      )
       navigation.reset({
         index: 0,
         routes: [{ name: 'Home' }],

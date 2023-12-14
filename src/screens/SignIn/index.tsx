@@ -28,10 +28,21 @@ import { useNavigation } from '@react-navigation/native'
 import { useModal } from '@hooks/useModal'
 
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { useDispatch } from 'react-redux'
+import { handleSetUser } from '@storage/modules/user/reducer'
 
 interface FormDataProps {
   email: string
   password: string
+}
+
+interface SaveUserProps {
+  uid: string
+  withGoogle?: {
+    displayName: string | null
+    email: string | null
+    photoURL: string | null
+  }
 }
 
 const schema = z.object({
@@ -55,21 +66,69 @@ export function SignIn() {
 
   const { closeModal, openModal } = useModal()
 
-  const { handleFetchDataUser } = useFirebaseServices()
+  const dispatch = useDispatch()
+
+  const { handleFetchDataUser, handleSaveUser } = useFirebaseServices()
 
   GoogleSignin.configure({
     webClientId: WEB_CLIENT_ID,
   })
 
-  async function handleDataUser(userUid: string) {
+  async function handleDataUser({ uid, withGoogle }: SaveUserProps) {
     try {
-      await handleFetchDataUser(userUid)
+      const user = await handleFetchDataUser(uid)
+
+      if (!user && withGoogle) {
+        const { displayName, email, photoURL } = withGoogle
+
+        const newUser = {
+          displayName,
+          email,
+          photoURL,
+          plan: 'free',
+          uid,
+        }
+
+        await handleSaveUser({
+          displayName,
+          email,
+          photoURL,
+          plan: 'free',
+          uid,
+        })
+
+        dispatch(
+          handleSetUser({
+            user: newUser,
+          }),
+        )
+      } else {
+        dispatch(
+          handleSetUser({
+            user,
+          }),
+        )
+      }
+
+      setIsLoading(false)
+
       navigation.reset({
         index: 0,
         routes: [{ name: 'Home' }],
       })
     } catch (error) {
       setIsLoading(false)
+      openModal({
+        title: 'Atenção',
+        description:
+          'No momento, não foi possível realizar o cadastro utilizando sua conta do Google. Pedimos desculpas pelo inconveniente e sugerimos que tente novamente mais tarde.',
+        singleAction: {
+          action() {
+            closeModal()
+          },
+          title: 'OK',
+        },
+      })
     }
   }
 
@@ -82,23 +141,27 @@ export function SignIn() {
       const googleCredential = auth.GoogleAuthProvider.credential(idToken)
       const response = await auth().signInWithCredential(googleCredential)
 
-      const { uid } = response.user
-      handleDataUser(uid)
+      const { uid, displayName, email, photoURL } = response.user
+
+      handleDataUser({
+        uid,
+        withGoogle: {
+          displayName,
+          email,
+          photoURL,
+        },
+      })
     } catch (error) {
       setIsLoading(false)
       openModal({
         title: 'Atenção',
         description:
-          'Para acessar o Sonoriza, basta realizar um rápido cadastro, que levará menos de 1 minuto.',
-        twoActions: {
-          actionCancel() {
+          'No momento, não foi possível autenticar com a sua conta do Google. Por favor, tente novamente mais tarde.',
+        singleAction: {
+          action() {
             closeModal()
           },
-          textCancel: 'AGORA NÃO',
-          actionConfirm() {
-            navigation.navigate('Register')
-          },
-          textConfirm: 'VAMOS LÁ',
+          title: 'OK',
         },
       })
     }
@@ -111,7 +174,7 @@ export function SignIn() {
       .signInWithEmailAndPassword(data.email, data.password)
       .then(async (result) => {
         const { uid } = result.user
-        handleDataUser(uid)
+        handleDataUser({ uid })
       })
       .catch(() => {
         setError('email', { message: '* credenciais inválidas' })
