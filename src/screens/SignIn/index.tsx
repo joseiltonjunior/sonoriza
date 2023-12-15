@@ -194,7 +194,9 @@ export function SignIn() {
             style={{ width: 200, objectFit: 'contain' }}
           />
 
-          <Text>Bem vindo(a), de volta!</Text>
+          <Text className="text-gray-300 font-nunito-regular">
+            Bem vindo(a), de volta!
+          </Text>
 
           <View className="w-full mt-12 px-4">
             <TouchableOpacity
@@ -208,15 +210,15 @@ export function SignIn() {
                 height={20}
                 style={{ width: 24, objectFit: 'contain' }}
               />
-              <Text className="text-gray-500 font-bold ml-6">
+              <Text className="text-gray-500 font-nunito-bold ml-6">
                 ENTRAR COM O GOOGLE
               </Text>
             </TouchableOpacity>
 
             <View className="flex-row overflow-hidden items-center my-6">
-              <View className="h-[1px] flex-1 bg-white" />
-              <Text className="font-bold mx-2">OU</Text>
-              <View className="h-[1px] flex-1 bg-white" />
+              <View className="h-[1px] flex-1 bg-gray-300" />
+              <Text className="font-nunito-bold text-gray-300 mx-2">OU</Text>
+              <View className="h-[1px] flex-1 bg-gray-300" />
             </View>
 
             <Input
@@ -249,15 +251,21 @@ export function SignIn() {
               className="ml-auto mr-auto mt-6 flex-row"
               onPress={() => navigation.navigate('Register')}
             >
-              <Text>NÃO TEM UMA CONTA?</Text>
-              <Text className="font-bold ml-1 underline">INSCREVA-SE</Text>
+              <Text className="font-nunito-regular text-gray-300">
+                NÃO TEM UMA CONTA?
+              </Text>
+              <Text className="font-nunito-bold text-gray-300 ml-1 underline">
+                INSCREVA-SE
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               className="ml-auto mr-auto mt-8"
               onPress={() => navigation.navigate('RecoveryPassword')}
             >
-              <Text>REDEFINIR SENHA</Text>
+              <Text className="text-gray-300 font-nunito-regular">
+                REDEFINIR SENHA
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

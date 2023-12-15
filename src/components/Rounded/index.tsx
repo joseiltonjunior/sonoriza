@@ -43,7 +43,7 @@ export function Rounded({
 
         <View className="mt-auto pt-2">
           <Text
-            className="font-nunito-bold text-base text-gray-300 text-center"
+            className="font-nunito-bold text-base text-white text-center"
             numberOfLines={1}
           >
             {artist}

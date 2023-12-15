@@ -140,7 +140,7 @@ export function InfoPlayingMusic({
               }
             }}
           >
-            <Text className="ml-4 font-nunito-medium text-base">
+            <Text className="ml-4 font-nunito-medium text-base text-gray-300">
               {isFavoriteMusic
                 ? 'Remover dos favoritos'
                 : 'Adicionar aos favoritos'}
@@ -174,7 +174,7 @@ export function InfoPlayingMusic({
         }}
       >
         <View className="flex-row items-center justify-between flex-1">
-          <Text className="ml-4 font-nunito-medium text-base">
+          <Text className="ml-4 font-nunito-medium text-base text-gray-300">
             {isOffline
               ? 'Remover da playlist offline'
               : 'Adicionar à playlist offline'}

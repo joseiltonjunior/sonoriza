@@ -5,6 +5,7 @@ import { NetInfoProps } from '@storage/modules/netInfo/reducer'
 import { Text, TouchableOpacity, View } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useSelector } from 'react-redux'
+import colors from 'tailwindcss/colors'
 
 export function BottomMenu() {
   const navigation = useNavigation<StackNavigationProps>()
@@ -19,8 +20,10 @@ export function BottomMenu() {
         className="items-center py-2 px-4"
         onPress={() => navigation.navigate('Home')}
       >
-        <Icon name="home" size={22} />
-        <Text className="font-nunito-regular text-xs">Início</Text>
+        <Icon name="home" size={22} color={colors.gray[400]} />
+        <Text className="font-nunito-regular text-xs text-gray-400">
+          Início
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -29,8 +32,8 @@ export function BottomMenu() {
         className="items-center py-2 px-4"
         onPress={() => navigation.navigate('Search')}
       >
-        <Icon name="search" size={22} />
-        <Text className="font-nunito-regular text-xs">Busca</Text>
+        <Icon name="search" size={22} color={colors.gray[400]} />
+        <Text className="font-nunito-regular text-xs text-gray-400">Busca</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -38,8 +41,10 @@ export function BottomMenu() {
         className="items-center py-2 px-4"
         onPress={() => navigation.navigate('Favorites')}
       >
-        <Icon name="heart-outline" size={22} />
-        <Text className="font-nunito-regular text-xs">Favoritos</Text>
+        <Icon name="heart-outline" size={22} color={colors.gray[400]} />
+        <Text className="font-nunito-regular text-xs text-gray-400">
+          Favoritos
+        </Text>
       </TouchableOpacity>
     </View>
   )

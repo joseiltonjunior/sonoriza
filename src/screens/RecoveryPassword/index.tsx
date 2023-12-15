@@ -99,7 +99,9 @@ export function RecoveryPassword() {
             style={{ width: 200, objectFit: 'contain' }}
           />
 
-          <Text>Redefinição de senha</Text>
+          <Text className="font-nunito-regular text-gray-300">
+            Redefinição de senha
+          </Text>
 
           <View className="w-full mt-20 px-4">
             <Input
@@ -123,7 +125,9 @@ export function RecoveryPassword() {
               className="ml-auto mr-auto mt-8"
               onPress={() => navigation.goBack()}
             >
-              <Text className="underline">VOLTAR</Text>
+              <Text className="underline font-nunito-regular text-white">
+                VOLTAR
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

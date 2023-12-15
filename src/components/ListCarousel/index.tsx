@@ -79,10 +79,13 @@ export function ListCarousel({ musics }: ListCourselProps) {
                   )}
                 </View>
                 <View>
-                  <Text className="font-bold text-white" numberOfLines={1}>
+                  <Text
+                    className="font-nunito-bold text-white"
+                    numberOfLines={1}
+                  >
                     {music.title}
                   </Text>
-                  <Text className="font-regular text-gray-300">
+                  <Text className="font-nunito-regular text-gray-300">
                     {music.artists[0].name}
                   </Text>
                 </View>

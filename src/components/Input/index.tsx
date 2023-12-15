@@ -9,6 +9,7 @@ import { useController, FieldError, Control } from 'react-hook-form'
 import Icon from 'react-native-vector-icons/Feather'
 import { useState } from 'react'
 import MaskInput from 'react-native-mask-input'
+import colors from 'tailwindcss/colors'
 
 interface InputFormProps extends TextInputProps {
   name: string
@@ -39,7 +40,7 @@ export function Input({
           error && 'border-red-600'
         }`}
       >
-        {icon && <Icon name={icon} size={20} />}
+        {icon && <Icon name={icon} size={20} color={colors.gray[400]} />}
         {mask ? (
           <MaskInput
             {...rest}
@@ -51,6 +52,7 @@ export function Input({
         ) : (
           <TextInput
             className="placeholder:text-base ml-2 text-white bg-transparent flex-1"
+            placeholderTextColor={colors.gray[400]}
             value={field.value}
             onChangeText={field.onChange}
             secureTextEntry={password && isVisible ? true : !isVisible && false}
@@ -63,7 +65,11 @@ export function Input({
             onPress={() => setIsVisible(!isVisible)}
             activeOpacity={0.5}
           >
-            <Icon name={!isVisible ? 'eye-off' : 'eye'} size={20} />
+            <Icon
+              name={!isVisible ? 'eye-off' : 'eye'}
+              size={20}
+              color={colors.gray[400]}
+            />
           </TouchableOpacity>
         )}
       </View>

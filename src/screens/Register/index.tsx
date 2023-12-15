@@ -169,7 +169,9 @@ export function Register() {
             style={{ width: 200, objectFit: 'contain' }}
           />
 
-          <Text>Bem vindo(a)!</Text>
+          <Text className="text-gray-300 font-nunito-regular">
+            Bem vindo(a)!
+          </Text>
 
           <View className="w-full mt-20 px-4">
             <Input
@@ -219,8 +221,12 @@ export function Register() {
               className="ml-auto mr-auto mt-6 flex-row"
               onPress={() => navigation.navigate('SignIn')}
             >
-              <Text>JÁ POSSUI UMA CONTA?</Text>
-              <Text className="font-bold ml-1 underline">ENTRAR</Text>
+              <Text className="font-nunito-regular text-gray-300">
+                JÁ POSSUI UMA CONTA?
+              </Text>
+              <Text className="font-nunito-bold text-gray-300 ml-1 underline">
+                ENTRAR
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

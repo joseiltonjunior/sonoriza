@@ -69,6 +69,7 @@ import {
 import { shuffleArray } from '@utils/Types/shuffleArray'
 import { MusicProps } from '@utils/Types/musicProps'
 import { Button } from '@components/Button'
+import colors from 'tailwindcss/colors'
 
 export function Home() {
   const { historic } = useSelector<ReduxProps, HistoricProps>(
@@ -270,7 +271,7 @@ export function Home() {
           <Text className="text-white text-3xl font-nunito-bold">Início</Text>
 
           <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
-            <Icon name="settings-outline" size={26} />
+            <Icon name="settings-outline" size={26} color={colors.gray[300]} />
           </TouchableOpacity>
         </View>
 
