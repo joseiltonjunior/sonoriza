@@ -439,19 +439,27 @@ export function useFirebaseServices() {
   }
 
   async function handleFetchDataUser(userUid: string) {
-    firestore()
-      .collection('users')
-      .doc(userUid)
-      .get()
-      .then(async (querySnapshot) => {
-        const user = querySnapshot.data() as UserDataProps
+    const user = (
+      await firestore().collection('users').doc(userUid).get()
+    ).data() as UserDataProps
 
-        dispatch(
-          handleSetUser({
-            user,
-          }),
-        )
-      })
+    return user
+  }
+
+  async function handleSaveUser({
+    email,
+    displayName,
+    photoURL,
+    uid,
+    plan,
+  }: UserDataProps) {
+    firestore().collection('users').doc(uid).set({
+      email,
+      displayName,
+      photoURL,
+      uid,
+      plan,
+    })
   }
 
   return {
@@ -472,5 +480,6 @@ export function useFirebaseServices() {
     handleGetArtistsByGenre,
     handleGetInspiredMixes,
     handleGetAllMusicsById,
+    handleSaveUser,
   }
 }

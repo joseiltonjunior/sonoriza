@@ -12,8 +12,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { WEB_CLIENT_ID } from '@env'
 
-import iconGoogle from '@assets/icon-google.png'
-
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
 
 import logo from '@assets/logo.png'
@@ -21,7 +19,6 @@ import { Button } from '@components/Button'
 import { useState } from 'react'
 
 import auth from '@react-native-firebase/auth'
-import firestore from '@react-native-firebase/firestore'
 
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
@@ -29,6 +26,7 @@ import { useModal } from '@hooks/useModal'
 import { useDispatch } from 'react-redux'
 import { handleSetUser } from '@storage/modules/user/reducer'
 import { FormDataProps, UserDataProps } from '@utils/Types/userProps'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 const schema = z
   .object({
@@ -69,6 +67,8 @@ export function Register() {
 
   const [isLoading, setIsLoading] = useState(false)
 
+  const { handleSaveUser } = useFirebaseServices()
+
   const dispatch = useDispatch()
 
   GoogleSignin.configure({
@@ -82,104 +82,35 @@ export function Register() {
     uid,
     plan,
   }: UserDataProps) {
-    const userRef = firestore().collection('users').doc(uid)
-
-    userRef
-      .get()
-      .then((doc) => {
-        if (doc.exists) {
-          setIsLoading(false)
-          openModal({
-            title: 'Atenção',
-            description:
-              'Você já possui uma conta cadastrada. Por favor, faça login.',
-            singleAction: {
-              action() {
-                closeModal()
-                navigation.reset({
-                  index: 0,
-                  routes: [
-                    {
-                      name: 'SignIn',
-                      params: undefined,
-                    },
-                  ],
-                })
-              },
-              title: 'OK',
-            },
-          })
-        } else {
-          firestore()
-            .collection('users')
-            .doc(uid)
-            .set({
-              email,
-              displayName,
-              photoURL,
-              uid,
-              plan,
-            })
-            .then(() => {
-              dispatch(
-                handleSetUser({
-                  user: {
-                    displayName,
-                    email,
-                    photoURL,
-                    uid,
-                    plan,
-                  },
-                }),
-              )
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: 'Home',
-                    params: undefined,
-                  },
-                ],
-              })
-            })
-
-          setIsLoading(false)
-        }
-      })
-      .catch(() => {
-        setIsLoading(false)
-        openModal({
-          title: 'Atenção',
-          description:
-            'Desculpe, não foi possível concluir o cadastro neste momento. Por favor, tente novamente.',
-          singleAction: {
-            action() {
-              closeModal()
-            },
-            title: 'OK',
-          },
-        })
-      })
-  }
-
-  async function handleSignInWithGoogle() {
-    setIsLoading(true)
     try {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
-
-      const { idToken } = await GoogleSignin.signIn()
-
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken)
-      const response = await auth().signInWithCredential(googleCredential)
-
-      const { uid, email, displayName, photoURL } = response.user
-
-      handleSaveInDatabase({ displayName, email, photoURL, uid, plan: 'free' })
+      await handleSaveUser({ displayName, email, photoURL, plan, uid })
+      setIsLoading(false)
+      dispatch(
+        handleSetUser({
+          user: {
+            displayName,
+            email,
+            photoURL,
+            uid,
+            plan,
+          },
+        }),
+      )
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'Home',
+            params: undefined,
+          },
+        ],
+      })
     } catch (error) {
+      setIsLoading(false)
       openModal({
         title: 'Atenção',
         description:
-          'Desculpe, não foi possível acessar a aplicação nesse momento. Por favor, tente novamente.',
+          'Desculpe, não foi possível concluir o cadastro neste momento. Por favor, tente novamente.',
         singleAction: {
           action() {
             closeModal()
@@ -187,7 +118,6 @@ export function Register() {
           title: 'OK',
         },
       })
-      setIsLoading(false)
     }
   }
 
@@ -239,31 +169,11 @@ export function Register() {
             style={{ width: 200, objectFit: 'contain' }}
           />
 
-          <Text>Bem vindo(a)!</Text>
+          <Text className="text-gray-300 font-nunito-regular">
+            Bem vindo(a)!
+          </Text>
 
-          <View className="w-full mt-12 px-4">
-            <TouchableOpacity
-              onPress={handleSignInWithGoogle}
-              className="bg-gray-100 w-full rounded-full h-12 items-center justify-center flex-row"
-            >
-              <Image
-                source={iconGoogle}
-                alt="google icon"
-                width={20}
-                height={20}
-                style={{ width: 24, objectFit: 'contain' }}
-              />
-              <Text className="text-gray-500 font-bold ml-6">
-                ENTRAR COM O GOOGLE
-              </Text>
-            </TouchableOpacity>
-
-            <View className="flex-row overflow-hidden items-center my-6">
-              <View className="h-[1px] flex-1 bg-white" />
-              <Text className="font-bold mx-2">OU</Text>
-              <View className="h-[1px] flex-1 bg-white" />
-            </View>
-
+          <View className="w-full mt-20 px-4">
             <Input
               icon="user"
               name="name"
@@ -311,8 +221,12 @@ export function Register() {
               className="ml-auto mr-auto mt-6 flex-row"
               onPress={() => navigation.navigate('SignIn')}
             >
-              <Text>JÁ POSSUI UMA CONTA?</Text>
-              <Text className="font-bold ml-1 underline">ENTRAR</Text>
+              <Text className="font-nunito-regular text-gray-300">
+                JÁ POSSUI UMA CONTA?
+              </Text>
+              <Text className="font-nunito-bold text-gray-300 ml-1 underline">
+                ENTRAR
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

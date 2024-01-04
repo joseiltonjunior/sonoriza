@@ -19,7 +19,7 @@ export function ReleasesCarousel({ releases }: ReleasesCourselProps) {
       width={140}
       height={160}
       data={releases}
-      scrollAnimationDuration={1000}
+      scrollAnimationDuration={500}
       renderItem={({ item }) => (
         <Release
           name={item.name}

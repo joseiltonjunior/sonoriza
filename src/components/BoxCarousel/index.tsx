@@ -18,7 +18,7 @@ export function BoxCarousel({ musics }: BoxCourselProps) {
       width={140}
       height={160}
       data={musics}
-      scrollAnimationDuration={1000}
+      scrollAnimationDuration={500}
       renderItem={({ item }) => (
         <Card
           title={item.title}

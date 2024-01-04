@@ -1,5 +1,5 @@
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ProgressBar } from '@react-native-community/progress-bar-android'
 import Carousel from 'react-native-reanimated-carousel'
@@ -12,21 +12,25 @@ import animation from '@assets/music-loading.json'
 import {
   Dimensions,
   ImageBackground,
+  NativeSyntheticEvent,
+  NativeTouchEvent,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native'
 
 import Icon from 'react-native-vector-icons/Ionicons'
+
 import FatherIcons from 'react-native-vector-icons/Feather'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import { useDispatch, useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
 import {
   CurrentMusicProps,
   handleSetCurrentMusic,
 } from '@storage/modules/currentMusic/reducer'
-import { State as StatePlayer } from 'react-native-track-player'
+import { RepeatMode, State as StatePlayer } from 'react-native-track-player'
 
 import { useBottomModal } from '@hooks/useBottomModal'
 
@@ -39,6 +43,7 @@ import { DynamicBackgroundColor } from '@components/DynamicBackgroundColor'
 
 import { useFavorites } from '@hooks/useFavorites'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import ImmersiveMode from 'react-native-immersive-mode'
 
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
@@ -49,22 +54,27 @@ export function Music() {
 
   const { openModal } = useBottomModal()
 
-  const progress = useProgress()
+  const { duration, position } = useProgress()
 
   const [fontColor, setFontColor] = useState('#fff')
-  const [actualProgress, setActualProgress] = useState<number>(0)
+
+  const [changeProgress, setChangeProgress] = useState<number>(0)
+
+  const [repeatMode, setRepeatMode] = useState<number>(0)
+
+  const [currentPosition, setCurrentPosition] = useState<number>(0)
+
+  const [isSeek, setIsSeek] = useState(false)
 
   const { isCurrentMusic, state } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
 
-  const [indexCurrentMusic, setIndexCurrentMusic] = useState(0)
-
   const { queue } = useSelector<ReduxProps, QueueProps>((state) => state.queue)
 
   const dispatch = useDispatch()
 
-  const { isFavoriteMusic } = useFavorites()
+  const { isFavoriteMusic } = useFavorites(isCurrentMusic)
 
   const { handleFavoriteMusic } = useFirebaseServices()
 
@@ -92,12 +102,26 @@ export function Music() {
   }, [isCurrentMusic?.title, queue])
 
   const calculateProgressPercentage = useCallback(() => {
-    if (progress.duration > 0) {
-      const percentage = progress.position / progress.duration
-      setActualProgress(percentage)
+    if (duration > 0) {
+      const percentage = position / duration
+
+      setChangeProgress(percentage)
     }
     return 0
-  }, [progress.duration, progress.position])
+  }, [duration, position])
+
+  const handleChangeProgress = useCallback(
+    (event: NativeSyntheticEvent<NativeTouchEvent>) => {
+      const { locationX } = event.nativeEvent
+      const value = locationX / 330
+
+      const newPosition = value * duration
+      setCurrentPosition(newPosition)
+      setChangeProgress(value)
+      setIsSeek(true)
+    },
+    [duration],
+  )
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
@@ -114,11 +138,6 @@ export function Music() {
     if (currentIndex === 0) return
     const trackSelect = queue[currentIndex - 1] as MusicProps
 
-    const indexSelected = queue.findIndex(
-      (item) => item.title === trackSelect.title,
-    )
-
-    setIndexCurrentMusic(indexSelected)
     dispatch(handleSetCurrentMusic({ isCurrentMusic: trackSelect }))
 
     await TrackPlayer.skipToPrevious()
@@ -133,23 +152,10 @@ export function Music() {
     if (currentIndex === queue.length - 1) return
     const trackSelect = queue[currentIndex + 1] as MusicProps
 
-    const indexSelected = queue.findIndex(
-      (item) => item.title === trackSelect.title,
-    )
-
-    setIndexCurrentMusic(indexSelected)
     dispatch(handleSetCurrentMusic({ isCurrentMusic: trackSelect }))
 
     await TrackPlayer.skipToNext()
     await TrackPlayer.play()
-  }
-
-  const handleSlideThumb = (index: number) => {
-    if (index > indexCurrentMusic) {
-      handleSkipToNext()
-    } else if (index < indexCurrentMusic) {
-      handleSkipToPrevius()
-    }
   }
 
   function calculateLuminosity(r: number, g: number, b: number): number {
@@ -179,6 +185,62 @@ export function Music() {
     return { r, g, b }
   }
 
+  const handleSeek = async (event: NativeSyntheticEvent<NativeTouchEvent>) => {
+    const { locationX } = event.nativeEvent
+    const value = locationX / 330
+    const newPosition = value * duration
+    setCurrentPosition(0)
+    setIsSeek(false)
+    TrackPlayer.seekTo(newPosition)
+  }
+
+  const handleVerifyRepeatMode = async () => {
+    const mode = await TrackPlayer.getRepeatMode()
+    setRepeatMode(mode)
+  }
+
+  const handleIconsRepeatMode = useMemo(() => {
+    switch (repeatMode) {
+      case 1:
+        return 'repeat-once'
+
+      case 2:
+        return 'repeat'
+
+      default:
+        return 'repeat-off'
+    }
+  }, [repeatMode])
+
+  const handleRepeatMode = useCallback(async () => {
+    switch (repeatMode) {
+      case 0:
+        TrackPlayer.setRepeatMode(RepeatMode.Track)
+
+        setRepeatMode(1)
+        break
+
+      case 1:
+        TrackPlayer.setRepeatMode(RepeatMode.Queue)
+
+        setRepeatMode(2)
+        break
+
+      case 2:
+        TrackPlayer.setRepeatMode(RepeatMode.Off)
+
+        setRepeatMode(0)
+        break
+
+      default:
+    }
+  }, [TrackPlayer, repeatMode])
+
+  useEffect(() => {
+    handleVerifyRepeatMode()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     if (isCurrentMusic?.color) {
       const backgroundColor = isCurrentMusic.color
@@ -190,12 +252,22 @@ export function Music() {
   }, [determineFontColor, isCurrentMusic?.color])
 
   useEffect(() => {
-    calculateProgressPercentage()
-  }, [calculateProgressPercentage])
+    if (!isSeek) {
+      calculateProgressPercentage()
+    }
+  }, [calculateProgressPercentage, isSeek])
+
+  useFocusEffect(() => {
+    ImmersiveMode.setBarTranslucent(true)
+
+    return () => {
+      ImmersiveMode.setBarTranslucent(false)
+    }
+  })
 
   return (
     <DynamicBackgroundColor color={isCurrentMusic?.color}>
-      <View className="flex-row items-center justify-between m-4">
+      <View className="flex-row items-center justify-between m-4 mt-8">
         <TouchableOpacity
           onPress={() => {
             navigation.goBack()
@@ -241,10 +313,10 @@ export function Music() {
           loop={false}
           width={size}
           height={380}
-          data={queue}
-          onSnapToItem={(index) => {
-            handleSlideThumb(index)
+          onScrollEnd={(index) => {
+            TrackPlayer.skip(index)
           }}
+          data={queue}
           defaultIndex={currentIndex}
           scrollAnimationDuration={500}
           renderItem={({ item }) => (
@@ -273,7 +345,7 @@ export function Music() {
           )}
         />
 
-        <View className="flex-row mt-16 w-full items-center justify-between">
+        <View className="flex-row mt-10 w-full items-center justify-between">
           <View className="overflow-hidden w-[250px]">
             <Text
               className="font-nunito-bold text-white text-xl"
@@ -307,61 +379,92 @@ export function Music() {
           </TouchableOpacity>
         </View>
 
-        <View className="mt-4 w-full items-center">
-          <ProgressBar
-            styleAttr="Horizontal"
-            indeterminate={false}
-            progress={actualProgress}
-            color={fontColor}
-            style={{ width: '100%' }}
-          />
+        <View className="mt-4 w-[330px] items-center">
           <View className="flex-row justify-between w-full">
             <Text
               className="font-nunito-regular text-xs text-white"
               style={{ color: fontColor }}
             >
-              {formatTime(progress.position)}
+              {formatTime(currentPosition !== 0 ? currentPosition : position)}
             </Text>
             <Text
               className="font-nunito-regular text-xs text-white"
               style={{ color: fontColor }}
             >
-              {formatTime(progress.duration)}
+              {formatTime(duration)}
             </Text>
+          </View>
+
+          <View className="w-full items-center mt-2">
+            <ProgressBar
+              styleAttr="Horizontal"
+              indeterminate={false}
+              progress={changeProgress}
+              color={fontColor}
+              style={{
+                width: 330,
+                zIndex: 1000,
+                height: 20,
+              }}
+              onTouchEnd={handleSeek}
+              onTouchMove={handleChangeProgress}
+            />
+            <View
+              className="absolute top-[2px] w-4 h-4 rounded-full"
+              style={{
+                left: `${changeProgress * 100}%`,
+                backgroundColor: fontColor,
+              }}
+            />
           </View>
         </View>
       </View>
 
-      <View className="flex-row justify-around  items-center px-20 mt-6">
+      <View className="flex-row justify-around  items-center px-10 mt-6">
+        <View className="p-2 rounded-full h-11 w-11"></View>
+        <View className="flex-row items-center flex-1 justify-between mx-8">
+          <TouchableOpacity
+            disabled={havePrevious}
+            onPress={handleSkipToPrevius}
+            className="p-2 rounded-full"
+          >
+            <Icon name="play-skip-back" size={25} color={fontColor} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ borderColor: fontColor }}
+            className="border rounded-full p-2"
+            onPress={() => {
+              if (state === StatePlayer.Playing) {
+                TrackPlayer.pause()
+              } else {
+                TrackPlayer.play()
+              }
+            }}
+          >
+            <Icon
+              name={state === StatePlayer.Paused ? 'play' : 'pause'}
+              size={50}
+              color={fontColor}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            disabled={haveNext}
+            onPress={handleSkipToNext}
+            className="p-2 rounded-full"
+          >
+            <Icon name="play-skip-forward" size={25} color={fontColor} />
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity
-          disabled={havePrevious}
-          onPress={handleSkipToPrevius}
-          className="p-2 rounded-full"
+          onPress={handleRepeatMode}
+          className="p-2 rounded-full relative"
         >
-          <Icon name="play-skip-back" size={25} color={fontColor} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            if (state === StatePlayer.Playing) {
-              TrackPlayer.pause()
-            } else {
-              TrackPlayer.play()
-            }
-          }}
-        >
-          <Icon
-            name={state === StatePlayer.Paused ? 'play' : 'pause'}
-            size={50}
+          <MaterialCommunityIcons
+            name={handleIconsRepeatMode}
+            size={25}
             color={fontColor}
           />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          disabled={haveNext}
-          onPress={handleSkipToNext}
-          className="p-2 rounded-full"
-        >
-          <Icon name="play-skip-forward" size={25} color={fontColor} />
         </TouchableOpacity>
       </View>
       <View className="m-4">

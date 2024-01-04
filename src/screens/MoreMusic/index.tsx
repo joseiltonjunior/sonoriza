@@ -156,7 +156,7 @@ export function MoreMusic() {
 
   return (
     <View className="flex-1 relative bg-gray-700">
-      <View className="px-4 flex-1 mt-2">
+      <View className="px-4 flex-1 mt-8">
         <View className="items-center justify-center py-4">
           <TouchableOpacity
             onPress={() => {

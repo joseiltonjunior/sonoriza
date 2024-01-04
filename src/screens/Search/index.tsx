@@ -81,21 +81,22 @@ export function Search() {
   return (
     <View className="flex-1 bg-gray-700">
       <ScrollView className="flex-1">
-        <View className="p-4 flex-row items-center justify-between">
+        <View className="p-4 flex-row items-center justify-between mt-8">
           <Text className="text-white text-3xl font-nunito-bold">Busca</Text>
 
           <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
-            <Icon name="settings-outline" size={26} />
+            <Icon name="settings-outline" size={26} color={colors.gray[300]} />
           </TouchableOpacity>
         </View>
 
         <View className="p-4">
           <View className="bg-gray-950 rounded-xl overflow-hidden px-4 flex-row items-center justify-between">
             <View className="flex-row items-center">
-              <Icon name="search" size={22} />
+              <Icon name="search" size={22} color={colors.gray[300]} />
               <TextInput
                 value={filter}
-                className="ml-2 w-10/12 bg-transparent"
+                placeholderTextColor={colors.gray[300]}
+                className="ml-2 w-10/12 bg-transparent text-white "
                 placeholder="Artistas, faixas, podcasts..."
                 onChangeText={(e) => {
                   setFilter(e)
@@ -112,14 +113,16 @@ export function Search() {
                   setFilter('')
                 }}
               >
-                <Icon name="close-circle" size={22} className="" />
+                <Icon name="close-circle" size={22} color={colors.gray[300]} />
               </TouchableOpacity>
             )}
           </View>
 
           {!filter && historic.length > 0 && (
             <View className="mt-4">
-              <Text>Buscas recentes</Text>
+              <Text className="font-nunito-medium text-white">
+                Buscas recentes
+              </Text>
               {historic.map((item) => (
                 <View
                   key={item.name}
@@ -127,9 +130,16 @@ export function Search() {
                 >
                   <TouchableOpacity
                     className="flex-row items-center w-80"
-                    onPress={() =>
+                    onPress={() => {
+                      if (item.music) {
+                        handleMusicSelected({
+                          musicSelected: item.music,
+                          listMusics: [item.music],
+                        })
+                        return
+                      }
                       navigation.navigate('Artist', { artistId: item.id })
-                    }
+                    }}
                   >
                     <Image
                       source={{ uri: item.photoURL }}
@@ -148,18 +158,18 @@ export function Search() {
                     className="p-2"
                     onPress={() => dispatch(removeSearchHistoric(item))}
                   >
-                    <Icon name="trash" size={20} />
+                    <Icon name="trash" size={20} color={colors.gray[300]} />
                   </TouchableOpacity>
                 </View>
               ))}
             </View>
           )}
 
-          <View>
+          <View className="mt-2">
             {artistsFiltered.map((item) => (
               <TouchableOpacity
                 key={item.id}
-                className="flex-row items-center gap-4 flex-1 mt-2"
+                className="flex-row items-center flex-1 mt-2"
                 onPress={() => {
                   dispatch(
                     setSearchHistoric({
@@ -171,7 +181,7 @@ export function Search() {
                   navigation.navigate('Artist', { artistId: item.id })
                 }}
               >
-                <View className="w-20 h-20 bg-purple-600 rounded-full overflow-hidden items-center justify-center">
+                <View className="w-16 h-16 bg-purple-600 rounded-full overflow-hidden items-center justify-center">
                   <Image
                     source={{ uri: item.photoURL }}
                     alt="artwork"
@@ -179,24 +189,25 @@ export function Search() {
                   />
                 </View>
 
-                <Text className="font-nunito-bold text-white text-base">
+                <Text className="font-nunito-bold text-white text-base ml-2">
                   {item.name}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <View>
+          <View className="mt-2">
             {musicsFiltered.map((item) => (
               <TouchableOpacity
                 key={item.id}
-                className="flex-row items-center gap-2 max-w-[200px] mt-2 "
+                className="flex-row items-center max-w-[200px] mt-2 "
                 onPress={() => {
                   dispatch(
                     setSearchHistoric({
                       name: item.title,
                       photoURL: item.artwork,
                       id: item.id,
+                      music: item,
                     }),
                   )
                   handleMusicSelected({
@@ -205,7 +216,7 @@ export function Search() {
                   })
                 }}
               >
-                <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
+                <View className="w-16 h-16 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
                   {item.artwork ? (
                     <Image
                       source={{ uri: item.artwork }}
@@ -216,7 +227,7 @@ export function Search() {
                     <Icon name="music" size={28} color={colors.white} />
                   )}
                 </View>
-                <View>
+                <View className="ml-2">
                   <Text className="font-bold text-white">{item.title}</Text>
                   <Text className="font-regular text-gray-300">
                     {item.artists[0].name}

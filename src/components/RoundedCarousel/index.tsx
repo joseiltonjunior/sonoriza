@@ -32,7 +32,7 @@ export function RoundedCarousel({
       width={roundedSmall ? 130 : 150}
       height={roundedSmall ? 150 : 160}
       data={artists}
-      scrollAnimationDuration={1000}
+      scrollAnimationDuration={500}
       renderItem={({ item }) => (
         <Rounded
           disabled={!status}

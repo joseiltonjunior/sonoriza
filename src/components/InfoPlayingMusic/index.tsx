@@ -15,9 +15,12 @@ import {
 
 import RNFS from 'react-native-fs'
 import { ReduxProps } from '@storage/index'
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { NetInfoProps } from '@storage/modules/netInfo/reducer'
 import colors from 'tailwindcss/colors'
+import TrackPlayer from 'react-native-track-player'
+import { handleSetQueue } from '@storage/modules/queue/reducer'
+import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 
 interface InfoPlayingMusicProps {
   currentMusic?: MusicProps
@@ -29,11 +32,16 @@ export function InfoPlayingMusic({
   isCloseModal,
 }: InfoPlayingMusicProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [existInQueue, setExistInQueue] = useState(false)
 
   const { closeModal } = useBottomModal()
 
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
     (state) => state.trackListOffline,
+  )
+
+  const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
+    (state) => state.currentMusic,
   )
 
   const { status } = useSelector<ReduxProps, NetInfoProps>(
@@ -42,7 +50,7 @@ export function InfoPlayingMusic({
 
   const { handleFavoriteMusic } = useFirebaseServices()
 
-  const { isFavoriteMusic } = useFavorites()
+  const { isFavoriteMusic } = useFavorites(currentMusic)
 
   const dispatch = useDispatch()
 
@@ -55,6 +63,7 @@ export function InfoPlayingMusic({
       const filePath = `${RNFS.DocumentDirectoryPath}/${currentMusic.title
         .replaceAll(' ', '-')
         .replace('.', '')
+        .replace('#', '')
         .toLowerCase()}.mp3`
 
       const response = RNFS.downloadFile({
@@ -99,11 +108,48 @@ export function InfoPlayingMusic({
     }
   }
 
+  const handleVerifyQueue = useCallback(async () => {
+    const response = await TrackPlayer.getQueue()
+
+    const isExist = response.find((item) => item.title === currentMusic?.title)
+
+    if (isExist) {
+      setExistInQueue(true)
+    } else {
+      setExistInQueue(false)
+    }
+  }, [currentMusic?.title])
+
   const isOffline = useMemo(() => {
     const find = trackListOffline.find((item) => item.id === currentMusic?.id)
 
     return find
   }, [currentMusic?.id, trackListOffline])
+
+  async function handleVerifyAndSetQueue() {
+    if (!currentMusic) return
+    const queue = await TrackPlayer.getQueue()
+
+    const isExist = queue.find((item) => item.title === currentMusic?.title)
+
+    if (isExist) {
+      const index = queue.findIndex(
+        (item) => item.title === currentMusic?.title,
+      )
+
+      await TrackPlayer.skip(index)
+
+      return
+    }
+
+    setExistInQueue(true)
+    dispatch(handleSetQueue({ queue: [...queue, currentMusic] }))
+    await TrackPlayer.add(currentMusic)
+  }
+
+  useEffect(() => {
+    handleVerifyQueue()
+  }, [handleVerifyQueue])
 
   return (
     <View className="py-4">
@@ -140,26 +186,27 @@ export function InfoPlayingMusic({
               }
             }}
           >
-            <Text className="ml-4 font-nunito-medium text-base">
+            <Text className="ml-4 font-nunito-medium text-base text-gray-300">
               {isFavoriteMusic
                 ? 'Remover dos favoritos'
                 : 'Adicionar aos favoritos'}
             </Text>
           </TouchableOpacity>
-
-          {/* <TouchableOpacity
-            activeOpacity={0.6}
-            className="flex-row px-4 py-3"
-            onPress={() => {
-              closeModal()
-              openModal()
-            }}
-          >
-            <Text className="ml-4 font-nunito-medium text-base">
-              Adicionar à playlist
-            </Text>
-          </TouchableOpacity> */}
         </>
+      )}
+
+      {isCurrentMusic?.id !== currentMusic?.id && (
+        <TouchableOpacity
+          activeOpacity={0.6}
+          className="flex-row px-4 py-3"
+          onPress={() => {
+            handleVerifyAndSetQueue()
+          }}
+        >
+          <Text className="ml-4 font-nunito-medium text-base">
+            {existInQueue ? 'Tocar agora' : 'Adicionar à fila'}
+          </Text>
+        </TouchableOpacity>
       )}
 
       <TouchableOpacity
@@ -174,10 +221,8 @@ export function InfoPlayingMusic({
         }}
       >
         <View className="flex-row items-center justify-between flex-1">
-          <Text className="ml-4 font-nunito-medium text-base">
-            {isOffline
-              ? 'Remover da playlist offline'
-              : 'Adicionar à playlist offline'}
+          <Text className="ml-4 font-nunito-medium text-base text-gray-300">
+            {isOffline ? 'Remover download' : 'Download'}
           </Text>
           {isLoading && <ActivityIndicator color={colors.purple[600]} />}
         </View>

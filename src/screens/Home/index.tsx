@@ -8,6 +8,7 @@ import {
 } from 'react-native'
 import AnimatedLottieView from 'lottie-react-native'
 import splash from '@assets/access-denied.json'
+import bad from '@assets/bad.json'
 import { useDispatch, useSelector } from 'react-redux'
 
 import {
@@ -69,6 +70,8 @@ import {
 import { shuffleArray } from '@utils/Types/shuffleArray'
 import { MusicProps } from '@utils/Types/musicProps'
 import { Button } from '@components/Button'
+import colors from 'tailwindcss/colors'
+import ImmersiveMode from 'react-native-immersive-mode'
 
 export function Home() {
   const { historic } = useSelector<ReduxProps, HistoricProps>(
@@ -139,6 +142,14 @@ export function Home() {
   const handleGetCurrentMusic = async () => {
     await getCurrentMusic()
   }
+
+  const handleFilterHistoricOffline = useMemo(() => {
+    const historicOffline = historic.filter((item) =>
+      trackListOffline.find((track) => track.id === item.id),
+    )
+
+    return historicOffline
+  }, [historic, trackListOffline])
 
   const handleGetDataUser = useCallback(async () => {
     try {
@@ -238,17 +249,20 @@ export function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    ImmersiveMode.fullLayout(true)
+  }, [])
+
   if (user.plan === 'free') {
     return (
       <View className="bg-gray-700 flex-1 items-center justify-center p-8">
         <AnimatedLottieView
           source={splash}
           autoPlay
-          // loop
           resizeMode="contain"
           style={{ width: size, height: size }}
         />
-        <Text className="font-nunito-bold text-lg text-center">
+        <Text className="font-nunito-bold text-lg text-white text-center">
           Acesso não autorizado. Por favor, regularize o seu plano para
           continuar.
         </Text>
@@ -266,30 +280,51 @@ export function Home() {
   return (
     <>
       <ScrollView className="bg-gray-700" showsVerticalScrollIndicator={false}>
-        <View className="p-4 flex-row items-center justify-between">
+        <View className="p-4 flex-row items-center justify-between mt-8">
           <Text className="text-white text-3xl font-nunito-bold">Início</Text>
 
           <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
-            <Icon name="settings-outline" size={26} />
+            <Icon name="settings-outline" size={26} color={colors.gray[300]} />
           </TouchableOpacity>
         </View>
 
         <View className={isCurrentMusic ? 'pb-32' : 'pb-16'}>
-          {historic.length > 0 && (
-            <Section title="Tocados recentemente">
-              <BoxCarousel
-                musics={
-                  !status
-                    ? historic.filter((item) =>
-                        trackListOffline.find((track) => track.id === item.id),
-                      )
-                    : historic
-                }
+          {!status && handleFilterHistoricOffline.length === 0 && (
+            <View className="flex-1  items-center justify-center p-8">
+              <AnimatedLottieView
+                source={bad}
+                autoPlay
+                loop
+                resizeMode="contain"
+                style={{ width: size, height: size }}
               />
+              <Text className="text-white font-nunito-bold text-center text-base">
+                Ops, parece que você está desconectado e ainda não adicionou
+                nenhuma música à sua playlist offline. Quando estiver online,
+                não se esqueça de baixar algumas músicas para que você possa
+                aproveitá-las mesmo quando estiver sem conexão à internet.
+              </Text>
+              <Button
+                title="ATÉ LOGO"
+                className="mt-12"
+                onPress={() => BackHandler.exitApp()}
+              />
+            </View>
+          )}
+
+          {status && historic.length > 0 && (
+            <Section title="Tocados recentemente">
+              <BoxCarousel musics={historic} />
             </Section>
           )}
 
-          {!status && (
+          {!status && handleFilterHistoricOffline.length > 0 && (
+            <Section title="Tocados recentemente">
+              <BoxCarousel musics={handleFilterHistoricOffline} />
+            </Section>
+          )}
+
+          {!status && trackListOffline.length > 0 && (
             <Section
               title="Mixes Offline"
               description="Explore mixes mesmo sem conexão à internet"

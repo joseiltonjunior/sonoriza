@@ -1,4 +1,5 @@
 import { useModal } from '@hooks/useModal'
+
 import React from 'react'
 import { TouchableOpacity, View, Text, Modal as ModalView } from 'react-native'
 

@@ -68,8 +68,8 @@ export function Queue() {
   }
 
   return (
-    <View className="flex-1 bg-gray-700">
-      <View className="px-4 flex-1 mt-4">
+    <View className="flex-1 bg-gray-700 ">
+      <View className="px-4 flex-1 mt-10">
         <View className="flex-row items-center justify-center">
           <TouchableOpacity
             onPress={() => {

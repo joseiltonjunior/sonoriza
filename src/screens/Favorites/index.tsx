@@ -16,6 +16,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 import { useSideMenu } from '@hooks/useSideMenu'
 import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
 import { NetInfoProps } from '@storage/modules/netInfo/reducer'
+import colors from 'tailwindcss/colors'
 
 export function Favorites() {
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
@@ -38,16 +39,17 @@ export function Favorites() {
 
   return (
     <View className="flex-1 bg-gray-700">
-      <View className="p-4 flex-row items-center justify-between">
+      <View className="p-4 flex-row items-center justify-between mt-8">
         <Text className="text-white text-3xl font-nunito-bold">Favoritos</Text>
 
         <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
-          <Icon name="settings-outline" size={26} />
+          <Icon name="settings-outline" size={26} color={colors.gray[300]} />
         </TouchableOpacity>
       </View>
 
       <View className="flex-1 w-screen">
         <TouchableOpacity
+          disabled={trackListOffline.length === 0}
           activeOpacity={0.6}
           className="flex-row justify-between items-center px-4 py-2"
           onPress={() =>
