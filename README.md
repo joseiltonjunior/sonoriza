@@ -4,10 +4,6 @@
 
 <p>Com o Sonoriza, a música flui de forma ininterrupta, permitindo que você se envolva totalmente na sua playlist preferida. Não se preocupe com interrupções inconvenientes ou anúncios indesejados, pois criamos o Sonoriza pensando na sua experiência musical.</p>
 
-<p>Além disso, o Sonoriza oferece uma ampla gama de funcionalidades para aprimorar sua experiência musical. Personalize suas playlists, descubra novas músicas e crie um ambiente sonoro perfeito para cada momento do seu dia, sem qualquer custo.</p>
-
-<p>Experimente o Sonoriza agora e mergulhe em um universo musical sem limites, onde a música é a protagonista e sua experiência é nossa prioridade. Sonoriza: sua música, sem interrupções, sem anúncios.</p>
-
 <br/>
 
 
