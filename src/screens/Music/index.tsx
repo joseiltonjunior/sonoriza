@@ -1,5 +1,5 @@
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
-import { useFocusEffect, useNavigation } from '@react-navigation/native'
+import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ProgressBar } from '@react-native-community/progress-bar-android'
 import Carousel from 'react-native-reanimated-carousel'
@@ -43,7 +43,6 @@ import { DynamicBackgroundColor } from '@components/DynamicBackgroundColor'
 
 import { useFavorites } from '@hooks/useFavorites'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
-import ImmersiveMode from 'react-native-immersive-mode'
 
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
@@ -257,17 +256,9 @@ export function Music() {
     }
   }, [calculateProgressPercentage, isSeek])
 
-  useFocusEffect(() => {
-    ImmersiveMode.setBarTranslucent(true)
-
-    return () => {
-      ImmersiveMode.setBarTranslucent(false)
-    }
-  })
-
   return (
     <DynamicBackgroundColor color={isCurrentMusic?.color}>
-      <View className="flex-row items-center justify-between m-4 mt-8">
+      <View className="flex-row items-center justify-between m-4">
         <TouchableOpacity
           onPress={() => {
             navigation.goBack()
@@ -395,7 +386,7 @@ export function Music() {
             </Text>
           </View>
 
-          <View className="w-full items-center mt-2">
+          <View className="w-full items-center mt-2 relative overflow-hidden">
             <ProgressBar
               styleAttr="Horizontal"
               indeterminate={false}

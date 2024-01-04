@@ -77,7 +77,7 @@ export function SideMenu() {
   return (
     <View
       style={{ display: isVisible ? 'flex' : 'none' }}
-      className="absolute h-full w-full mt-6"
+      className="absolute h-full w-full"
     >
       <TouchableOpacity
         className="bg-black/70 absolute w-full h-full"

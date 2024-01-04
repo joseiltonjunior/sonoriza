@@ -138,6 +138,8 @@ export function InfoPlayingMusic({
       )
 
       await TrackPlayer.skip(index)
+      TrackPlayer.play()
+      closeModal()
 
       return
     }
@@ -203,7 +205,7 @@ export function InfoPlayingMusic({
             handleVerifyAndSetQueue()
           }}
         >
-          <Text className="ml-4 font-nunito-medium text-base">
+          <Text className="ml-4 font-nunito-medium text-base text-gray-300">
             {existInQueue ? 'Tocar agora' : 'Adicionar à fila'}
           </Text>
         </TouchableOpacity>

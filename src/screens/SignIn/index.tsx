@@ -18,7 +18,7 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin'
 
 import logo from '@assets/logo.png'
 import { Button } from '@components/Button'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import auth from '@react-native-firebase/auth'
 
@@ -30,7 +30,6 @@ import { useModal } from '@hooks/useModal'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useDispatch } from 'react-redux'
 import { handleSetUser } from '@storage/modules/user/reducer'
-import ImmersiveMode from 'react-native-immersive-mode'
 
 interface FormDataProps {
   email: string
@@ -183,10 +182,6 @@ export function SignIn() {
         setIsLoading(false)
       })
   }
-
-  useEffect(() => {
-    ImmersiveMode.fullLayout(false)
-  }, [])
 
   return (
     <>
