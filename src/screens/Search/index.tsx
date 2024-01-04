@@ -81,7 +81,7 @@ export function Search() {
   return (
     <View className="flex-1 bg-gray-700">
       <ScrollView className="flex-1">
-        <View className="p-4 flex-row items-center justify-between mt-8">
+        <View className="p-4 flex-row items-center justify-between">
           <Text className="text-white text-3xl font-nunito-bold">Busca</Text>
 
           <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>

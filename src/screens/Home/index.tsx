@@ -71,7 +71,6 @@ import { shuffleArray } from '@utils/Types/shuffleArray'
 import { MusicProps } from '@utils/Types/musicProps'
 import { Button } from '@components/Button'
 import colors from 'tailwindcss/colors'
-import ImmersiveMode from 'react-native-immersive-mode'
 
 export function Home() {
   const { historic } = useSelector<ReduxProps, HistoricProps>(
@@ -249,10 +248,6 @@ export function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(() => {
-    ImmersiveMode.fullLayout(true)
-  }, [])
-
   if (user.plan === 'free') {
     return (
       <View className="bg-gray-700 flex-1 items-center justify-center p-8">
@@ -280,7 +275,7 @@ export function Home() {
   return (
     <>
       <ScrollView className="bg-gray-700" showsVerticalScrollIndicator={false}>
-        <View className="p-4 flex-row items-center justify-between mt-8">
+        <View className="p-4 flex-row items-center justify-between">
           <Text className="text-white text-3xl font-nunito-bold">Início</Text>
 
           <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>

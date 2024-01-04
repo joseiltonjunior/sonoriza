@@ -3,39 +3,30 @@ import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 import { useBottomModal } from '@hooks/useBottomModal'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-import { useEffect, useState } from 'react'
+
 import {
   Dimensions,
   Image,
   ImageBackground,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native'
-import ImmersiveMode from 'react-native-immersive-mode'
+
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
 
 export function Album() {
   const { params } = useRoute<RouteParamsProps<'Album'>>()
-  const { album, musics } = params
+  const { album, musics, artist } = params
 
   const { openModal } = useBottomModal()
-
-  const [scrollPosition, setScrollPosition] = useState(0)
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -47,37 +38,14 @@ export function Album() {
     (state) => state.currentMusic,
   )
 
-  useFocusEffect(() => {
-    ImmersiveMode.setBarTranslucent(true)
-
-    return () => {
-      ImmersiveMode.setBarTranslucent(false)
-    }
-  })
-
-  useEffect(() => {
-    const parseScroll = parseInt(scrollPosition.toString())
-
-    if (parseScroll > size) {
-      ImmersiveMode.setBarTranslucent(false)
-    }
-  }, [scrollPosition, size])
-
   return (
     <>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        className="bg-gray-700"
-        onScroll={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
-          const currentPosition = event.nativeEvent.contentOffset.y
-          setScrollPosition(currentPosition)
-        }}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} className="bg-gray-700">
         <ImageBackground
           style={{ height: size }}
           source={{ uri: album.artwork }}
           alt="album photo"
-          className="p-4 pt-8"
+          className="p-4"
         >
           <TouchableOpacity
             className="p-2 rounded-full"
@@ -87,18 +55,24 @@ export function Album() {
           >
             <Icon name="chevron-back-outline" size={30} color={colors.white} />
           </TouchableOpacity>
-          <Text
-            style={styles.text}
-            className="font-nunito-bold text-white mt-auto"
-          >
-            {album.name}
-          </Text>
         </ImageBackground>
 
         <View className="p-4 ">
-          <Text className="font-nunito-bold text-xl text-white mb-4">
-            Músicas do album
+          <Text className="font-nunito-bold text-2xl text-white">
+            {album.name}
           </Text>
+          <View className="flex-row gap-2 items-center mb-8">
+            <Image
+              source={{ uri: artist.photoURL }}
+              alt="artist pic"
+              className="w-8 h-8 rounded-full"
+            />
+            <Text className="font-nunito-bold text-gray-300">Por</Text>
+            <Text className="font-nunito-bold text-gray-300">
+              {artist.name}
+            </Text>
+          </View>
+
           {musics
             .filter((item) => item.album.includes(album.name))
             .map((item, index) => (
@@ -114,7 +88,9 @@ export function Album() {
                   className="flex-row items-center gap-2 flex-1 overflow-hidden"
                   onPress={() => {
                     handleMusicSelected({
-                      listMusics: musics,
+                      listMusics: musics.filter((item) =>
+                        item.album.includes(album.name),
+                      ),
                       musicSelected: item,
                     })
                   }}
@@ -163,12 +139,3 @@ export function Album() {
     </>
   )
 }
-
-const styles = StyleSheet.create({
-  text: {
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 2,
-    fontSize: 30,
-  },
-})

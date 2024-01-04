@@ -16,7 +16,7 @@ export function BottomModal() {
         className="h-screen w-screen bg-gray-950/60 absolute"
       />
       <View className="flex-1 ">
-        <View className="mt-auto bg-gray-700 rounded-t-2xl shadow-2xl shadow-white">
+        <View className="mt-auto bg-gray-700 rounded-t-2xl shadow-2xl shadow-black">
           {children}
         </View>
       </View>
