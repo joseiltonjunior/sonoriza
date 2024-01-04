@@ -5,6 +5,10 @@ export const PlaybackService = async function () {
     TrackPlayer.play()
   })
 
+  TrackPlayer.addEventListener(Event.RemoteSeek, (e) => {
+    TrackPlayer.seekTo(e.position)
+  })
+
   TrackPlayer.addEventListener(Event.RemotePause, () => {
     TrackPlayer.pause()
   })

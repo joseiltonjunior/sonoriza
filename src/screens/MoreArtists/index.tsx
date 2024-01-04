@@ -87,7 +87,7 @@ export function MoreArtists() {
 
   return (
     <View className="flex-1 bg-gray-700">
-      <View className="px-4 flex-1 mt-2">
+      <View className="px-4 flex-1 mt-8">
         <View className="items-center justify-center py-4">
           <TouchableOpacity
             onPress={() => {

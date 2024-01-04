@@ -35,7 +35,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
 
   const { handleFavoriteMusic } = useFirebaseServices()
 
-  const { isFavoriteMusic } = useFavorites()
+  const { isFavoriteMusic } = useFavorites(music)
 
   const dispatch = useDispatch()
   const navigation = useNavigation<StackNavigationProps>()

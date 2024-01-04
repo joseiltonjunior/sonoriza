@@ -3,20 +3,28 @@ import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 import { useBottomModal } from '@hooks/useBottomModal'
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
-import { useNavigation, useRoute } from '@react-navigation/native'
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import { useEffect, useState } from 'react'
 import {
   Dimensions,
   Image,
   ImageBackground,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native'
+import ImmersiveMode from 'react-native-immersive-mode'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
@@ -26,6 +34,8 @@ export function Album() {
   const { album, musics } = params
 
   const { openModal } = useBottomModal()
+
+  const [scrollPosition, setScrollPosition] = useState(0)
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -37,14 +47,37 @@ export function Album() {
     (state) => state.currentMusic,
   )
 
+  useFocusEffect(() => {
+    ImmersiveMode.setBarTranslucent(true)
+
+    return () => {
+      ImmersiveMode.setBarTranslucent(false)
+    }
+  })
+
+  useEffect(() => {
+    const parseScroll = parseInt(scrollPosition.toString())
+
+    if (parseScroll > size) {
+      ImmersiveMode.setBarTranslucent(false)
+    }
+  }, [scrollPosition, size])
+
   return (
     <>
-      <ScrollView showsVerticalScrollIndicator={false} className="bg-gray-700">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        className="bg-gray-700"
+        onScroll={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
+          const currentPosition = event.nativeEvent.contentOffset.y
+          setScrollPosition(currentPosition)
+        }}
+      >
         <ImageBackground
           style={{ height: size }}
           source={{ uri: album.artwork }}
           alt="album photo"
-          className="p-4"
+          className="p-4 pt-8"
         >
           <TouchableOpacity
             className="p-2 rounded-full"
@@ -61,43 +94,6 @@ export function Album() {
             {album.name}
           </Text>
         </ImageBackground>
-
-        <View className="flex-row px-4 mt-2 items-center justify-between">
-          <View className="rounded-full overflow-hidden">
-            <TouchableOpacity
-              // onPress={() => {
-              //   if (!artist) return
-              //   handleFavoriteArtist(artist)
-              // }}
-              activeOpacity={0.6}
-              className="p-4"
-            >
-              <Icon
-                name={album ? 'heart-sharp' : 'heart-outline'}
-                color={colors.white}
-                size={28}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <View className="rounded-full overflow-hidden">
-            <TouchableOpacity
-              activeOpacity={0.6}
-              className="bg-purple-600 p-3 items-center"
-              onPress={() => {
-                if (!album) return
-                handleMusicSelected({
-                  listMusics: musics,
-                  musicSelected: musics[0],
-                })
-              }}
-            >
-              <View className="flex-row justify-center items-center">
-                <Icon name="play" size={25} color={colors.white} />
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
 
         <View className="p-4 ">
           <Text className="font-nunito-bold text-xl text-white mb-4">

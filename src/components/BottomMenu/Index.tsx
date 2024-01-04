@@ -32,8 +32,18 @@ export function BottomMenu() {
         className="items-center py-2 px-4"
         onPress={() => navigation.navigate('Search')}
       >
-        <Icon name="search" size={22} color={colors.gray[400]} />
-        <Text className="font-nunito-regular text-xs text-gray-400">Busca</Text>
+        <Icon
+          name="search"
+          size={22}
+          color={status ? colors.gray[400] : colors.gray[600]}
+        />
+        <Text
+          className={`font-nunito-regular text-xs ${
+            status ? 'text-gray-400' : 'text-gray-600'
+          }`}
+        >
+          Busca
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity

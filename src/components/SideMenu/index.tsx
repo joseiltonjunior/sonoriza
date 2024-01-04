@@ -77,7 +77,7 @@ export function SideMenu() {
   return (
     <View
       style={{ display: isVisible ? 'flex' : 'none' }}
-      className="absolute h-full w-full"
+      className="absolute h-full w-full mt-6"
     >
       <TouchableOpacity
         className="bg-black/70 absolute w-full h-full"
@@ -118,7 +118,7 @@ export function SideMenu() {
           <Button icon="reader" title="Sobre" className="mt-5" /> */}
 
           <TouchableOpacity
-            className="ml-auto mr-auto mt-auto bg-purple-600 h-14 items-center justify-center px-6 rounded-full"
+            className="ml-auto mr-auto mt-auto mb-4 bg-purple-600 h-14 items-center justify-center px-6 rounded-full"
             activeOpacity={0.6}
             onPress={() => {
               openModal({

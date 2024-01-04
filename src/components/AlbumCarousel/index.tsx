@@ -28,7 +28,7 @@ export function AlbumsCarousel({ albums, artist, musics }: AlbumCourselProps) {
       width={140}
       height={160}
       data={albums}
-      scrollAnimationDuration={1000}
+      scrollAnimationDuration={500}
       renderItem={({ item }) => (
         <Release
           name={item.name}

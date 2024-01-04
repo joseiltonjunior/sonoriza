@@ -1,10 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
+import { MusicProps } from '@utils/Types/musicProps'
 
 interface SearchProps {
   photoURL: string
   name: string
   id: string
+  music?: MusicProps
 }
 
 export interface SearchHistoricProps {

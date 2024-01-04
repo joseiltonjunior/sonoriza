@@ -81,7 +81,7 @@ export function Search() {
   return (
     <View className="flex-1 bg-gray-700">
       <ScrollView className="flex-1">
-        <View className="p-4 flex-row items-center justify-between">
+        <View className="p-4 flex-row items-center justify-between mt-8">
           <Text className="text-white text-3xl font-nunito-bold">Busca</Text>
 
           <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
@@ -130,9 +130,16 @@ export function Search() {
                 >
                   <TouchableOpacity
                     className="flex-row items-center w-80"
-                    onPress={() =>
+                    onPress={() => {
+                      if (item.music) {
+                        handleMusicSelected({
+                          musicSelected: item.music,
+                          listMusics: [item.music],
+                        })
+                        return
+                      }
                       navigation.navigate('Artist', { artistId: item.id })
-                    }
+                    }}
                   >
                     <Image
                       source={{ uri: item.photoURL }}
@@ -200,6 +207,7 @@ export function Search() {
                       name: item.title,
                       photoURL: item.artwork,
                       id: item.id,
+                      music: item,
                     }),
                   )
                   handleMusicSelected({

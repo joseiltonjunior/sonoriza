@@ -38,7 +38,7 @@ export function ListCarousel({ musics }: ListCourselProps) {
       width={320}
       height={230}
       data={chunkArray(musics, 3)}
-      scrollAnimationDuration={1000}
+      scrollAnimationDuration={500}
       renderItem={({ item }) => (
         <View className=" ml-4">
           {item.map((music, index) => (

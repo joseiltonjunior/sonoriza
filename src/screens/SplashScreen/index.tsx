@@ -53,8 +53,13 @@ export function SplashScreen() {
         Capability.Pause,
         Capability.SkipToNext,
         Capability.SkipToPrevious,
+        Capability.SeekTo,
       ],
-      compactCapabilities: [Capability.Play, Capability.Pause],
+      compactCapabilities: [
+        Capability.Play,
+        Capability.Pause,
+        Capability.SkipToNext,
+      ],
     })
   }
 

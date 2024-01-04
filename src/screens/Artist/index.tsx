@@ -8,10 +8,16 @@ import { Loading } from '@components/Loading'
 import { Section } from '@components/Section'
 import { useBottomModal } from '@hooks/useBottomModal'
 
+import ImmersiveMode from 'react-native-immersive-mode'
+
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
-import { useNavigation, useRoute } from '@react-navigation/native'
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 
@@ -27,6 +33,8 @@ import {
   Dimensions,
   Image,
   ImageBackground,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   Text,
@@ -47,6 +55,8 @@ export function Artist() {
   const { artistId } = params
 
   const size = Dimensions.get('window').width * 1
+
+  const [scrollPosition, setScrollPosition] = useState(0)
 
   const { openModal } = useBottomModal()
 
@@ -84,7 +94,7 @@ export function Artist() {
         }))
 
         const uniqueAlbumList = removeDuplicates(filterAlbums)
-        console.log(uniqueAlbumList)
+
         setAlbums(uniqueAlbumList)
       })
       .catch((err) => console.log(err, 'err'))
@@ -107,6 +117,22 @@ export function Artist() {
     return !!filter
   }, [artist?.id, user.favoritesArtists])
 
+  useFocusEffect(() => {
+    ImmersiveMode.setBarTranslucent(true)
+
+    return () => {
+      ImmersiveMode.setBarTranslucent(false)
+    }
+  })
+
+  useEffect(() => {
+    const parseScroll = parseInt(scrollPosition.toString())
+
+    if (parseScroll > size) {
+      ImmersiveMode.setBarTranslucent(false)
+    }
+  }, [scrollPosition, size])
+
   useEffect(() => {
     if (artistId) {
       handleGetArtist()
@@ -121,12 +147,16 @@ export function Artist() {
       <ScrollView
         className="flex-1 bg-gray-700"
         showsVerticalScrollIndicator={false}
+        onScroll={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
+          const currentPosition = event.nativeEvent.contentOffset.y
+          setScrollPosition(currentPosition)
+        }}
       >
         <ImageBackground
           source={{ uri: artist?.photoURL }}
           alt={artist?.name}
           style={{ height: size }}
-          className={`p-4 `}
+          className={`p-4 pt-8`}
         >
           <TouchableOpacity
             className="p-2 rounded-full"
@@ -175,7 +205,7 @@ export function Artist() {
               }}
             >
               <View className="flex-row justify-center items-center">
-                <Icon name="play" size={25} color={colors.white} />
+                <Icon name="play" size={30} color={colors.white} />
               </View>
             </TouchableOpacity>
           </View>
@@ -255,7 +285,7 @@ export function Artist() {
         </View>
         {albums.length > 0 && (
           <Section
-            title="Albums"
+            title="Álbuns"
             className={`mt-6 ${isCurrentMusic ? 'mb-32' : 'mb-16'}`}
           >
             <AlbumsCarousel
