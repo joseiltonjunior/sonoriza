@@ -12,7 +12,7 @@
 
 
 <div>
-  <img src="https://i.ibb.co/tpdj7k6/sonoriza.png" alt="sonoriza" border="0">  
+  <img src="https://i.ibb.co/BLxsS5m/sonoriza.png" alt="sonoriza" border="0">  
 </div>
 
 <br/>
