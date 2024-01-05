@@ -1,4 +1,5 @@
 import {
+  Image,
   Text,
   TouchableOpacity,
   TouchableOpacityProps,
@@ -7,6 +8,8 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons'
 import colors from 'tailwindcss/colors'
 import { twMerge } from 'tailwind-merge'
+
+import sonorizaIcon from '@assets/sonoriza-icon.png'
 
 interface ButtonsProps extends TouchableOpacityProps {
   title: string
@@ -21,7 +24,11 @@ export function Button({ title, icon, className, ...rest }: ButtonsProps) {
       activeOpacity={0.6}
     >
       <View className="bg-purple-600 w-8 h-8 rounded-full items-center justify-center">
-        <Icon name={icon} color={colors.gray[200]} size={20} />
+        {icon.includes('sonoriza-tv') ? (
+          <Image source={sonorizaIcon} alt="sonoriza tv" className="w-5 h-5" />
+        ) : (
+          <Icon name={icon} color={colors.gray[200]} size={20} />
+        )}
       </View>
       <Text className="ml-2 font-nunito-bold text-white">{title}</Text>
     </TouchableOpacity>

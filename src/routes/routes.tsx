@@ -20,6 +20,9 @@ import { Queue } from '@screens/Queue'
 import { Search } from '@screens/Search'
 import { RecoveryPassword } from '@screens/RecoveryPassword'
 import { Album } from '@screens/Album'
+import { Profile } from '@screens/Profile'
+import { EditProfile } from '@screens/EditProfile'
+
 import { MusicProps } from '@utils/Types/musicProps'
 import { AlbumProps } from '@components/AlbumCarousel'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
@@ -54,6 +57,8 @@ type RootStackParamList = {
     album: AlbumProps
     artist: ArtistsDataProps
   }
+  Profile: undefined
+  EditProfile: undefined
 }
 
 export type StackNavigationProps = StackNavigationProp<RootStackParamList>
@@ -91,6 +96,8 @@ export function Routes() {
       <Stack.Screen name="Search" component={Search} />
       <Stack.Screen name="RecoveryPassword" component={RecoveryPassword} />
       <Stack.Screen name="Album" component={Album} />
+      <Stack.Screen name="Profile" component={Profile} />
+      <Stack.Screen name="EditProfile" component={EditProfile} />
     </Stack.Navigator>
   )
 }
