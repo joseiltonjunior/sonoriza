@@ -19,6 +19,7 @@ import { MusicProps } from '@utils/Types/musicProps'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useFavorites } from '@hooks/useFavorites'
 import { useCallback, useEffect, useState } from 'react'
+import { useNetInfo } from '@react-native-community/netinfo'
 
 interface ControlCurrentMusicProps {
   music?: MusicProps
@@ -26,6 +27,8 @@ interface ControlCurrentMusicProps {
 
 export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
   const { TrackPlayer } = useTrackPlayer()
+
+  const { isConnected } = useNetInfo()
 
   const [fontColor, setFontColor] = useState('#fff')
 
@@ -119,20 +122,22 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        activeOpacity={0.6}
-        onPress={() => {
-          if (isCurrentMusic) {
-            handleFavoriteMusic(isCurrentMusic)
-          }
-        }}
-      >
-        <IconAntDesign
-          name={isFavoriteMusic ? 'heart-sharp' : 'heart-outline'}
-          size={26}
-          color={fontColor}
-        />
-      </TouchableOpacity>
+      {isConnected && (
+        <TouchableOpacity
+          activeOpacity={0.6}
+          onPress={() => {
+            if (isCurrentMusic) {
+              handleFavoriteMusic(isCurrentMusic)
+            }
+          }}
+        >
+          <IconAntDesign
+            name={isFavoriteMusic ? 'heart-sharp' : 'heart-outline'}
+            size={26}
+            color={fontColor}
+          />
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity
         activeOpacity={0.6}

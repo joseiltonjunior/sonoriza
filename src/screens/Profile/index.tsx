@@ -21,8 +21,9 @@ import { setInspiredMixes } from '@storage/modules/inspiredMixes/reducer'
 import { handleSetReleases } from '@storage/modules/releases/reducer'
 import { handleClearHistoric } from '@storage/modules/historic/reducer'
 import { clearSearchHistoric } from '@storage/modules/searchHistoric/reducer'
-import { useSideMenu } from '@hooks/useSideMenu'
+
 import { Button } from '@components/SideMenu/Button'
+import { useNetInfo } from '@react-native-community/netinfo'
 
 export function Profile() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
@@ -30,7 +31,7 @@ export function Profile() {
   const { openModal, closeModal } = useModal()
   const { TrackPlayer } = useTrackPlayer()
 
-  const { handleIsVisible } = useSideMenu()
+  const { isConnected } = useNetInfo()
 
   const dispatch = useDispatch()
 
@@ -41,7 +42,6 @@ export function Profile() {
     auth()
       .signOut()
       .then(() => {
-        handleIsVisible()
         dispatch(setFavoriteArtists({ favoriteArtists: [] }))
         dispatch(handleSetFavoriteMusics({ favoriteMusics: [] }))
         dispatch(handleClearHistoric())
@@ -128,6 +128,7 @@ export function Profile() {
         <Text className="font-nunito-bold text-white text-base">Perfil</Text>
 
         <TouchableOpacity
+          disabled={!isConnected}
           onPress={() => navigation.navigate('EditProfile')}
           activeOpacity={0.6}
         >
@@ -147,13 +148,14 @@ export function Profile() {
             <Icon name="person" size={80} color={colors.gray[200]} />
           )}
         </View>
-        <Text className="font-nunito-bold text-2xl mt-4">
+        <Text className="font-nunito-bold text-2xl mt-4 text-white">
           {user.displayName}
         </Text>
-        <Text className="font-nunito-regular">{user.email}</Text>
+        <Text className="font-nunito-regular text-gray-300">{user.email}</Text>
 
         <View className="border-t mt-6 pt-6 border-purple-600/60 w-full items-center px-10">
           <Button
+            disabled={!isConnected}
             icon="lock-closed"
             title="Redefinir senha"
             onPress={handleRecoveryPassword}

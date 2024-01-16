@@ -18,7 +18,7 @@ interface AlbumCourselProps {
   musics: MusicProps[]
 }
 
-export function AlbumsCarousel({ albums, artist, musics }: AlbumCourselProps) {
+export function AlbumsCarousel({ albums, artist }: AlbumCourselProps) {
   const navigation = useNavigation<StackNavigationProps>()
 
   return (
@@ -34,7 +34,10 @@ export function AlbumsCarousel({ albums, artist, musics }: AlbumCourselProps) {
           name={item.name}
           artwork={item.artwork}
           onPress={() => {
-            navigation.navigate('Album', { album: item, artist, musics })
+            navigation.navigate('Album', {
+              album: item.name,
+              artistId: artist.id,
+            })
           }}
           className="ml-4"
         />

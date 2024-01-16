@@ -68,7 +68,11 @@ export function SignIn() {
 
   const dispatch = useDispatch()
 
-  const { handleFetchDataUser, handleSaveUser } = useFirebaseServices()
+  const {
+    handleFetchDataUser,
+    handleSaveUser,
+    handleRequestPermissionNotifications,
+  } = useFirebaseServices()
 
   GoogleSignin.configure({
     webClientId: WEB_CLIENT_ID,
@@ -77,6 +81,8 @@ export function SignIn() {
   async function handleDataUser({ uid, withGoogle }: SaveUserProps) {
     try {
       const user = await handleFetchDataUser(uid)
+
+      await handleRequestPermissionNotifications(uid)
 
       if (!user && withGoogle) {
         const { displayName, email, photoURL } = withGoogle

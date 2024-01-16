@@ -3,6 +3,8 @@ import { Card } from '../Card'
 
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { MusicProps } from '@utils/Types/musicProps'
+import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
+import { useBottomModal } from '@hooks/useBottomModal'
 
 interface BoxCourselProps {
   musics: MusicProps[]
@@ -10,6 +12,8 @@ interface BoxCourselProps {
 
 export function BoxCarousel({ musics }: BoxCourselProps) {
   const { handleMusicSelected } = useTrackPlayer()
+
+  const { openModal } = useBottomModal()
 
   return (
     <Carousel
@@ -30,6 +34,11 @@ export function BoxCarousel({ musics }: BoxCourselProps) {
               listMusics: musics,
             })
           }
+          onLongPress={() => {
+            openModal({
+              children: <InfoPlayingMusic currentMusic={item} />,
+            })
+          }}
           className="ml-4"
         />
       )}

@@ -43,10 +43,12 @@ import { DynamicBackgroundColor } from '@components/DynamicBackgroundColor'
 
 import { useFavorites } from '@hooks/useFavorites'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { useNetInfo } from '@react-native-community/netinfo'
 
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
 
+  const { isConnected } = useNetInfo()
   const { TrackPlayer, useProgress } = useTrackPlayer()
 
   const size = Dimensions.get('window').width * 1
@@ -281,22 +283,26 @@ export function Music() {
             {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
           </Text>
         </View>
-        <TouchableOpacity
-          style={{ borderColor: fontColor }}
-          className={`rounded-full p-2`}
-          activeOpacity={0.5}
-        >
-          <Icon
-            name="ellipsis-vertical"
-            size={24}
-            color={fontColor}
-            onPress={() =>
-              openModal({
-                children: <InfoPlayingMusic currentMusic={isCurrentMusic} />,
-              })
-            }
-          />
-        </TouchableOpacity>
+        {isConnected ? (
+          <TouchableOpacity
+            style={{ borderColor: fontColor }}
+            className={`rounded-full p-2`}
+            activeOpacity={0.5}
+          >
+            <Icon
+              name="ellipsis-vertical"
+              size={24}
+              color={fontColor}
+              onPress={() =>
+                openModal({
+                  children: <InfoPlayingMusic currentMusic={isCurrentMusic} />,
+                })
+              }
+            />
+          </TouchableOpacity>
+        ) : (
+          <View className="h-10 w-10" />
+        )}
       </View>
 
       <View className="items-center mx-8 mt-12">
@@ -355,19 +361,21 @@ export function Music() {
             </Text>
           </View>
 
-          <TouchableOpacity
-            onPress={() => {
-              if (isCurrentMusic) {
-                handleFavoriteMusic(isCurrentMusic)
-              }
-            }}
-          >
-            <Icon
-              name={isFavoriteMusic ? 'heart-sharp' : 'heart-outline'}
-              size={28}
-              color={fontColor}
-            />
-          </TouchableOpacity>
+          {isConnected && (
+            <TouchableOpacity
+              onPress={() => {
+                if (isCurrentMusic) {
+                  handleFavoriteMusic(isCurrentMusic)
+                }
+              }}
+            >
+              <Icon
+                name={isFavoriteMusic ? 'heart-sharp' : 'heart-outline'}
+                size={28}
+                color={fontColor}
+              />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View className="mt-4 w-[330px] items-center">
