@@ -2,7 +2,7 @@ import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
-import { useSideMenu } from '@hooks/useSideMenu'
+
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
@@ -25,10 +25,9 @@ import colors from 'tailwindcss/colors'
 
 import { Section } from '@components/Section'
 import { MusicalGenres } from '@components/MusicalGenres'
+import { Header } from '@components/Header'
 
 export function Search() {
-  const { handleIsVisible } = useSideMenu()
-
   const { handleGetMusicalGenres, handleGetArtistsByFilter } =
     useFirebaseServices()
 
@@ -81,13 +80,7 @@ export function Search() {
   return (
     <View className="flex-1 bg-gray-700">
       <ScrollView className="flex-1">
-        <View className="p-4 flex-row items-center justify-between">
-          <Text className="text-white text-3xl font-nunito-bold">Busca</Text>
-
-          <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
-            <Icon name="settings-outline" size={26} color={colors.gray[300]} />
-          </TouchableOpacity>
-        </View>
+        <Header title="Busca" />
 
         <View className="p-4">
           <View className="bg-gray-950 rounded-xl overflow-hidden px-4 flex-row items-center justify-between">
@@ -241,7 +234,7 @@ export function Search() {
         {artistsFiltered.length === 0 &&
           musicsFiltered.length === 0 &&
           musicalGenres.length > 0 && (
-            <Section title=" Explore por gêneros musicais" className="mt-4">
+            <Section title="Gêneros" className="mt-4">
               <MusicalGenres musicalGenres={musicalGenres} />
             </Section>
           )}

@@ -11,6 +11,8 @@ import colors from 'tailwindcss/colors'
 import { useSelector } from 'react-redux'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import { useBottomModal } from '@hooks/useBottomModal'
+import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 
 interface ListCourselProps {
   musics: MusicProps[]
@@ -18,6 +20,8 @@ interface ListCourselProps {
 
 export function ListCarousel({ musics }: ListCourselProps) {
   const { handleMusicSelected } = useTrackPlayer()
+
+  const { openModal } = useBottomModal()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
@@ -48,6 +52,11 @@ export function ListCarousel({ musics }: ListCourselProps) {
             >
               <TouchableOpacity
                 className="flex-row items-center gap-2 w-full"
+                onLongPress={() => {
+                  openModal({
+                    children: <InfoPlayingMusic currentMusic={music} />,
+                  })
+                }}
                 onPress={() => {
                   handleMusicSelected({
                     musicSelected: music,

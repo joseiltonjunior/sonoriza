@@ -67,7 +67,8 @@ export function Register() {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const { handleSaveUser } = useFirebaseServices()
+  const { handleSaveUser, handleRequestPermissionNotifications } =
+    useFirebaseServices()
 
   const dispatch = useDispatch()
 
@@ -84,6 +85,7 @@ export function Register() {
   }: UserDataProps) {
     try {
       await handleSaveUser({ displayName, email, photoURL, plan, uid })
+      await handleRequestPermissionNotifications(uid)
       setIsLoading(false)
       dispatch(
         handleSetUser({

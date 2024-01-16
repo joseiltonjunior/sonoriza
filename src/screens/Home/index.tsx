@@ -1,11 +1,4 @@
-import {
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-  Dimensions,
-  BackHandler,
-} from 'react-native'
+import { ScrollView, Text, View, Dimensions, BackHandler } from 'react-native'
 import AnimatedLottieView from 'lottie-react-native'
 import splash from '@assets/access-denied.json'
 import bad from '@assets/bad.json'
@@ -24,19 +17,12 @@ import {
   handleSetFavoriteMusics,
   FavoriteMusicsProps,
 } from '@storage/modules/favoriteMusics/reducer'
-import {
-  handleSetReleases,
-  ReleasesProps,
-} from '@storage/modules/releases/reducer'
+import { handleSetReleases } from '@storage/modules/releases/reducer'
 
 import { ReduxProps } from '@storage/index'
 
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
-
-import Icon from 'react-native-vector-icons/Ionicons'
-
-import { useSideMenu } from '@hooks/useSideMenu'
 
 import { BoxCarousel } from '@components/BoxCarousel'
 
@@ -55,7 +41,6 @@ import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { HistoricProps } from '@storage/modules/historic/reducer'
 import { ListCarousel } from '@components/ListCarousel'
 
-import { ReleasesCarousel } from '@components/ReleasesCarousel'
 import { useNetwork } from '@hooks/useNetwork'
 import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
 
@@ -70,7 +55,16 @@ import {
 import { shuffleArray } from '@utils/Types/shuffleArray'
 import { MusicProps } from '@utils/Types/musicProps'
 import { Button } from '@components/Button'
-import colors from 'tailwindcss/colors'
+
+import {
+  NotificationsProps,
+  setNotification,
+} from '@storage/modules/notifications/reducer'
+
+import { setNewsNotifications } from '@storage/modules/newsNotifications/reducer'
+import { Header } from '@components/Header'
+
+import messaging from '@react-native-firebase/messaging'
 
 export function Home() {
   const { historic } = useSelector<ReduxProps, HistoricProps>(
@@ -90,6 +84,7 @@ export function Home() {
     handleGetInspiredMixes,
     handleGetMusicsNewUser,
     handleGetArtistsNewUser,
+    handleGetNotifications,
   } = useFirebaseServices()
 
   const { openModalErrNetwork } = useNetwork()
@@ -100,8 +95,12 @@ export function Home() {
     (state) => state.currentMusic,
   )
 
-  const { ignoreAlert, status } = useSelector<ReduxProps, NetInfoProps>(
+  const { ignoreAlert } = useSelector<ReduxProps, NetInfoProps>(
     (state) => state.netInfo,
+  )
+
+  const { notifications } = useSelector<ReduxProps, NotificationsProps>(
+    (state) => state.notifications,
   )
 
   const { favoriteArtists } = useSelector<ReduxProps, FavoriteArtistsProps>(
@@ -110,10 +109,6 @@ export function Home() {
 
   const { musics: inspiredMixes } = useSelector<ReduxProps, InspiredMixesProps>(
     (state) => state.inspiredMixes,
-  )
-
-  const { releases } = useSelector<ReduxProps, ReleasesProps>(
-    (state) => state.releases,
   )
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
@@ -136,15 +131,13 @@ export function Home() {
     return excludeDuplicates.slice(0, 5)
   }, [favoriteMusics])
 
-  const { handleIsVisible } = useSideMenu()
-
   const handleGetCurrentMusic = async () => {
     await getCurrentMusic()
   }
 
   const handleFilterHistoricOffline = useMemo(() => {
-    const historicOffline = historic.filter((item) =>
-      trackListOffline.find((track) => track.id === item.id),
+    const historicOffline = trackListOffline.filter((item) =>
+      historic.find((track) => track.id === item.id),
     )
 
     return historicOffline
@@ -213,9 +206,22 @@ export function Home() {
     user.favoritesMusics,
   ])
 
+  const handleFetchNoticationsDB = useCallback(async () => {
+    await handleGetNotifications()
+      .then((response) => {
+        if (JSON.stringify(response) !== JSON.stringify(notifications)) {
+          dispatch(setNewsNotifications({ newsNotifications: true }))
+        }
+
+        dispatch(setNotification({ notifications: response }))
+      })
+      .catch((err) => console.log(err, 'err'))
+  }, [dispatch, handleGetNotifications, notifications])
+
   useEffect(() => {
     if (isConnected === null) return
     if (isConnected) {
+      handleFetchNoticationsDB()
       handleGetDataUser()
     } else if (!isConnected) {
       dispatch(handleSetNetStatus(false))
@@ -248,6 +254,15 @@ export function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async () => {
+      handleFetchNoticationsDB()
+    })
+
+    return unsubscribe
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   if (user.plan === 'free') {
     return (
       <View className="bg-gray-700 flex-1 items-center justify-center p-8">
@@ -275,51 +290,47 @@ export function Home() {
   return (
     <>
       <ScrollView className="bg-gray-700" showsVerticalScrollIndicator={false}>
-        <View className="p-4 flex-row items-center justify-between">
-          <Text className="text-white text-3xl font-nunito-bold">Início</Text>
-
-          <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
-            <Icon name="settings-outline" size={26} color={colors.gray[300]} />
-          </TouchableOpacity>
-        </View>
+        <Header title="Início" />
 
         <View className={isCurrentMusic ? 'pb-32' : 'pb-16'}>
-          {!status && handleFilterHistoricOffline.length === 0 && (
-            <View className="flex-1  items-center justify-center p-8">
-              <AnimatedLottieView
-                source={bad}
-                autoPlay
-                loop
-                resizeMode="contain"
-                style={{ width: size, height: size }}
-              />
-              <Text className="text-white font-nunito-bold text-center text-base">
-                Ops, parece que você está desconectado e ainda não adicionou
-                nenhuma música à sua playlist offline. Quando estiver online,
-                não se esqueça de baixar algumas músicas para que você possa
-                aproveitá-las mesmo quando estiver sem conexão à internet.
-              </Text>
-              <Button
-                title="ATÉ LOGO"
-                className="mt-12"
-                onPress={() => BackHandler.exitApp()}
-              />
-            </View>
-          )}
+          {!isConnected &&
+            handleFilterHistoricOffline.length === 0 &&
+            trackListOffline.length === 0 && (
+              <View className="flex-1  items-center justify-center p-8">
+                <AnimatedLottieView
+                  source={bad}
+                  autoPlay
+                  loop
+                  resizeMode="contain"
+                  style={{ width: size, height: size }}
+                />
+                <Text className="text-white font-nunito-bold text-center text-base">
+                  Ops, parece que você está desconectado e ainda não baixou
+                  nenhuma música. Quando estiver online, não se esqueça de
+                  baixar algumas músicas para que você possa aproveitá-las mesmo
+                  quando estiver sem conexão à internet.
+                </Text>
+                <Button
+                  title="ATÉ LOGO"
+                  className="mt-12"
+                  onPress={() => BackHandler.exitApp()}
+                />
+              </View>
+            )}
 
-          {status && historic.length > 0 && (
+          {isConnected && historic.length > 0 && (
             <Section title="Tocados recentemente">
               <BoxCarousel musics={historic} />
             </Section>
           )}
 
-          {!status && handleFilterHistoricOffline.length > 0 && (
+          {!isConnected && handleFilterHistoricOffline.length > 0 && (
             <Section title="Tocados recentemente">
               <BoxCarousel musics={handleFilterHistoricOffline} />
             </Section>
           )}
 
-          {!status && trackListOffline.length > 0 && (
+          {!isConnected && trackListOffline.length > 0 && (
             <Section
               title="Mixes Offline"
               description="Explore mixes mesmo sem conexão à internet"
@@ -329,7 +340,7 @@ export function Home() {
             </Section>
           )}
 
-          {status && inspiredMixes.length > 0 && (
+          {isConnected && inspiredMixes.length > 0 && (
             <Section
               title={
                 user.favoritesMusics
@@ -347,7 +358,7 @@ export function Home() {
             </Section>
           )}
 
-          {status && topMusicalGenres.length > 0 && (
+          {isConnected && topMusicalGenres.length > 0 && (
             <Section
               title={
                 user?.favoritesMusics
@@ -360,13 +371,13 @@ export function Home() {
             </Section>
           )}
 
-          {status && releases.length > 0 && (
+          {/* {isConnected && releases.length > 0 && (
             <Section title="Lançamento para você" className={`mt-14`}>
               <ReleasesCarousel releases={releases} />
             </Section>
-          )}
+          )} */}
 
-          {status && favoriteArtists.length > 0 && (
+          {isConnected && favoriteArtists.length > 0 && (
             <Section
               title={
                 user.favoritesArtists

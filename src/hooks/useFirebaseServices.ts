@@ -1,4 +1,5 @@
 import firestore from '@react-native-firebase/firestore'
+import messaging from '@react-native-firebase/messaging'
 
 import crashlytics from '@react-native-firebase/crashlytics'
 import { MusicProps } from '@utils/Types/musicProps'
@@ -11,6 +12,7 @@ import { ReleasesDataProps } from '@utils/Types/releasesProps'
 import { UserDataProps } from '@utils/Types/userProps'
 
 import { shuffleArray } from '@utils/Types/shuffleArray'
+import { NotificationsDataProps } from '@utils/Types/notificationsProps'
 
 export function useFirebaseServices() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
@@ -428,6 +430,18 @@ export function useFirebaseServices() {
     return artists
   }
 
+  const handleGetMusicsByAlbum = async (
+    filter: string,
+  ): Promise<MusicProps[]> => {
+    const querySnapshot = await firestore()
+      .collection('musics')
+      .where('album', '==', filter)
+      .get()
+
+    const musics = querySnapshot.docs.map((doc) => doc.data() as MusicProps)
+    return musics
+  }
+
   const handleGetReleases = async (): Promise<ReleasesDataProps[]> => {
     const querySnapshot = await firestore().collection('releases').get()
 
@@ -446,6 +460,18 @@ export function useFirebaseServices() {
     return user
   }
 
+  const handleGetNotifications = async (): Promise<
+    NotificationsDataProps[]
+  > => {
+    const querySnapshot = await firestore().collection('notifications').get()
+
+    const nofications = querySnapshot.docs.map(
+      (doc) => doc.data() as NotificationsDataProps,
+    )
+
+    return nofications
+  }
+
   async function handleSaveUser({
     email,
     displayName,
@@ -460,6 +486,20 @@ export function useFirebaseServices() {
       uid,
       plan,
     })
+  }
+
+  const handleRequestPermissionNotifications = async (userId: string) => {
+    const status = await messaging().requestPermission()
+
+    const enable = status === 1 || status === 2
+
+    if (enable) {
+      const tokenFcm = await messaging().getToken()
+
+      const userDocRef = firestore().collection('users').doc(userId)
+
+      await userDocRef.update({ tokenFcm })
+    }
   }
 
   return {
@@ -481,5 +521,8 @@ export function useFirebaseServices() {
     handleGetInspiredMixes,
     handleGetAllMusicsById,
     handleSaveUser,
+    handleRequestPermissionNotifications,
+    handleGetNotifications,
+    handleGetMusicsByAlbum,
   }
 }

@@ -23,6 +23,7 @@ function App(): JSX.Element {
       <NavigationContainer>
         <StatusBar backgroundColor={'#312e38'} />
         <Routes />
+
         <SideMenu />
         <Modal />
         <BottomModal />

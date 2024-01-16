@@ -12,11 +12,10 @@ import { Text, View, TouchableOpacity } from 'react-native'
 
 import { useSelector } from 'react-redux'
 
-import Icon from 'react-native-vector-icons/Ionicons'
-import { useSideMenu } from '@hooks/useSideMenu'
 import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
 import { NetInfoProps } from '@storage/modules/netInfo/reducer'
-import colors from 'tailwindcss/colors'
+
+import { Header } from '@components/Header'
 
 export function Favorites() {
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
@@ -35,17 +34,9 @@ export function Favorites() {
 
   const navigation = useNavigation<StackNavigationProps>()
 
-  const { handleIsVisible } = useSideMenu()
-
   return (
     <View className="flex-1 bg-gray-700">
-      <View className="p-4 flex-row items-center justify-between ">
-        <Text className="text-white text-3xl font-nunito-bold">Favoritos</Text>
-
-        <TouchableOpacity onPress={handleIsVisible} activeOpacity={0.6}>
-          <Icon name="settings-outline" size={26} color={colors.gray[300]} />
-        </TouchableOpacity>
-      </View>
+      <Header title="Favoritos" />
 
       <View className="flex-1 w-screen">
         <TouchableOpacity

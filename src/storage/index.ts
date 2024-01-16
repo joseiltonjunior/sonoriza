@@ -26,6 +26,9 @@ import { NetInfoProps } from './modules/netInfo/reducer'
 import { TrackPlayerProps } from './modules/trackPlayer/reducer'
 import { SearchHistoricProps } from './modules/searchHistoric/reducer'
 import { InspiredMixesProps } from './modules/inspiredMixes/reducer'
+import { NotificationsProps } from './modules/notifications/reducer'
+import { NewsNotificationsProps } from './modules/newsNotifications/reducer'
+import { HistoricNotificationsProps } from './modules/historicNotifications/reducer'
 
 export interface ReduxProps {
   user: UserProps
@@ -43,6 +46,10 @@ export interface ReduxProps {
 
   searchHistoric: SearchHistoricProps
   inspiredMixes: InspiredMixesProps
+
+  notifications: NotificationsProps
+  newsNotifications: NewsNotificationsProps
+  historicNotifications: HistoricNotificationsProps
 }
 
 const persistConfig = {
