@@ -4,6 +4,8 @@ export interface NotificationsDataProps {
   imageUrl: string
   id: string
   createdAt: string
-  artistId: string
+  artistId?: string
   type: string
+  versionId?: string
+  disabled?: boolean
 }

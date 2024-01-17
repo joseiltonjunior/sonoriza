@@ -66,7 +66,7 @@ export function GenreSelected() {
 
   return (
     <View className="flex-1 bg-gray-700">
-      <View className="px-4 flex-1 mt-6">
+      <View className="px-4 flex-1">
         <View className="py-4">
           <TouchableOpacity
             onPress={() => {

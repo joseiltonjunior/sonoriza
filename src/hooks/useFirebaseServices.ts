@@ -13,6 +13,7 @@ import { UserDataProps } from '@utils/Types/userProps'
 
 import { shuffleArray } from '@utils/Types/shuffleArray'
 import { NotificationsDataProps } from '@utils/Types/notificationsProps'
+import { VersionProps } from '@utils/Types/versionProps'
 
 export function useFirebaseServices() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
@@ -502,6 +503,14 @@ export function useFirebaseServices() {
     }
   }
 
+  async function handleFetchNewVersionApp(versionId: string) {
+    const version = (
+      await firestore().collection('versions').doc(versionId).get()
+    ).data() as VersionProps
+
+    return version
+  }
+
   return {
     handleGetArtistsNewUser,
     handleGetMusicalGenres,
@@ -524,5 +533,6 @@ export function useFirebaseServices() {
     handleRequestPermissionNotifications,
     handleGetNotifications,
     handleGetMusicsByAlbum,
+    handleFetchNewVersionApp,
   }
 }
