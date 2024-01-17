@@ -22,6 +22,7 @@ import { RecoveryPassword } from '@screens/RecoveryPassword'
 import { Album } from '@screens/Album'
 import { Profile } from '@screens/Profile'
 import { EditProfile } from '@screens/EditProfile'
+import { Explorer } from '@screens/Explorer'
 
 import { Notifications } from '@screens/Notifications'
 
@@ -57,6 +58,7 @@ type RootStackParamList = {
   Profile: undefined
   EditProfile: undefined
   Notifications: undefined
+  Explorer: undefined
 }
 
 export type StackNavigationProps = StackNavigationProp<RootStackParamList>
@@ -97,6 +99,7 @@ export function Routes() {
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="EditProfile" component={EditProfile} />
       <Stack.Screen name="Notifications" component={Notifications} />
+      <Stack.Screen name="Explorer" component={Explorer} />
     </Stack.Navigator>
   )
 }

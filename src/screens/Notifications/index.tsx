@@ -2,7 +2,14 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { NotificationsProps } from '@storage/modules/notifications/reducer'
-import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
+import {
+  FlatList,
+  Image,
+  Linking,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
 import Icon from 'react-native-vector-icons/Ionicons'
 import { differenceInDays, differenceInMonths } from 'date-fns'
@@ -14,13 +21,19 @@ import {
   setHistoricNotification,
 } from '@storage/modules/historicNotifications/reducer'
 import colors from 'tailwindcss/colors'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { useModal } from '@hooks/useModal'
 
 export function Notifications() {
   const { notifications } = useSelector<ReduxProps, NotificationsProps>(
     (state) => state.notifications,
   )
 
+  const { handleFetchNewVersionApp } = useFirebaseServices()
+
   const navigation = useNavigation<StackNavigationProps>()
+
+  const { openModal, closeModal } = useModal()
 
   const dispatch = useDispatch()
 
@@ -67,10 +80,13 @@ export function Notifications() {
   const handleFormatName = (name: string) => {
     switch (name) {
       case 'album':
-        return 'Álbum'
+        return 'Novo Álbum'
 
       case 'artist':
-        return 'Artista'
+        return 'Novo Artista'
+
+      case 'version':
+        return 'Nova Versão'
 
       default:
         return ''
@@ -81,6 +97,28 @@ export function Notifications() {
     const exist = historic.find((item) => item.notificationId === id)
 
     return !!exist
+  }
+
+  const handleDownloadNewVersion = async (versionId: string) => {
+    const version = await handleFetchNewVersionApp(versionId)
+
+    const supported = await Linking.canOpenURL(version.link)
+
+    if (supported) {
+      await Linking.openURL(version.link)
+    } else {
+      openModal({
+        title: 'Atenção',
+        description:
+          'Desculpe, não foi possível abrir o link neste momento. Por favor, tente novamente.',
+        singleAction: {
+          action() {
+            closeModal()
+          },
+          title: 'OK',
+        },
+      })
+    }
   }
 
   return (
@@ -100,25 +138,27 @@ export function Notifications() {
       </View>
 
       <FlatList
-        data={notifications}
+        data={notifications.filter((item) => !item.disabled)}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
-            className=" border-b border-gray-300/30 p-4 "
+            className="border-b border-gray-300/30 p-4"
             onPress={() => {
               dispatch(
                 setHistoricNotification({
                   notificationId: item.id,
                 }),
               )
-              if (item.type === 'album') {
+              if (item.type === 'album' && item.artistId) {
                 navigation.navigate('Album', {
                   artistId: item.artistId,
                   album: item.title,
                 })
-              } else if (item.type === 'artist') {
+              } else if (item.type === 'artist' && item.artistId) {
                 navigation.navigate('Artist', { artistId: item.artistId })
+              } else if (item.type === 'version' && item.versionId) {
+                handleDownloadNewVersion(item.versionId)
               }
             }}
           >
@@ -144,8 +184,7 @@ export function Notifications() {
 
                 <View className="flex-row mt-2 items-center">
                   <Text className="font-nunito-regular text-gray-300 text-xs uppercase">
-                    {handleDate(item.createdAt)} - NOVO{' '}
-                    {handleFormatName(item.type)}
+                    {handleDate(item.createdAt)} - {handleFormatName(item.type)}
                   </Text>
                 </View>
               </View>

@@ -27,10 +27,9 @@ export function BottomMenu() {
       </TouchableOpacity>
 
       <TouchableOpacity
-        disabled
         activeOpacity={0.6}
         className="items-center py-2 px-4"
-        onPress={() => navigation.navigate('Home')}
+        onPress={() => navigation.navigate('Explorer')}
       >
         <Icon name="compass" size={22} color={colors.gray[400]} />
         <Text className="font-nunito-regular text-xs text-gray-400">
