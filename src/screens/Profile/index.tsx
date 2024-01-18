@@ -127,13 +127,17 @@ export function Profile() {
 
         <Text className="font-nunito-bold text-white text-base">Perfil</Text>
 
-        <TouchableOpacity
-          disabled={!isConnected}
-          onPress={() => navigation.navigate('EditProfile')}
-          activeOpacity={0.6}
-        >
-          <Icon name="create-outline" size={26} color={colors.gray[300]} />
-        </TouchableOpacity>
+        {!isConnected ? (
+          <View className="w-[26px]" />
+        ) : (
+          <TouchableOpacity
+            disabled={!isConnected}
+            onPress={() => navigation.navigate('EditProfile')}
+            activeOpacity={0.6}
+          >
+            <Icon name="create-outline" size={26} color={colors.gray[300]} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <View className="items-center flex-1 mt-6">
@@ -154,12 +158,14 @@ export function Profile() {
         <Text className="font-nunito-regular text-gray-300">{user.email}</Text>
 
         <View className="border-t mt-6 pt-6 border-purple-600/60 w-full items-center px-10">
-          <Button
-            disabled={!isConnected}
-            icon="lock-closed"
-            title="Redefinir senha"
-            onPress={handleRecoveryPassword}
-          />
+          {isConnected && (
+            <Button
+              disabled={!isConnected}
+              icon="lock-closed"
+              title="Redefinir senha"
+              onPress={handleRecoveryPassword}
+            />
+          )}
         </View>
       </View>
 

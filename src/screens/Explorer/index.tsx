@@ -9,7 +9,7 @@ import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 import { NotificationsProps } from '@storage/modules/notifications/reducer'
 
-import logoSonorizaTv from '@assets/sonoriza-tv.png'
+import bgSonorizaTv from '@assets/sonoriza-tv-bg.png'
 
 import { ReleasesDataProps } from '@utils/Types/releasesProps'
 import { useEffect, useMemo, useState } from 'react'
@@ -23,9 +23,12 @@ import {
 } from 'react-native'
 import { useSelector } from 'react-redux'
 import { useModal } from '@hooks/useModal'
+import { Loading } from '@components/Loading'
 
 export function Explorer() {
   const { handleGetMusicalGenres } = useFirebaseServices()
+
+  const [isLoading, setIsLoading] = useState(false)
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -42,10 +45,14 @@ export function Explorer() {
   const { openModal, closeModal } = useModal()
 
   const handleGetData = async () => {
+    setIsLoading(true)
     try {
       const resultMusicalGenres = await handleGetMusicalGenres()
       setMusicalGenres(resultMusicalGenres.map((item) => item.name))
-    } catch (error) {}
+      setIsLoading(false)
+    } catch (error) {
+      setIsLoading(false)
+    }
   }
 
   const handleFormatReleasesArtists = useMemo(() => {
@@ -100,6 +107,8 @@ export function Explorer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  if (isLoading) return <Loading />
+
   return (
     <View className="bg-gray-700 flex-1">
       <Header title="Explorar" />
@@ -152,12 +161,12 @@ export function Explorer() {
             <TouchableOpacity
               onPress={handleOpenSonorizaTv}
               activeOpacity={0.6}
-              className="bg-purple-600 w-full rounded-md h-60 items-center justify-center"
+              className="bg-purple-600 w-full rounded-md h-52 overflow-hidden"
             >
               <Image
-                source={logoSonorizaTv}
+                source={bgSonorizaTv}
                 alt="sonoriza tv"
-                style={{ objectFit: 'contain', width: 250 }}
+                style={{ objectFit: 'cover', width: '100%', height: '100%' }}
               />
             </TouchableOpacity>
           </View>
