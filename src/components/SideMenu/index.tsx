@@ -82,7 +82,7 @@ export function SideMenu() {
         }}
       />
       <View className="bg-gray-700 w-10/12 flex-1 ">
-        <View className="flex-row items-center border-b border-purple-600/60 p-4">
+        <View className="flex-row items-center border-b border-purple-600/60 p-4 pt-12">
           <View className="bg-white w-16 h-16 rounded-full overflow-hidden items-center justify-center">
             {user.photoURL ? (
               <Image

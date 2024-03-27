@@ -123,7 +123,7 @@ export function Notifications() {
 
   return (
     <View className="bg-gray-700 flex-1">
-      <View className="items-center justify-center py-4">
+      <View className="items-center justify-center py-4 mt-10">
         <TouchableOpacity
           onPress={() => {
             navigation.goBack()

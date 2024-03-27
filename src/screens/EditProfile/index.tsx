@@ -111,7 +111,7 @@ export function EditProfile() {
         </View>
       )}
 
-      <View className="p-4">
+      <View className="p-4 mt-10">
         <View className="flex-row items-center justify-between">
           <TouchableOpacity
             onPress={() => navigation.goBack()}

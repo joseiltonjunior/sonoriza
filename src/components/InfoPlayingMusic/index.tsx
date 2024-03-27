@@ -21,6 +21,7 @@ import colors from 'tailwindcss/colors'
 import TrackPlayer from 'react-native-track-player'
 import { handleSetQueue } from '@storage/modules/queue/reducer'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import { usePlaylistModal } from '@hooks/usePlaylistModal'
 
 interface InfoPlayingMusicProps {
   currentMusic?: MusicProps
@@ -35,6 +36,7 @@ export function InfoPlayingMusic({
   const [existInQueue, setExistInQueue] = useState(false)
 
   const { closeModal } = useBottomModal()
+  const { openModal } = usePlaylistModal()
 
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
     (state) => state.trackListOffline,
@@ -190,8 +192,21 @@ export function InfoPlayingMusic({
           >
             <Text className="ml-4 font-nunito-medium text-base text-gray-300">
               {isFavoriteMusic
-                ? 'Remover dos favoritos'
-                : 'Adicionar aos favoritos'}
+                ? 'Remover das Mais queridas'
+                : 'Adicionar às Mais queridas'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.6}
+            className="flex-row px-4 py-3"
+            onPress={() => {
+              closeModal()
+              openModal({ music: isCurrentMusic })
+            }}
+          >
+            <Text className="ml-4 font-nunito-medium text-base text-gray-300">
+              Adicionar à playlist
             </Text>
           </TouchableOpacity>
         </>

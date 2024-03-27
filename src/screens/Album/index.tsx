@@ -79,7 +79,7 @@ export function Album() {
           style={{ height: size }}
           source={{ uri: musics[0].artwork }}
           alt="album photo"
-          className="p-4"
+          className="p-4 pt-10"
         >
           <TouchableOpacity
             className="p-2 rounded-full"

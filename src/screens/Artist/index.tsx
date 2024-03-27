@@ -126,7 +126,7 @@ export function Artist() {
           source={{ uri: artist?.photoURL }}
           alt={artist?.name}
           style={{ height: size }}
-          className={`p-4`}
+          className={`p-4 pt-10`}
         >
           <TouchableOpacity
             className="p-2 rounded-full"

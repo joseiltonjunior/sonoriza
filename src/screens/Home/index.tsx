@@ -194,7 +194,7 @@ export function Home() {
         dispatch(handleSetNetStatus(false))
       }
     } catch (error) {
-      console.log(error)
+      console.log(error, 'home')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -253,6 +253,27 @@ export function Home() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // useEffect(() => {
+  //   const playbackStateListener = TrackPlayer.addEventListener(
+  //     Event.PlaybackState,
+  //     ({ state }) => {
+  //       if ([State.Playing].includes(state)) {
+  //         setTimeout(() => {
+  //           console.log(
+  //             'Música tocada por pelo menos 1 minuto:',
+  //             isCurrentMusic?.title,
+  //           )
+  //         }, 60 * 1000) // Verifica após 1 minu
+  //       }
+  //     },
+  //   )
+
+  //   return () => {
+  //     playbackStateListener.remove()
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async () => {

@@ -1,13 +1,43 @@
 import { usePlaylistModal } from '@hooks/usePlaylistModal'
-import React from 'react'
+import { ReduxProps } from '@storage/index'
+import { UserProps } from '@storage/modules/user/reducer'
+import React, { useEffect, useMemo } from 'react'
+
+import Icon from 'react-native-vector-icons/Ionicons'
 
 import { TouchableOpacity, View, Text, Modal as ModalView } from 'react-native'
+import { useSelector } from 'react-redux'
+import colors from 'tailwindcss/colors'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProps } from '@routes/routes'
 
 export function PlaylistModal() {
   const {
     closeModal,
-    modalState: { visible },
+    modalState: { visible, music },
   } = usePlaylistModal()
+
+  const { handleFavoriteMusic } = useFirebaseServices()
+  const navigation = useNavigation<StackNavigationProps>()
+
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+
+  const handleUserFavoriteTracks = useMemo(() => {
+    const favorites = user.favoritesMusics
+
+    if (!favorites) return ''
+
+    if (favorites.length > 1) {
+      return `${favorites?.length} faixas`
+    }
+
+    return `${favorites?.length} faixa`
+  }, [user.favoritesMusics])
+
+  useEffect(() => {
+    console.log(music)
+  }, [music])
 
   return (
     <ModalView animationType="slide" transparent visible={visible}>
@@ -23,50 +53,44 @@ export function PlaylistModal() {
             Escolher uma playlist
           </Text>
 
-          {/* <View className="flex-row items-center h-12">
-            <TextInput
-              placeholderTextColor={'#9ca3af'}
-              className="placeholder:text-base border border-gray-700 text-gray-700 bg-transparent flex-1 rounded-l-md pl-4"
-              placeholder="Nomeie a sua playlist aqui"
-            />
-            <TouchableOpacity className="bg-purple-600 h-full justify-center px-2 rounded-r-md">
-              <Text className="font-nunito-bold text-white">Salvar</Text>
-            </TouchableOpacity>
-          </View> */}
-
           <View className="mt-4 mb-8">
             <TouchableOpacity
               className="flex-row items-center"
               activeOpacity={0.6}
+              onPress={() => {
+                if (music) {
+                  handleFavoriteMusic(music)
+                  closeModal()
+                }
+              }}
             >
-              <View className="h-12 w-12 bg-white rounded-md" />
+              <View className="h-12 w-12 bg-white rounded-md items-center justify-center">
+                <Icon name="heart" color={colors.purple[600]} size={28} />
+              </View>
               <View className="ml-2">
                 <Text className="text-white font-nunito-bold">
                   Mais queridas
                 </Text>
                 <Text className="text-gray-400 font-nunito-regular">
-                  1 faixa
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-row items-center mt-2"
-              activeOpacity={0.6}
-            >
-              <View className="h-12 w-12 bg-white rounded-md" />
-              <View className="ml-2">
-                <Text className="text-white font-nunito-bold">Melhores</Text>
-                <Text className="text-gray-400 font-nunito-regular">
-                  10 faixas
+                  {handleUserFavoriteTracks}
                 </Text>
               </View>
             </TouchableOpacity>
           </View>
 
-          <Text className="font-nunito-bold mb-2 text-purple-600">
-            NOVA PLAYLIST
-          </Text>
+          <TouchableOpacity
+            activeOpacity={0.6}
+            onPress={() => {
+              if (music) {
+                navigation.navigate('NewPlaylist', music)
+                closeModal()
+              }
+            }}
+          >
+            <Text className="font-nunito-bold mb-2 text-purple-600">
+              NOVA PLAYLIST
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ModalView>

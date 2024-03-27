@@ -67,7 +67,7 @@ export function GenreSelected() {
   return (
     <View className="flex-1 bg-gray-700">
       <View className="px-4 flex-1">
-        <View className="py-4">
+        <View className="py-4 pt-10">
           <TouchableOpacity
             onPress={() => {
               navigation.goBack()
