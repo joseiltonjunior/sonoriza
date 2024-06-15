@@ -194,7 +194,7 @@ export function Home() {
         dispatch(handleSetNetStatus(false))
       }
     } catch (error) {
-      console.log(error)
+      console.log(error, 'home')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -253,6 +253,27 @@ export function Home() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // useEffect(() => {
+  //   const playbackStateListener = TrackPlayer.addEventListener(
+  //     Event.PlaybackState,
+  //     ({ state }) => {
+  //       if ([State.Playing].includes(state)) {
+  //         setTimeout(() => {
+  //           console.log(
+  //             'Música tocada por pelo menos 1 minuto:',
+  //             isCurrentMusic?.title,
+  //           )
+  //         }, 60 * 1000) // Verifica após 1 minu
+  //       }
+  //     },
+  //   )
+
+  //   return () => {
+  //     playbackStateListener.remove()
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async () => {
@@ -370,12 +391,6 @@ export function Home() {
               <MusicalGenres musicalGenres={topMusicalGenres} />
             </Section>
           )}
-
-          {/* {isConnected && releases.length > 0 && (
-            <Section title="Lançamento para você" className={`mt-14`}>
-              <ReleasesCarousel releases={releases} />
-            </Section>
-          )} */}
 
           {isConnected && favoriteArtists.length > 0 && (
             <Section

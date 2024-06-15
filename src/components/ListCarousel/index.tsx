@@ -54,7 +54,7 @@ export function ListCarousel({ musics }: ListCourselProps) {
                 className="flex-row items-center gap-2 w-full"
                 onLongPress={() => {
                   openModal({
-                    children: <InfoPlayingMusic currentMusic={music} />,
+                    children: <InfoPlayingMusic musicSelected={music} />,
                   })
                 }}
                 onPress={() => {

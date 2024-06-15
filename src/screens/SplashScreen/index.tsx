@@ -7,6 +7,8 @@ import { useEffect } from 'react'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 
+import sonorizaIcon from '@assets/icon.png'
+
 import TrackPlayer, {
   AppKilledPlaybackBehavior,
   Capability,
@@ -22,6 +24,7 @@ import {
   setIsInitialized,
 } from '@storage/modules/trackPlayer/reducer'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import ImmersiveMode from 'react-native-immersive-mode'
 
 const size = Dimensions.get('window').width * 0.9
 
@@ -47,6 +50,8 @@ export function SplashScreen() {
       android: {
         appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
       },
+
+      icon: sonorizaIcon,
 
       capabilities: [
         Capability.Play,
@@ -92,6 +97,11 @@ export function SplashScreen() {
     handleVerifyUser()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, isInitialized])
+
+  useEffect(() => {
+    ImmersiveMode.fullLayout(true)
+    ImmersiveMode.setBarTranslucent(true)
+  }, [])
 
   return (
     <View className="flex-1 items-center justify-center bg-gray-700">

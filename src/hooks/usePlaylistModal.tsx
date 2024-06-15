@@ -1,12 +1,16 @@
+import { MusicProps } from '@utils/Types/musicProps'
 import React, { createContext, useContext, useState } from 'react'
 
-interface PlaylistModalProps {
+interface PlaylistModalInfoProps {
+  music?: MusicProps
+}
+interface PlaylistModalProps extends PlaylistModalInfoProps {
   visible: boolean
 }
 
 interface PlaylistModalContextData {
   modalState: PlaylistModalProps
-  openModal(): void
+  openModal({ music }: PlaylistModalInfoProps): void
   closeModal(): void
 }
 
@@ -19,8 +23,8 @@ export function PlaylistModalProvider({ children }: React.PropsWithChildren) {
     visible: false,
   })
 
-  const openModal = () => {
-    setState({ visible: true })
+  const openModal = ({ music }: PlaylistModalInfoProps) => {
+    setState({ visible: true, music })
   }
 
   const closeModal = () => {

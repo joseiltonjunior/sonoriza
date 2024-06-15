@@ -32,7 +32,7 @@ export function Header({ title }: HeaderProps) {
   )
 
   return (
-    <View className="p-4 flex-row items-center justify-between">
+    <View className="p-4 flex-row items-center justify-between mt-12">
       <Text className="text-white text-3xl font-nunito-bold">{title}</Text>
 
       <View className="flex-row">

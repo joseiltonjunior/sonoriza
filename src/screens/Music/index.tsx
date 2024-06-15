@@ -258,92 +258,163 @@ export function Music() {
     }
   }, [calculateProgressPercentage, isSeek])
 
+  // useFocusEffect(() => {
+  //   ImmersiveMode.setBarTranslucent(true)
+
+  //   return () => {
+  //     ImmersiveMode.setBarTranslucent(false)
+  //   }
+  // })
+
   return (
-    <DynamicBackgroundColor color={isCurrentMusic?.color}>
-      <View className="flex-row items-center justify-between m-4">
-        <TouchableOpacity
-          onPress={() => {
-            navigation.goBack()
-          }}
-          className="p-2 rounded-full"
-        >
-          <Icon name="chevron-back-outline" size={30} color={fontColor} />
-        </TouchableOpacity>
-        <View className="flex-col items-center">
-          <Text
-            className="text-gray-300 font-nunito-regular"
-            style={{ color: fontColor }}
-          >
-            Tocando do artista
-          </Text>
-          <Text
-            className="text-white font-nunito-bold text-base"
-            style={{ color: fontColor }}
-          >
-            {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
-          </Text>
-        </View>
-        {isConnected ? (
+    <View className="flex-1 -mt-8">
+      <DynamicBackgroundColor color={isCurrentMusic?.color}>
+        <View className="flex-row items-center justify-between m-4 mt-[70px]">
           <TouchableOpacity
-            style={{ borderColor: fontColor }}
-            className={`rounded-full p-2`}
-            activeOpacity={0.5}
+            onPress={() => {
+              navigation.goBack()
+            }}
+            className="p-2 rounded-full"
           >
-            <Icon
-              name="ellipsis-vertical"
-              size={24}
-              color={fontColor}
-              onPress={() =>
-                openModal({
-                  children: <InfoPlayingMusic currentMusic={isCurrentMusic} />,
-                })
-              }
-            />
+            <Icon name="chevron-back-outline" size={30} color={fontColor} />
           </TouchableOpacity>
-        ) : (
-          <View className="h-10 w-10" />
-        )}
-      </View>
+          <View className="flex-col items-center">
+            <Text
+              className="text-gray-300 font-nunito-regular"
+              style={{ color: fontColor }}
+            >
+              Tocando do artista
+            </Text>
+            <Text
+              className="text-white font-nunito-bold text-base"
+              style={{ color: fontColor }}
+            >
+              {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
+            </Text>
+          </View>
+          <View className="w-10" />
+        </View>
 
-      <View className="items-center mx-8 mt-12">
-        <Carousel
-          loop={false}
-          width={size}
-          height={380}
-          onScrollEnd={(index) => {
-            TrackPlayer.skip(index)
-          }}
-          data={queue}
-          defaultIndex={currentIndex}
-          scrollAnimationDuration={500}
-          renderItem={({ item }) => (
-            <View className="px-2 my-auto mx-auto">
-              <View className="w-[350px] h-[350px] overflow-hidden rounded-lg bg-purple-600 items-center justify-center shadow-lg shadow-gray-950">
-                {item?.artwork ? (
-                  <ImageBackground
-                    source={{ uri: item.artwork }}
-                    alt=""
-                    className="w-full h-full object-cover items-center justify-center"
-                  >
-                    {state === StatePlayer.Buffering && (
-                      <AnimatedLottieView
-                        source={animation}
-                        autoPlay
-                        loop
-                        style={{ width: 120, height: 120 }}
-                      />
-                    )}
-                  </ImageBackground>
-                ) : (
-                  <FatherIcons name="music" size={200} color={fontColor} />
-                )}
+        <View className="items-center mx-8 mt-4">
+          <Carousel
+            loop={false}
+            width={size}
+            height={380}
+            onScrollEnd={(index) => {
+              TrackPlayer.skip(index)
+            }}
+            data={queue}
+            defaultIndex={currentIndex}
+            scrollAnimationDuration={500}
+            renderItem={({ item }) => (
+              <View className="px-2 my-auto mx-auto">
+                <View className="w-[350px] h-[350px] overflow-hidden rounded-lg bg-purple-600 items-center justify-center shadow-lg shadow-gray-950">
+                  {item?.artwork ? (
+                    <ImageBackground
+                      source={{ uri: item.artwork }}
+                      alt=""
+                      className="w-full h-full object-cover items-center justify-center"
+                    >
+                      {state === StatePlayer.Buffering && (
+                        <AnimatedLottieView
+                          source={animation}
+                          autoPlay
+                          loop
+                          style={{ width: 120, height: 120 }}
+                        />
+                      )}
+                    </ImageBackground>
+                  ) : (
+                    <FatherIcons name="music" size={200} color={fontColor} />
+                  )}
+                </View>
               </View>
-            </View>
-          )}
-        />
+            )}
+          />
 
-        <View className="flex-row mt-10 w-full items-center justify-between">
-          <View className="overflow-hidden w-[250px]">
+          <View className="flex-row items-center gap-6 mt-2">
+            <View className="h-8 w-8" />
+            {isConnected && isCurrentMusic ? (
+              <TouchableOpacity
+                style={{ borderColor: fontColor }}
+                className={`rounded-full p-2 border`}
+                activeOpacity={0.5}
+              >
+                <Icon
+                  name="ellipsis-vertical"
+                  size={24}
+                  color={fontColor}
+                  onPress={() =>
+                    openModal({
+                      children: (
+                        <InfoPlayingMusic musicSelected={isCurrentMusic} />
+                      ),
+                    })
+                  }
+                />
+              </TouchableOpacity>
+            ) : (
+              <View className="h-8 w-8" />
+            )}
+
+            {isConnected && (
+              <TouchableOpacity
+                onPress={() => {
+                  if (isCurrentMusic) {
+                    handleFavoriteMusic(isCurrentMusic)
+                  }
+                }}
+              >
+                <Icon
+                  name={isFavoriteMusic ? 'heart-sharp' : 'heart-outline'}
+                  size={28}
+                  color={fontColor}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View className="mt-4 w-[330px] items-center">
+            <View className="flex-row justify-between w-full">
+              <Text
+                className="font-nunito-regular text-xs text-white"
+                style={{ color: fontColor }}
+              >
+                {formatTime(currentPosition !== 0 ? currentPosition : position)}
+              </Text>
+              <Text
+                className="font-nunito-regular text-xs text-white"
+                style={{ color: fontColor }}
+              >
+                {formatTime(duration)}
+              </Text>
+            </View>
+
+            <View className="w-full items-center relative overflow-hidden">
+              <ProgressBar
+                styleAttr="Horizontal"
+                indeterminate={false}
+                progress={changeProgress}
+                color={fontColor}
+                style={{
+                  width: 330,
+                  zIndex: 1000,
+                  height: 20,
+                }}
+                onTouchEnd={handleSeek}
+                onTouchMove={handleChangeProgress}
+              />
+              <View
+                className="absolute top-[2px] w-4 h-4 rounded-full"
+                style={{
+                  left: `${changeProgress * 100}%`,
+                  backgroundColor: fontColor,
+                }}
+              />
+            </View>
+          </View>
+
+          <View className="overflow-hidden mt-4 w-full items-center justify-center">
             <Text
               className="font-nunito-bold text-white text-xl"
               numberOfLines={1}
@@ -360,120 +431,64 @@ export function Music() {
               {isCurrentMusic?.album && ` - ${isCurrentMusic.album}`}
             </Text>
           </View>
+        </View>
 
-          {isConnected && (
+        <View className="flex-row justify-between  items-center mx-8 mt-4 ">
+          <View className="p-2 rounded-full h-11 w-11"></View>
+          <View className="flex-row items-center flex-1 justify-between mx-12">
             <TouchableOpacity
+              disabled={havePrevious}
+              onPress={handleSkipToPrevius}
+              className="p-2 rounded-full"
+            >
+              <Icon name="play-skip-back" size={25} color={fontColor} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ borderColor: fontColor }}
+              className="rounded-full p-2"
               onPress={() => {
-                if (isCurrentMusic) {
-                  handleFavoriteMusic(isCurrentMusic)
+                if (state === StatePlayer.Playing) {
+                  TrackPlayer.pause()
+                } else {
+                  TrackPlayer.play()
                 }
               }}
             >
               <Icon
-                name={isFavoriteMusic ? 'heart-sharp' : 'heart-outline'}
-                size={28}
+                name={state === StatePlayer.Paused ? 'play' : 'pause'}
+                size={50}
                 color={fontColor}
               />
             </TouchableOpacity>
-          )}
-        </View>
 
-        <View className="mt-4 w-[330px] items-center">
-          <View className="flex-row justify-between w-full">
-            <Text
-              className="font-nunito-regular text-xs text-white"
-              style={{ color: fontColor }}
+            <TouchableOpacity
+              disabled={haveNext}
+              onPress={handleSkipToNext}
+              className="p-2 rounded-full"
             >
-              {formatTime(currentPosition !== 0 ? currentPosition : position)}
-            </Text>
-            <Text
-              className="font-nunito-regular text-xs text-white"
-              style={{ color: fontColor }}
-            >
-              {formatTime(duration)}
-            </Text>
+              <Icon name="play-skip-forward" size={25} color={fontColor} />
+            </TouchableOpacity>
           </View>
-
-          <View className="w-full items-center mt-2 relative overflow-hidden">
-            <ProgressBar
-              styleAttr="Horizontal"
-              indeterminate={false}
-              progress={changeProgress}
-              color={fontColor}
-              style={{
-                width: 330,
-                zIndex: 1000,
-                height: 20,
-              }}
-              onTouchEnd={handleSeek}
-              onTouchMove={handleChangeProgress}
-            />
-            <View
-              className="absolute top-[2px] w-4 h-4 rounded-full"
-              style={{
-                left: `${changeProgress * 100}%`,
-                backgroundColor: fontColor,
-              }}
-            />
-          </View>
-        </View>
-      </View>
-
-      <View className="flex-row justify-around  items-center px-10 mt-6">
-        <View className="p-2 rounded-full h-11 w-11"></View>
-        <View className="flex-row items-center flex-1 justify-between mx-8">
           <TouchableOpacity
-            disabled={havePrevious}
-            onPress={handleSkipToPrevius}
-            className="p-2 rounded-full"
+            onPress={handleRepeatMode}
+            className="p-2 rounded-full relative"
           >
-            <Icon name="play-skip-back" size={25} color={fontColor} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{ borderColor: fontColor }}
-            className="border rounded-full p-2"
-            onPress={() => {
-              if (state === StatePlayer.Playing) {
-                TrackPlayer.pause()
-              } else {
-                TrackPlayer.play()
-              }
-            }}
-          >
-            <Icon
-              name={state === StatePlayer.Paused ? 'play' : 'pause'}
-              size={50}
+            <MaterialCommunityIcons
+              name={handleIconsRepeatMode}
+              size={25}
               color={fontColor}
             />
           </TouchableOpacity>
-
+        </View>
+        <View className="m-4">
           <TouchableOpacity
-            disabled={haveNext}
-            onPress={handleSkipToNext}
-            className="p-2 rounded-full"
+            className="w-8 h-8 ml-auto"
+            onPress={() => navigation.navigate('Queue')}
           >
-            <Icon name="play-skip-forward" size={25} color={fontColor} />
+            <MaterialIcons name="queue-music" size={30} color={fontColor} />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          onPress={handleRepeatMode}
-          className="p-2 rounded-full relative"
-        >
-          <MaterialCommunityIcons
-            name={handleIconsRepeatMode}
-            size={25}
-            color={fontColor}
-          />
-        </TouchableOpacity>
-      </View>
-      <View className="m-4">
-        <TouchableOpacity
-          className="w-8 h-8 ml-auto"
-          onPress={() => navigation.navigate('Queue')}
-        >
-          <MaterialIcons name="queue-music" size={30} color={fontColor} />
-        </TouchableOpacity>
-      </View>
-    </DynamicBackgroundColor>
+      </DynamicBackgroundColor>
+    </View>
   )
 }

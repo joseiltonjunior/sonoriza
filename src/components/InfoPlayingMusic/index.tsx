@@ -21,20 +21,22 @@ import colors from 'tailwindcss/colors'
 import TrackPlayer from 'react-native-track-player'
 import { handleSetQueue } from '@storage/modules/queue/reducer'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import { usePlaylistModal } from '@hooks/usePlaylistModal'
 
 interface InfoPlayingMusicProps {
-  currentMusic?: MusicProps
+  musicSelected: MusicProps
   isCloseModal?: boolean
 }
 
 export function InfoPlayingMusic({
-  currentMusic,
+  musicSelected,
   isCloseModal,
 }: InfoPlayingMusicProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [existInQueue, setExistInQueue] = useState(false)
 
   const { closeModal } = useBottomModal()
+  const { openModal } = usePlaylistModal()
 
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
     (state) => state.trackListOffline,
@@ -50,17 +52,17 @@ export function InfoPlayingMusic({
 
   const { handleFavoriteMusic } = useFirebaseServices()
 
-  const { isFavoriteMusic } = useFavorites(currentMusic)
+  const { isFavoriteMusic } = useFavorites(musicSelected)
 
   const dispatch = useDispatch()
 
   async function downloadResource(url: string) {
-    if (!currentMusic) return
+    if (!musicSelected) return
 
     setIsLoading(true)
 
     try {
-      const filePath = `${RNFS.DocumentDirectoryPath}/${currentMusic.title
+      const filePath = `${RNFS.DocumentDirectoryPath}/${musicSelected.title
         .replaceAll(' ', '-')
         .replace('.', '')
         .replace('#', '')
@@ -76,7 +78,7 @@ export function InfoPlayingMusic({
       if ((await response.promise).statusCode === 200) {
         dispatch(
           setTrackListOffline({
-            newMusic: { ...currentMusic, url: `file://${filePath}` },
+            newMusic: { ...musicSelected, url: `file://${filePath}` },
           }),
         )
       } else {
@@ -111,30 +113,30 @@ export function InfoPlayingMusic({
   const handleVerifyQueue = useCallback(async () => {
     const response = await TrackPlayer.getQueue()
 
-    const isExist = response.find((item) => item.title === currentMusic?.title)
+    const isExist = response.find((item) => item.title === musicSelected?.title)
 
     if (isExist) {
       setExistInQueue(true)
     } else {
       setExistInQueue(false)
     }
-  }, [currentMusic?.title])
+  }, [musicSelected?.title])
 
   const isOffline = useMemo(() => {
-    const find = trackListOffline.find((item) => item.id === currentMusic?.id)
+    const find = trackListOffline.find((item) => item.id === musicSelected?.id)
 
     return find
-  }, [currentMusic?.id, trackListOffline])
+  }, [musicSelected?.id, trackListOffline])
 
   async function handleVerifyAndSetQueue() {
-    if (!currentMusic) return
+    if (!musicSelected) return
     const queue = await TrackPlayer.getQueue()
 
-    const isExist = queue.find((item) => item.title === currentMusic?.title)
+    const isExist = queue.find((item) => item.title === musicSelected?.title)
 
     if (isExist) {
       const index = queue.findIndex(
-        (item) => item.title === currentMusic?.title,
+        (item) => item.title === musicSelected?.title,
       )
 
       await TrackPlayer.skip(index)
@@ -145,8 +147,8 @@ export function InfoPlayingMusic({
     }
 
     setExistInQueue(true)
-    dispatch(handleSetQueue({ queue: [...queue, currentMusic] }))
-    await TrackPlayer.add(currentMusic)
+    dispatch(handleSetQueue({ queue: [...queue, musicSelected] }))
+    await TrackPlayer.add(musicSelected)
   }
 
   useEffect(() => {
@@ -160,16 +162,16 @@ export function InfoPlayingMusic({
           className="text-center text-white font-nunito-bold text-lg"
           numberOfLines={1}
         >
-          {currentMusic?.title}
+          {musicSelected?.title}
         </Text>
         <Text className="text-center font-nunito-regular text-gray-200">
-          {currentMusic?.album}
+          {musicSelected?.album}
         </Text>
       </View>
       <View className="py-4 border-b border-gray-300/10">
-        {currentMusic?.artists && (
+        {musicSelected?.artists && (
           <RoundedCarousel
-            artists={currentMusic.artists}
+            artists={musicSelected.artists}
             roundedSmall
             onAction={closeModal}
           />
@@ -182,22 +184,35 @@ export function InfoPlayingMusic({
             activeOpacity={0.6}
             className="flex-row px-4 py-3"
             onPress={() => {
-              if (currentMusic) {
+              if (musicSelected) {
                 if (isCloseModal) closeModal()
-                handleFavoriteMusic(currentMusic)
+                handleFavoriteMusic(musicSelected)
               }
             }}
           >
             <Text className="ml-4 font-nunito-medium text-base text-gray-300">
               {isFavoriteMusic
-                ? 'Remover dos favoritos'
-                : 'Adicionar aos favoritos'}
+                ? 'Remover das Mais queridas'
+                : 'Adicionar às Mais queridas'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.6}
+            className="flex-row px-4 py-3"
+            onPress={() => {
+              closeModal()
+              openModal({ music: musicSelected })
+            }}
+          >
+            <Text className="ml-4 font-nunito-medium text-base text-gray-300">
+              Adicionar à playlist
             </Text>
           </TouchableOpacity>
         </>
       )}
 
-      {isCurrentMusic?.id !== currentMusic?.id && (
+      {isCurrentMusic?.id !== musicSelected?.id && (
         <TouchableOpacity
           activeOpacity={0.6}
           className="flex-row px-4 py-3"
@@ -215,8 +230,8 @@ export function InfoPlayingMusic({
         activeOpacity={0.6}
         className="flex-row px-4 py-3"
         onPress={() => {
-          if (!isOffline && currentMusic) {
-            downloadResource(currentMusic.url)
+          if (!isOffline && musicSelected) {
+            downloadResource(musicSelected.url)
           } else if (isOffline) {
             removeDownload(isOffline)
           }

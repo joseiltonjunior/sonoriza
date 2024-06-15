@@ -5,7 +5,7 @@ import { launchImageLibrary } from 'react-native-image-picker'
 import storage from '@react-native-firebase/storage'
 import firestore from '@react-native-firebase/firestore'
 
-import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
+import { UserProps } from '@storage/modules/user/reducer'
 import {
   ActivityIndicator,
   Image,
@@ -14,25 +14,25 @@ import {
   TextInput,
   View,
 } from 'react-native'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import Icon from 'react-native-vector-icons/Ionicons'
 import colors from 'tailwindcss/colors'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 
-import { useNavigation } from '@react-navigation/native'
-import { StackNavigationProps } from '@routes/routes'
-import { useCallback, useEffect, useState } from 'react'
+import { useNavigation, useRoute } from '@react-navigation/native'
+import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
+import { useCallback, useState } from 'react'
+import { MusicComponent } from '@components/MusicComponent'
 
-export function EditProfile() {
+export function EditPlaylist() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+  const { params: playlist } = useRoute<RouteParamsProps<'EditPlaylist'>>()
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const [name, setName] = useState('')
+  const [name, setName] = useState(playlist.title)
   const [photo, setPhoto] = useState('')
-
-  const dispatch = useDispatch()
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -82,12 +82,6 @@ export function EditProfile() {
 
       await userDocRef.update(data)
 
-      dispatch(
-        handleSetUser({
-          user: { ...user, displayName: name, photoURL: imageUrl },
-        }),
-      )
-
       setIsLoading(false)
 
       navigation.goBack()
@@ -95,13 +89,7 @@ export function EditProfile() {
       setIsLoading(false)
       console.log(error, 'err')
     }
-  }, [dispatch, name, navigation, photo, user])
-
-  useEffect(() => {
-    if (user.displayName) {
-      setName(user.displayName)
-    }
-  }, [user.displayName])
+  }, [name, navigation, photo, user])
 
   return (
     <View className="relative bg-gray-700 flex-1">
@@ -121,16 +109,12 @@ export function EditProfile() {
           </TouchableOpacity>
 
           <Text className="font-nunito-bold text-white text-base">
-            Editar perfil
+            Editar Playlist
           </Text>
 
           <TouchableOpacity onPress={handleEditUser} activeOpacity={0.6}>
             <Text
-              className={`font-nunito-regular ${
-                user.displayName === name && !photo
-                  ? 'text-gray-300'
-                  : 'text-red-600 underline'
-              } text-base transition-all duration-150`}
+              className={`font-nunito-regular text-gray-300 text-base transition-all duration-150`}
             >
               Salvar
             </Text>
@@ -139,21 +123,16 @@ export function EditProfile() {
 
         <View className="items-center mt-6">
           <View className="bg-purple-600 rounded-full w-40 h-40 items-center justify-center relative">
-            {user.photoURL ? (
-              <Image
-                source={{ uri: photo.length > 0 ? photo : user.photoURL }}
-                alt="user pic"
-                className="w-full h-full object-cover rounded-full"
-              />
-            ) : (
-              <View className="w-full h-full rounded-full items-center justify-center">
-                <Icon name="person" size={80} color={colors.gray[200]} />
-              </View>
-            )}
+            <Image
+              source={{ uri: photo.length > 0 ? photo : playlist.imageUrl }}
+              alt="playlist artwork"
+              className="w-full h-full object-cover rounded-md"
+            />
+
             <TouchableOpacity
               activeOpacity={1}
               onPress={handleImageLibrary}
-              className="bg-gray-200 p-2 rounded-full absolute left-6 -bottom-2 z-30"
+              className="bg-gray-200 p-2 rounded-full absolute left-8 -bottom-4 z-30"
             >
               <Icon name="camera" size={20} color={colors.gray[950]} />
             </TouchableOpacity>
@@ -169,6 +148,18 @@ export function EditProfile() {
               }}
               className="text-gray-300 font-nunito-regular text-base w-full"
             />
+          </View>
+
+          <View className="mt-8 w-full">
+            <Text className="text-white font-nunito-bold text-base">
+              {playlist.musics.length > 0
+                ? 'Musicas da playlist'
+                : 'A playlist está vázia'}
+            </Text>
+
+            {playlist.musics.map((item, index) => (
+              <MusicComponent key={index} music={item} />
+            ))}
           </View>
         </View>
       </View>

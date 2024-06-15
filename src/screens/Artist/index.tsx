@@ -2,11 +2,10 @@ import { AlbumsCarousel } from '@components/AlbumCarousel'
 import { BottomMenu } from '@components/BottomMenu/Index'
 
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
-import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 import { Loading } from '@components/Loading'
+import { MusicComponent } from '@components/MusicComponent'
 
 import { Section } from '@components/Section'
-import { useBottomModal } from '@hooks/useBottomModal'
 
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
@@ -25,7 +24,6 @@ import { useEffect, useMemo, useState } from 'react'
 
 import {
   Dimensions,
-  Image,
   ImageBackground,
   ScrollView,
   StyleSheet,
@@ -47,8 +45,6 @@ export function Artist() {
   const { artistId } = params
 
   const size = Dimensions.get('window').width * 1
-
-  const { openModal } = useBottomModal()
 
   const [artist, setArtist] = useState<ArtistsDataProps>()
   const [albums, setAlbums] = useState<AlbumProps[]>([])
@@ -126,7 +122,7 @@ export function Artist() {
           source={{ uri: artist?.photoURL }}
           alt={artist?.name}
           style={{ height: size }}
-          className={`p-4`}
+          className={`p-4 pt-10`}
         >
           <TouchableOpacity
             className="p-2 rounded-full"
@@ -189,8 +185,8 @@ export function Artist() {
           {topMusics
             ?.map((item) => (
               <View className="flex-row items-center mt-3" key={item.id}>
-                <TouchableOpacity
-                  className="flex-row items-center gap-2 flex-1 overflow-hidden"
+                <MusicComponent
+                  music={item}
                   onPress={() => {
                     if (!topMusics) return
                     handleMusicSelected({
@@ -198,40 +194,7 @@ export function Artist() {
                       musicSelected: item,
                     })
                   }}
-                >
-                  <View className="w-16 h-16 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
-                    <Image
-                      source={{ uri: item.artwork }}
-                      alt="artwork"
-                      className="h-full w-full"
-                    />
-                  </View>
-                  <View className="w-full">
-                    <Text
-                      className="font-nunito-bold text-white text-base"
-                      numberOfLines={1}
-                    >
-                      {item.title}
-                    </Text>
-                    <Text className="font-nunito-regular text-gray-300 mt-1">
-                      {item.album}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className="p-2"
-                  onPress={() =>
-                    openModal({
-                      children: <InfoPlayingMusic currentMusic={item} />,
-                    })
-                  }
-                >
-                  <Icon
-                    name="ellipsis-vertical"
-                    size={24}
-                    color={colors.white}
-                  />
-                </TouchableOpacity>
+                />
               </View>
             ))
             .slice(0, 4)}

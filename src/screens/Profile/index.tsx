@@ -113,7 +113,7 @@ export function Profile() {
 
   return (
     <View className="bg-gray-700  flex-1 p-4">
-      <View className="flex-row items-center justify-between ">
+      <View className="flex-row items-center justify-between mt-10">
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           activeOpacity={0.6}
