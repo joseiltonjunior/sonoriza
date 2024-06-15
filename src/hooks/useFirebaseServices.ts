@@ -14,6 +14,7 @@ import { UserDataProps } from '@utils/Types/userProps'
 import { shuffleArray } from '@utils/Types/shuffleArray'
 import { NotificationsDataProps } from '@utils/Types/notificationsProps'
 import { VersionProps } from '@utils/Types/versionProps'
+import { PlaylistProps } from '@utils/Types/playlistProps'
 
 export function useFirebaseServices() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
@@ -511,6 +512,20 @@ export function useFirebaseServices() {
     return version
   }
 
+  const handleGetPlaylistByUserId = async (
+    userId: string,
+  ): Promise<PlaylistProps[]> => {
+    const querySnapshot = await firestore()
+      .collection('playlist')
+      .where('userId', '==', userId)
+      .get()
+
+    const playlists = querySnapshot.docs.map(
+      (doc) => doc.data() as PlaylistProps,
+    )
+    return playlists
+  }
+
   return {
     handleGetArtistsNewUser,
     handleGetMusicalGenres,
@@ -534,5 +549,6 @@ export function useFirebaseServices() {
     handleGetNotifications,
     handleGetMusicsByAlbum,
     handleFetchNewVersionApp,
+    handleGetPlaylistByUserId,
   }
 }

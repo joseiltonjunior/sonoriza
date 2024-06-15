@@ -9,8 +9,6 @@ import { TouchableOpacity, View, Text, Modal as ModalView } from 'react-native'
 import { useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
-import { useNavigation } from '@react-navigation/native'
-import { StackNavigationProps } from '@routes/routes'
 
 export function PlaylistModal() {
   const {
@@ -19,7 +17,6 @@ export function PlaylistModal() {
   } = usePlaylistModal()
 
   const { handleFavoriteMusic } = useFirebaseServices()
-  const navigation = useNavigation<StackNavigationProps>()
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
@@ -80,12 +77,13 @@ export function PlaylistModal() {
 
           <TouchableOpacity
             activeOpacity={0.6}
-            onPress={() => {
-              if (music) {
-                navigation.navigate('NewPlaylist', music)
-                closeModal()
-              }
-            }}
+            disabled
+            // onPress={() => {
+            //   if (music) {
+            //     navigation.navigate('EditPlaylist', music)
+            //     closeModal()
+            //   }
+            // }}
           >
             <Text className="font-nunito-bold mb-2 text-purple-600">
               NOVA PLAYLIST

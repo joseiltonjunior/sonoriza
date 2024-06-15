@@ -230,7 +230,7 @@ export function MoreMusic() {
                 onPress={() =>
                   openModal({
                     children: (
-                      <InfoPlayingMusic currentMusic={item} isCloseModal />
+                      <InfoPlayingMusic musicSelected={item} isCloseModal />
                     ),
                   })
                 }

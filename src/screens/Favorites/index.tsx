@@ -16,8 +16,12 @@ import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer
 import { NetInfoProps } from '@storage/modules/netInfo/reducer'
 
 import { Header } from '@components/Header'
+import { useCallback, useEffect, useState } from 'react'
+import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 export function Favorites() {
+  const [totalPlaylist, setTotalPlaylist] = useState(0)
+
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
@@ -30,9 +34,21 @@ export function Favorites() {
     (state) => state.netInfo,
   )
 
+  const { handleGetPlaylistByUserId } = useFirebaseServices()
+
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const navigation = useNavigation<StackNavigationProps>()
+
+  const handleSearchMyPlaylists = useCallback(async () => {
+    const response = await handleGetPlaylistByUserId(user.uid)
+
+    setTotalPlaylist(response.length)
+  }, [handleGetPlaylistByUserId, user.uid])
+
+  useEffect(() => {
+    handleSearchMyPlaylists()
+  }, [handleSearchMyPlaylists])
 
   return (
     <View className="flex-1 bg-gray-700">
@@ -98,16 +114,18 @@ export function Favorites() {
           </>
         )}
 
-        {/* <TouchableOpacity
-          disabled
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Playlists')}
           activeOpacity={0.6}
           className="flex-row justify-between items-center px-4 py-2"
         >
           <Text className="font-nunito-medium text-lg text-white">
             Playlists
           </Text>
-          <Text className="font-nunito-regular text-gray-300">0</Text>
-        </TouchableOpacity> */}
+          <Text className="font-nunito-regular text-gray-300">
+            {totalPlaylist}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}

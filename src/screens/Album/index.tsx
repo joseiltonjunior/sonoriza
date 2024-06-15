@@ -144,7 +144,7 @@ export function Album() {
                 className="ml-4"
                 onPress={() =>
                   openModal({
-                    children: <InfoPlayingMusic currentMusic={item} />,
+                    children: <InfoPlayingMusic musicSelected={item} />,
                   })
                 }
               >

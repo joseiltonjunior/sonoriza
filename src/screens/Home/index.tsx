@@ -392,12 +392,6 @@ export function Home() {
             </Section>
           )}
 
-          {/* {isConnected && releases.length > 0 && (
-            <Section title="Lançamento para você" className={`mt-14`}>
-              <ReleasesCarousel releases={releases} />
-            </Section>
-          )} */}
-
           {isConnected && favoriteArtists.length > 0 && (
             <Section
               title={

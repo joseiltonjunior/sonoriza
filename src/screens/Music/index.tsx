@@ -334,7 +334,7 @@ export function Music() {
 
           <View className="flex-row items-center gap-6 mt-2">
             <View className="h-8 w-8" />
-            {isConnected ? (
+            {isConnected && isCurrentMusic ? (
               <TouchableOpacity
                 style={{ borderColor: fontColor }}
                 className={`rounded-full p-2 border`}
@@ -347,7 +347,7 @@ export function Music() {
                   onPress={() =>
                     openModal({
                       children: (
-                        <InfoPlayingMusic currentMusic={isCurrentMusic} />
+                        <InfoPlayingMusic musicSelected={isCurrentMusic} />
                       ),
                     })
                   }

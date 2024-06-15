@@ -5,5 +5,8 @@ export interface PlaylistProps {
   title: string
   created_at: string
   musics: MusicProps[]
-  cover?: string
+  imageUrl: string
+  private: boolean
+  collaborative: boolean
+  userId: string
 }
