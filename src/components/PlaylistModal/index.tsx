@@ -1,7 +1,7 @@
 import { usePlaylistModal } from '@hooks/usePlaylistModal'
 import { ReduxProps } from '@storage/index'
 import { UserProps } from '@storage/modules/user/reducer'
-import React, { useEffect, useMemo } from 'react'
+import React, { useMemo } from 'react'
 
 import Icon from 'react-native-vector-icons/Ionicons'
 
@@ -9,6 +9,8 @@ import { TouchableOpacity, View, Text, Modal as ModalView } from 'react-native'
 import { useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
 import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProps } from '@routes/routes'
 
 export function PlaylistModal() {
   const {
@@ -17,6 +19,7 @@ export function PlaylistModal() {
   } = usePlaylistModal()
 
   const { handleFavoriteMusic } = useFirebaseServices()
+  const navigation = useNavigation<StackNavigationProps>()
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
@@ -31,10 +34,6 @@ export function PlaylistModal() {
 
     return `${favorites?.length} faixa`
   }, [user.favoritesMusics])
-
-  useEffect(() => {
-    console.log(music)
-  }, [music])
 
   return (
     <ModalView animationType="slide" transparent visible={visible}>
@@ -77,13 +76,12 @@ export function PlaylistModal() {
 
           <TouchableOpacity
             activeOpacity={0.6}
-            disabled
-            // onPress={() => {
-            //   if (music) {
-            //     navigation.navigate('EditPlaylist', music)
-            //     closeModal()
-            //   }
-            // }}
+            onPress={() => {
+              if (music) {
+                navigation.navigate('NewPlaylist', music)
+                closeModal()
+              }
+            }}
           >
             <Text className="font-nunito-bold mb-2 text-purple-600">
               NOVA PLAYLIST

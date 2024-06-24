@@ -43,7 +43,7 @@ const historicSlice = createSlice({
         newHistoric = [music, ...state.historic]
       }
 
-      newHistoric = newHistoric.slice(0, 10)
+      newHistoric = newHistoric.slice(0, 30)
 
       return {
         ...state,
