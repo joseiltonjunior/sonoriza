@@ -15,9 +15,12 @@ import { shuffleArray } from '@utils/Types/shuffleArray'
 import { NotificationsDataProps } from '@utils/Types/notificationsProps'
 import { VersionProps } from '@utils/Types/versionProps'
 import { PlaylistProps } from '@utils/Types/playlistProps'
+import { useToast } from './useToast'
 
 export function useFirebaseServices() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+
+  const { showToast } = useToast()
 
   const dispatch = useDispatch()
 
@@ -114,9 +117,11 @@ export function useFirebaseServices() {
 
         favoritesMusics = filter
         like--
+        showToast({ title: 'Removido dos favoritos.' })
       } else {
         favoritesMusics = [...favoritesMusics, musicSelected.id]
         like++
+        showToast({ title: 'Adicionado aos favoritos.' })
       }
 
       musicRef.update({ like })
@@ -516,7 +521,7 @@ export function useFirebaseServices() {
     userId: string,
   ): Promise<PlaylistProps[]> => {
     const querySnapshot = await firestore()
-      .collection('playlist')
+      .collection('playlists')
       .where('userId', '==', userId)
       .get()
 

@@ -28,6 +28,8 @@ import { EditPlaylist } from '@screens/EditPlaylist'
 import { Notifications } from '@screens/Notifications'
 import { Playlists } from '@screens/Playlists'
 import { PlaylistProps } from '@utils/Types/playlistProps'
+import { NewPlaylist } from '@screens/NewPlaylist'
+import { MusicProps } from '@utils/Types/musicProps'
 
 type RootStackParamList = {
   Home: undefined
@@ -64,6 +66,7 @@ type RootStackParamList = {
   Explorer: undefined
   EditPlaylist: PlaylistProps
   Playlists: undefined
+  NewPlaylist: MusicProps
 }
 
 export type StackNavigationProps = StackNavigationProp<RootStackParamList>
@@ -107,6 +110,7 @@ export function Routes() {
       <Stack.Screen name="Explorer" component={Explorer} />
       <Stack.Screen name="EditPlaylist" component={EditPlaylist} />
       <Stack.Screen name="Playlists" component={Playlists} />
+      <Stack.Screen name="NewPlaylist" component={NewPlaylist} />
     </Stack.Navigator>
   )
 }
