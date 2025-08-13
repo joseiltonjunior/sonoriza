@@ -80,6 +80,7 @@ export function Home() {
   const {
     handleGetFavoritesMusics,
     handleGetFavoritesArtists,
+    handleGetPlaylistByUserId,
     handleGetReleases,
     handleGetInspiredMixes,
     handleGetMusicsNewUser,
@@ -178,6 +179,10 @@ export function Home() {
           excludeGenres,
           excludesMusics,
         )
+
+        const responseUserPlaylist = await handleGetPlaylistByUserId(user.uid)
+
+        console.log(responseUserPlaylist)
 
         dispatch(
           setInspiredMixes({

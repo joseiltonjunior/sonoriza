@@ -73,7 +73,7 @@ export function NewPlaylist() {
 
         imageUrl = responseUrl
       }
-      
+
       const data = {
         title: name,
         artworkURL: imageUrl,
@@ -86,7 +86,7 @@ export function NewPlaylist() {
         id: docRef.id,
       }
 
-      await docRef.set(data);
+      await docRef.set(data)
 
       setIsLoading(false)
       navigation.goBack()

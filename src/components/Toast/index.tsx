@@ -43,7 +43,7 @@ export function Toast() {
   return (
     <Animated.View
       style={[animatedStyle]}
-      className={`bg-white/80 py-3 px-4 absolute w-[96%] mx-2 bottom-2 rounded-md border-b border-purple-600`}
+      className={`bg-white/80 py-3 px-4 absolute w-[96%] mx-2 bottom-6 rounded-md border-b border-purple-600`}
     >
       <Text className="font-bold text-gray-700">{title}</Text>
     </Animated.View>

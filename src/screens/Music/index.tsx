@@ -269,7 +269,7 @@ export function Music() {
   return (
     <View className="flex-1 -mt-8">
       <DynamicBackgroundColor color={isCurrentMusic?.color}>
-        <View className="flex-row items-center justify-between m-4 mt-[70px]">
+        <View className="flex-row items-center justify-between m-4 pt-16">
           <TouchableOpacity
             onPress={() => {
               navigation.goBack()
