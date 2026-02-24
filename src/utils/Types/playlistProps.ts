@@ -9,7 +9,7 @@ export interface PlaylistProps {
     name: string
   }
   musics: MusicProps[]
-  artworURL: string
+  artworkURL: string
   private: boolean
   collaborative: boolean
 }

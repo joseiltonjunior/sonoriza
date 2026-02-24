@@ -158,6 +158,7 @@ export function SignIn() {
         },
       })
     } catch (error) {
+      console.log('Erro ao autenticar com Google:', error)
       setIsLoading(false)
       openModal({
         title: 'Atenção',

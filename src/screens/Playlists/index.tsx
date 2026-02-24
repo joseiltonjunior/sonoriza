@@ -53,8 +53,9 @@ export function Playlists() {
 
     setPlaylists(response)
 
+    console.log(response)
+
     setIsLoading(false)
-    console.log(response[0])
   }, [handleGetPlaylistByUserId, user.uid])
 
   useEffect(() => {
@@ -102,21 +103,17 @@ export function Playlists() {
           )}
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item, index }) => (
-            <View
-              className={`flex-row gap-4 justify-between items-center ${
-                isCurrentMusic ? 'mb-32' : 'mb-16'
-              }`}
-            >
+            <View className={`flex-row gap-4 justify-between items-center`}>
               <TouchableOpacity
                 key={index}
                 className="flex-row items-center gap-2 flex-1 overflow-hidden"
                 onPress={() => {
-                  navigation.navigate('EditPlaylist', item)
+                  return console.log(item)
                 }}
               >
                 <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
                   <ImageBackground
-                    source={{ uri: item.artworURL }}
+                    source={{ uri: item.artworkURL }}
                     alt="artwork"
                     className="h-full w-full items-center justify-center"
                   />
