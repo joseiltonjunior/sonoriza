@@ -2,7 +2,7 @@ import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 import { Header } from '@components/Header'
 import { ReleasesCarousel } from '@components/ReleasesCarousel'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
@@ -24,10 +24,10 @@ import {
 import { useSelector } from 'react-redux'
 import { useModal } from '@hooks/useModal'
 import { Loading } from '@components/Loading'
+import { api } from '@services/api'
+import { MusicalGenresDataProps } from '@utils/Types/musicalGenresProps'
 
 export function Explorer() {
-  const { handleGetMusicalGenres } = useFirebaseServices()
-
   const [isLoading, setIsLoading] = useState(false)
 
   const navigation = useNavigation<StackNavigationProps>()
@@ -47,7 +47,9 @@ export function Explorer() {
   const handleGetData = async () => {
     setIsLoading(true)
     try {
-      const resultMusicalGenres = await handleGetMusicalGenres()
+      const resultMusicalGenres = await api
+        .get('/gentes')
+        .then((response) => response.data.data as MusicalGenresDataProps[])
       setMusicalGenres(resultMusicalGenres.map((item) => item.name))
       setIsLoading(false)
     } catch (error) {

@@ -21,7 +21,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
 
 import { UserProps } from '@storage/modules/user/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import colors from 'tailwindcss/colors'
 
 import { Loading } from '@components/Loading'
@@ -36,9 +35,6 @@ export function MoreArtists() {
   const [isLoading, setIsLoading] = useState(false)
   const [isEndList, setIsEndList] = useState(false)
 
-  const { handleGetFavoritesArtists, handleFavoriteArtist } =
-    useFirebaseServices()
-
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const navigation = useNavigation<StackNavigationProps>()
@@ -51,26 +47,13 @@ export function MoreArtists() {
 
   const handleGetArtists = useCallback(async () => {
     if (!user.favoritesArtists || isLoading || isEndList) return
-
+    console.log('buscar artistas favoritos')
     setIsLoading(true)
-    await handleGetFavoritesArtists(user.favoritesArtists, page)
-      .then((result) => {
-        setPage((prev) => prev + 1)
-        setListArtists((prev) => [...prev, ...result])
-        if (
-          result.length < 10 ||
-          (user.favoritesArtists && user.favoritesArtists.length <= 10)
-        ) {
-          setIsEndList(true)
-        }
-      })
-      .finally(() => setIsLoading(false))
-      .catch((e) => console.log(e))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isLoading, isEndList, page])
 
   const handleChangeFavoriteArtist = async (artist: ArtistsDataProps) => {
-    await handleFavoriteArtist(artist)
+    console.log('favoritar artistas')
+
     const filter = listArtists.filter((item) => item.id !== artist.id)
     setListArtists(filter)
     dispatch(setFavoriteArtists({ favoriteArtists: filter }))

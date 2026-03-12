@@ -10,39 +10,21 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { WEB_CLIENT_ID } from '@env'
-
-import iconGoogle from '@assets/icon-google.png'
-
-import { GoogleSignin } from '@react-native-google-signin/google-signin'
 
 import logo from '@assets/logo.png'
 import { Button } from '@components/Button'
 import { useState } from 'react'
 
-import auth from '@react-native-firebase/auth'
-
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
 
-import { useModal } from '@hooks/useModal'
-
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useDispatch } from 'react-redux'
 import { handleSetUser } from '@storage/modules/user/reducer'
+import { api } from '@services/api'
 
 interface FormDataProps {
   email: string
   password: string
-}
-
-interface SaveUserProps {
-  uid: string
-  withGoogle?: {
-    displayName: string | null
-    email: string | null
-    photoURL: string | null
-  }
 }
 
 const schema = z.object({
@@ -64,136 +46,53 @@ export function SignIn() {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const { closeModal, openModal } = useModal()
-
   const dispatch = useDispatch()
 
-  const {
-    handleFetchDataUser,
-    handleSaveUser,
-    handleRequestPermissionNotifications,
-  } = useFirebaseServices()
+  async function handleSignInWithEmail(data: FormDataProps) {
+    Keyboard.dismiss()
+    setIsLoading(true)
 
-  GoogleSignin.configure({
-    webClientId: WEB_CLIENT_ID,
-  })
-
-  async function handleDataUser({ uid, withGoogle }: SaveUserProps) {
     try {
-      const user = await handleFetchDataUser(uid)
-
-      if (!user && withGoogle) {
-        const { displayName, email, photoURL } = withGoogle
-
-        const newUser = {
-          displayName,
-          email,
-          photoURL,
-          plan: 'free',
-          uid,
-        }
-
-        await handleSaveUser({
-          displayName,
-          email,
-          photoURL,
-          plan: 'free',
-          uid,
-        })
-
-        dispatch(
-          handleSetUser({
-            user: newUser,
-          }),
-        )
-      } else {
-        dispatch(
-          handleSetUser({
-            user,
-          }),
-        )
-      }
-
-      await handleRequestPermissionNotifications(uid)
+      const authResponse = await api.post('/sessions', {
+        email: data.email,
+        password: data.password,
+      })
 
       setIsLoading(false)
+      dispatch(
+        handleSetUser({
+          user: {
+            name: authResponse.data.user.name,
+            email: authResponse.data.user.email,
+            photoUrl: authResponse.data.user.photoUrl,
+            role: authResponse.data.user.role,
+            id: authResponse.data.user.id,
+            isActive: authResponse.data.user.isActive,
+            isAuthenticated: authResponse.data.access_token,
+          },
+        }),
+      )
 
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Home' }],
+        routes: [
+          {
+            name: 'Home',
+            params: undefined,
+          },
+        ],
       })
     } catch (error) {
+      setError('email', { message: '* credenciais inválidas' })
+      setError('password', { message: '* credenciais inválidas' })
       setIsLoading(false)
-      openModal({
-        title: 'Atenção',
-        description:
-          'No momento, não foi possível realizar o cadastro utilizando sua conta do Google. Pedimos desculpas pelo inconveniente e sugerimos que tente novamente mais tarde.',
-        singleAction: {
-          action() {
-            closeModal()
-          },
-          title: 'OK',
-        },
-      })
     }
-  }
-
-  async function handleSignInWithGoogle() {
-    setIsLoading(true)
-    try {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
-
-      const { idToken } = await GoogleSignin.signIn()
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken)
-      const response = await auth().signInWithCredential(googleCredential)
-
-      const { uid, displayName, email, photoURL } = response.user
-
-      handleDataUser({
-        uid,
-        withGoogle: {
-          displayName,
-          email,
-          photoURL,
-        },
-      })
-    } catch (error) {
-      console.log('Erro ao autenticar com Google:', error)
-      setIsLoading(false)
-      openModal({
-        title: 'Atenção',
-        description:
-          'No momento, não foi possível autenticar com a sua conta do Google. Por favor, tente novamente mais tarde.',
-        singleAction: {
-          action() {
-            closeModal()
-          },
-          title: 'OK',
-        },
-      })
-    }
-  }
-
-  function handleSignInWithEmail(data: FormDataProps) {
-    Keyboard.dismiss()
-    setIsLoading(true)
-    auth()
-      .signInWithEmailAndPassword(data.email, data.password)
-      .then(async (result) => {
-        const { uid } = result.user
-        handleDataUser({ uid })
-      })
-      .catch(() => {
-        setError('email', { message: '* credenciais inválidas' })
-        setError('password', { message: '* credenciais inválidas' })
-        setIsLoading(false)
-      })
   }
 
   return (
     <>
       <ScrollView className="bg-gray-700">
-        <View className="p-4 items-center h-full ">
+        <View className="p-4 pt-24 items-center h-full ">
           <Image
             source={logo}
             alt="logo"
@@ -206,28 +105,6 @@ export function SignIn() {
           </Text>
 
           <View className="w-full mt-12 px-4">
-            <TouchableOpacity
-              onPress={handleSignInWithGoogle}
-              className="bg-gray-100 w-full rounded-full h-12 items-center justify-center flex-row"
-            >
-              <Image
-                source={iconGoogle}
-                alt="google icon"
-                width={20}
-                height={20}
-                style={{ width: 24, objectFit: 'contain' }}
-              />
-              <Text className="text-gray-500 font-nunito-bold ml-6">
-                ENTRAR COM O GOOGLE
-              </Text>
-            </TouchableOpacity>
-
-            <View className="flex-row overflow-hidden items-center my-6">
-              <View className="h-[1px] flex-1 bg-gray-300" />
-              <Text className="font-nunito-bold text-gray-300 mx-2">OU</Text>
-              <View className="h-[1px] flex-1 bg-gray-300" />
-            </View>
-
             <Input
               icon="mail"
               name="email"

@@ -1,9 +1,6 @@
 import { ReduxProps } from '@storage/index'
 
-import { launchImageLibrary } from 'react-native-image-picker'
-
-import storage from '@react-native-firebase/storage'
-import firestore from '@react-native-firebase/firestore'
+import { Asset, launchImageLibrary } from 'react-native-image-picker'
 
 import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
 import {
@@ -23,6 +20,8 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { useCallback, useEffect, useState } from 'react'
+import { api } from '@services/api'
+import { UploadObjectResponseProps } from '@utils/Types/uploadProps'
 
 export function EditProfile() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
@@ -30,7 +29,7 @@ export function EditProfile() {
   const [isLoading, setIsLoading] = useState(false)
 
   const [name, setName] = useState('')
-  const [photo, setPhoto] = useState('')
+  const [photo, setPhoto] = useState<Asset | null>(null)
 
   const dispatch = useDispatch()
 
@@ -41,50 +40,56 @@ export function EditProfile() {
       { mediaType: 'photo', maxWidth: 500, maxHeight: 500 },
       (response) => {
         if (response.assets) {
-          const uri = response.assets[0].uri
+          const asset = response.assets[0]
 
-          if (uri) {
-            setPhoto(uri)
+          if (asset) {
+            setPhoto(asset)
           }
         }
       },
     )
   }
 
+  const slugify = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\.[^/.]+$/, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
   const handleEditUser = useCallback(async () => {
     try {
-      let imageUrl = ''
+      const imageUrl = ''
 
       Keyboard.dismiss()
 
-      if (photo.length < 1 && user.photoURL) {
-        imageUrl = user.photoURL
-      } else {
-        setIsLoading(true)
-        const storageRef = storage().ref(`${user.uid}.jpg`)
-
-        const response = await fetch(photo)
-        const blob = await response.blob()
-
-        await storageRef.put(blob)
-
-        const responseUrl = await storageRef.getDownloadURL()
-
-        imageUrl = responseUrl
+      if (!photo?.uri) {
+        return
       }
 
-      const userDocRef = firestore().collection('users').doc(user.uid)
+      const formData = new FormData()
 
-      const data = {
+      formData.append('files', {
+        uri: photo.uri,
+      } as any)
+
+      formData.append('folder', 'users')
+      formData.append('slug', slugify(name))
+
+      const objectPathSigned = await api
+        .post('/uploads', formData)
+        .then((res) => res.data.files as UploadObjectResponseProps)
+
+      await api.patch(`/me`, {
         name,
-        photoURL: imageUrl,
-      }
-
-      await userDocRef.update(data)
+        photoUrl: objectPathSigned.signedUrl,
+      })
 
       dispatch(
         handleSetUser({
-          user: { ...user, displayName: name, photoURL: imageUrl },
+          user: { ...user, name, photoUrl: objectPathSigned.signedUrl },
         }),
       )
 
@@ -98,10 +103,10 @@ export function EditProfile() {
   }, [dispatch, name, navigation, photo, user])
 
   useEffect(() => {
-    if (user.displayName) {
-      setName(user.displayName)
+    if (user.name) {
+      setName(user.name)
     }
-  }, [user.displayName])
+  }, [user.name])
 
   return (
     <View className="relative bg-gray-700 flex-1">
@@ -127,7 +132,7 @@ export function EditProfile() {
           <TouchableOpacity onPress={handleEditUser} activeOpacity={0.6}>
             <Text
               className={`font-nunito-regular ${
-                user.displayName === name && !photo
+                user.name === name && !photo
                   ? 'text-gray-300'
                   : 'text-red-600 underline'
               } text-base transition-all duration-150`}
@@ -139,9 +144,14 @@ export function EditProfile() {
 
         <View className="items-center mt-6">
           <View className="bg-purple-600 rounded-full w-40 h-40 items-center justify-center relative">
-            {user.photoURL ? (
+            {user.photoUrl ? (
               <Image
-                source={{ uri: photo.length > 0 ? photo : user.photoURL }}
+                source={{
+                  uri:
+                    photo?.uri && photo.uri?.length > 0
+                      ? photo.uri
+                      : user.photoUrl,
+                }}
                 alt="user pic"
                 className="w-full h-full object-cover rounded-full"
               />

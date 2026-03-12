@@ -48,6 +48,7 @@ type RootStackParamList = {
     type: 'favorites' | 'default' | 'historic' | 'offline' | 'artist'
     title: string
     artistFlow?: string[]
+    artistId: string
   }
   GenreSelected: {
     type: string

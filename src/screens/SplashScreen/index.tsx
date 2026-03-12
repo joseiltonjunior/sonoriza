@@ -23,14 +23,15 @@ import {
   TrackPlayerProps,
   setIsInitialized,
 } from '@storage/modules/trackPlayer/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import ImmersiveMode from 'react-native-immersive-mode'
+import { api } from '@services/api'
+import { UserDataProps } from '@utils/Types/userProps'
 
 const size = Dimensions.get('window').width * 0.9
 
 export function SplashScreen() {
   const navigation = useNavigation<StackNavigationProps>()
-  const { handleFetchDataUser } = useFirebaseServices()
 
   const { isConnected } = useNetInfo()
 
@@ -69,23 +70,29 @@ export function SplashScreen() {
   }
 
   const handleVerifyUser = async () => {
-    if (!user.uid) {
+    if (!user.id) {
       navigation.reset({
         index: 0,
         routes: [{ name: 'SignIn' }],
       })
     } else {
-      const userResponse = await handleFetchDataUser(user.uid)
+      try {
+        const userResponse = await api
+          .get('/me')
+          .then((response) => response.data as UserDataProps)
 
-      dispatch(
-        handleSetUser({
-          user: userResponse,
-        }),
-      )
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Home' }],
-      })
+        dispatch(
+          handleSetUser({
+            user: userResponse,
+          }),
+        )
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }],
+        })
+      } catch (error) {
+        console.log('Error fetching user data:', error)
+      }
     }
   }
 

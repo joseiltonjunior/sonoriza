@@ -16,7 +16,6 @@ import animation from '@assets/music-loading.json'
 
 import { MusicProps } from '@utils/Types/musicProps'
 
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useFavorites } from '@hooks/useFavorites'
 import { useCallback, useEffect, useState } from 'react'
 import { useNetInfo } from '@react-native-community/netinfo'
@@ -35,8 +34,6 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
   const { isCurrentMusic, state } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
-
-  const { handleFavoriteMusic } = useFirebaseServices()
 
   const { isFavoriteMusic } = useFavorites(music)
 
@@ -127,7 +124,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
           activeOpacity={0.6}
           onPress={() => {
             if (isCurrentMusic) {
-              handleFavoriteMusic(isCurrentMusic)
+              console.log(isCurrentMusic, 'favorite music')
             }
           }}
         >

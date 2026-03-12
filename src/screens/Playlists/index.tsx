@@ -25,7 +25,6 @@ import colors from 'tailwindcss/colors'
 import { useCallback, useEffect, useState } from 'react'
 
 import { UserProps } from '@storage/modules/user/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 import { PlaylistProps } from '@utils/Types/playlistProps'
 import { Loading } from '@components/Loading'
@@ -35,8 +34,6 @@ export function Playlists() {
   const [playlists, setPlaylists] = useState<PlaylistProps[]>([])
 
   const size = Dimensions.get('window').width * 0.7
-
-  const { handleGetPlaylistByUserId } = useFirebaseServices()
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
@@ -49,14 +46,14 @@ export function Playlists() {
   const handleSearchMyPlaylists = useCallback(async () => {
     setIsLoading(true)
 
-    const response = await handleGetPlaylistByUserId(user.uid)
+    // const response = await handleGetPlaylistByUserId(user.uid)
 
-    setPlaylists(response)
+    // setPlaylists(response)
 
-    console.log(response)
+    console.log('buscar playlist do user')
 
     setIsLoading(false)
-  }, [handleGetPlaylistByUserId, user.uid])
+  }, [])
 
   useEffect(() => {
     handleSearchMyPlaylists()

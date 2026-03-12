@@ -3,7 +3,6 @@ import { useBottomModal } from '@hooks/useBottomModal'
 
 import { MusicProps } from '@utils/Types/musicProps'
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useFavorites } from '@hooks/useFavorites'
 // import { usePlaylistModal } from '@hooks/usePlaylistModal'
 import { useDispatch, useSelector } from 'react-redux'
@@ -49,8 +48,6 @@ export function InfoPlayingMusic({
   const { status } = useSelector<ReduxProps, NetInfoProps>(
     (state) => state.netInfo,
   )
-
-  const { handleFavoriteMusic } = useFirebaseServices()
 
   const { isFavoriteMusic } = useFavorites(musicSelected)
 
@@ -186,7 +183,7 @@ export function InfoPlayingMusic({
             onPress={() => {
               if (musicSelected) {
                 if (isCloseModal) closeModal()
-                handleFavoriteMusic(musicSelected)
+                console.log(musicSelected, 'favorite music')
               }
             }}
           >

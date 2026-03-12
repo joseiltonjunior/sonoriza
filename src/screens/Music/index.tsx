@@ -42,7 +42,6 @@ import { MusicProps } from '@utils/Types/musicProps'
 import { DynamicBackgroundColor } from '@components/DynamicBackgroundColor'
 
 import { useFavorites } from '@hooks/useFavorites'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useNetInfo } from '@react-native-community/netinfo'
 
 export function Music() {
@@ -76,8 +75,6 @@ export function Music() {
   const dispatch = useDispatch()
 
   const { isFavoriteMusic } = useFavorites(isCurrentMusic)
-
-  const { handleFavoriteMusic } = useFirebaseServices()
 
   const havePrevious = useMemo(() => {
     const currentIndex = queue.findIndex(
@@ -361,7 +358,7 @@ export function Music() {
               <TouchableOpacity
                 onPress={() => {
                   if (isCurrentMusic) {
-                    handleFavoriteMusic(isCurrentMusic)
+                    console.log('handleFavoriteMusic(isCurrentMusic)')
                   }
                 }}
               >

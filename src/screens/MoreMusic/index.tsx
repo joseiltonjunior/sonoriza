@@ -22,7 +22,7 @@ import colors from 'tailwindcss/colors'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { MusicProps } from '@utils/Types/musicProps'
 import { UserProps } from '@storage/modules/user/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import { HistoricProps } from '@storage/modules/historic/reducer'
 
 import playing from '@assets/playing.json'
@@ -31,10 +31,11 @@ import { Loading } from '@components/Loading'
 import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 
 import { useBottomModal } from '@hooks/useBottomModal'
+import { api } from '@services/api'
 
 export function MoreMusic() {
   const { params } = useRoute<RouteParamsProps<'MoreMusic'>>()
-  const { type, title, artistFlow } = params
+  const { type, title, artistFlow, artistId } = params
 
   const [page, setPage] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
@@ -42,9 +43,6 @@ export function MoreMusic() {
 
   const { openModal } = useBottomModal()
   const [listMusics, setListMusics] = useState<MusicProps[]>([])
-
-  const { handleGetFavoritesMusics, handleGetMusicsById } =
-    useFirebaseServices()
 
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
     (state) => state.trackListOffline,
@@ -69,7 +67,9 @@ export function MoreMusic() {
 
     setIsLoading(true)
 
-    await handleGetMusicsById(artistFlow, page)
+    await api
+      .get(`/musics?artistId=${artistId}?page=${page}`)
+      .then((response) => response.data.data as MusicProps[])
       .then((result) => {
         setPage((prev) => prev + 1)
         setListMusics((prev) => [...prev, ...result])
@@ -88,17 +88,19 @@ export function MoreMusic() {
 
     setIsLoading(true)
 
-    await handleGetFavoritesMusics(user.favoritesMusics, page)
-      .then((result) => {
-        setPage((prev) => prev + 1)
-        setListMusics((prev) => [...prev, ...result])
+    console.log('buscar musicas favoritas')
 
-        if (result.length < 10) {
-          setIsEndList(true)
-        }
-      })
-      .catch((err) => console.log(err, 'err'))
-      .finally(() => setIsLoading(false))
+    // await handleGetFavoritesMusics(user.favoritesMusics, page)
+    //   .then((result) => {
+    //     setPage((prev) => prev + 1)
+    //     setListMusics((prev) => [...prev, ...result])
+
+    //     if (result.length < 10) {
+    //       setIsEndList(true)
+    //     }
+    //   })
+    //   .catch((err) => console.log(err, 'err'))
+    //   .finally(() => setIsLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEndList, isLoading, user.favoritesMusics, page])
 

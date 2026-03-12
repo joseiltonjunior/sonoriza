@@ -7,11 +7,10 @@ import { MusicComponent } from '@components/MusicComponent'
 
 import { Section } from '@components/Section'
 
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
-
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
+import { api } from '@services/api'
 import { ReduxProps } from '@storage/index'
 
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
@@ -53,7 +52,6 @@ export function Artist() {
 
   const navigation = useNavigation<StackNavigationProps>()
   const { handleMusicSelected } = useTrackPlayer()
-  const { handleGetArtistById, handleGetAllMusicsById } = useFirebaseServices()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
@@ -61,20 +59,26 @@ export function Artist() {
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
-  const { handleFavoriteArtist } = useFirebaseServices()
-
   const removeDuplicates = (arr: AlbumProps[]): AlbumProps[] => {
     return arr.filter((value, index, self) => {
       return self.findIndex((m) => m.name === value.name) === index
     })
-  }
+  }  
 
-  const handleGetMusics = async (musicsId: string[]) => {
-    await handleGetAllMusicsById(musicsId)
-      .then((result) => {
-        setTopMusics(result)
+  const handleGetArtist = async () => {
+    setIsLoading(true)
+    await api
+      .get(`/artists/${artistId}`)
+      .then(async (response) => {
+        const artist = response.data as ArtistsDataProps
 
-        const filterAlbums = result.map((music) => ({
+        const music = await api
+          .get(`/musics?artistId=${artistId}`)
+          .then((response) => response.data.data as MusicProps[])
+
+        setTopMusics(music)
+
+        const filterAlbums = music.map((music) => ({
           name: music.album,
           artwork: music.artwork,
         }))
@@ -82,19 +86,10 @@ export function Artist() {
         const uniqueAlbumList = removeDuplicates(filterAlbums)
 
         setAlbums(uniqueAlbumList)
+        setArtist(artist)
       })
       .catch((err) => console.log(err, 'err'))
       .finally(() => setIsLoading(false))
-  }
-
-  const handleGetArtist = async () => {
-    setIsLoading(true)
-    await handleGetArtistById(artistId)
-      .then((result) => {
-        handleGetMusics(result.musics)
-        setArtist(result)
-      })
-      .catch((err) => console.log(err, 'err'))
   }
 
   const isFavorite = useMemo(() => {
@@ -145,7 +140,7 @@ export function Artist() {
             <TouchableOpacity
               onPress={() => {
                 if (!artist) return
-                handleFavoriteArtist(artist)
+                console.log(artist, 'artista favorito')
               }}
               activeOpacity={0.6}
               className="p-4"
@@ -204,9 +199,10 @@ export function Artist() {
               className="bg-purple-600 rounded-md items-center py-1 mt-2"
               onPress={() => {
                 navigation.navigate('MoreMusic', {
-                  title: `${artist?.name}`,
+                  title: `${artist.name}`,
                   type: 'artist',
-                  artistFlow: artist?.musics,
+                  // artistFlow: artist?.musics,
+                  artistId: artist.id,
                 })
               }}
             >

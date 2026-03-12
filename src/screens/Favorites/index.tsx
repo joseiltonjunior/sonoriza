@@ -17,7 +17,6 @@ import { NetInfoProps } from '@storage/modules/netInfo/reducer'
 
 import { Header } from '@components/Header'
 import { useCallback, useEffect, useState } from 'react'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 export function Favorites() {
   const [totalPlaylist, setTotalPlaylist] = useState(0)
@@ -34,17 +33,15 @@ export function Favorites() {
     (state) => state.netInfo,
   )
 
-  const { handleGetPlaylistByUserId } = useFirebaseServices()
-
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const navigation = useNavigation<StackNavigationProps>()
 
   const handleSearchMyPlaylists = useCallback(async () => {
-    const response = await handleGetPlaylistByUserId(user.uid)
-
-    setTotalPlaylist(response.length)
-  }, [handleGetPlaylistByUserId, user.uid])
+    // const response = await handleGetPlaylistByUserId(user.uid)
+    console.log('buscar playlist')
+    setTotalPlaylist(0)
+  }, [])
 
   useEffect(() => {
     handleSearchMyPlaylists()

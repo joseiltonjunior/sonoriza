@@ -1,10 +1,10 @@
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 import { Loading } from '@components/Loading'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
+import { api } from '@services/api'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
@@ -33,14 +33,13 @@ export function GenreSelected() {
     (state) => state.currentMusic,
   )
 
-  const { handleGetArtistsByGenre } = useFirebaseServices()
-
   const handleGetArtistsData = useCallback(async () => {
     if (isLoading || isEndList) return
     setIsLoading(true)
     try {
-      const response = await handleGetArtistsByGenre(type, page)
-
+      const response = await api
+        .get(`/artists?genreId=${type}?page=${page}`)
+        .then((response) => response.data.data as ArtistsDataProps[])
       setPage((prev) => prev + 1)
       setArtists((prev) => [...prev, ...response])
 

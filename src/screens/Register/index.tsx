@@ -10,23 +10,20 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { WEB_CLIENT_ID } from '@env'
-
-import { GoogleSignin } from '@react-native-google-signin/google-signin'
 
 import logo from '@assets/logo.png'
 import { Button } from '@components/Button'
 import { useState } from 'react'
-
-import auth from '@react-native-firebase/auth'
 
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
 import { useModal } from '@hooks/useModal'
 import { useDispatch } from 'react-redux'
 import { handleSetUser } from '@storage/modules/user/reducer'
-import { FormDataProps, UserDataProps } from '@utils/Types/userProps'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { FormDataProps } from '@utils/Types/userProps'
+
+import { api } from '@services/api'
+import axios from 'axios'
 
 const schema = z
   .object({
@@ -67,103 +64,82 @@ export function Register() {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const { handleSaveUser, handleRequestPermissionNotifications } =
-    useFirebaseServices()
-
   const dispatch = useDispatch()
-
-  GoogleSignin.configure({
-    webClientId: WEB_CLIENT_ID,
-  })
-
-  async function handleSaveInDatabase({
-    email,
-    displayName,
-    photoURL,
-    uid,
-    plan,
-  }: UserDataProps) {
-    try {
-      await handleSaveUser({ displayName, email, photoURL, plan, uid })
-      await handleRequestPermissionNotifications(uid)
-      setIsLoading(false)
-      dispatch(
-        handleSetUser({
-          user: {
-            displayName,
-            email,
-            photoURL,
-            uid,
-            plan,
-          },
-        }),
-      )
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'Home',
-            params: undefined,
-          },
-        ],
-      })
-    } catch (error) {
-      setIsLoading(false)
-      openModal({
-        title: 'Atenção',
-        description:
-          'Desculpe, não foi possível concluir o cadastro neste momento. Por favor, tente novamente.',
-        singleAction: {
-          action() {
-            closeModal()
-          },
-          title: 'OK',
-        },
-      })
-    }
-  }
 
   function handleRegisterWithEmail(data: FormDataProps) {
     Keyboard.dismiss()
     setIsLoading(true)
 
-    auth()
-      .createUserWithEmailAndPassword(data.email, data.password)
-      .then((result) => {
-        const { email, photoURL, uid } = result.user
+    api
+      .post('/accounts', {
+        email: data.email,
+        name: data.name,
+        password: data.password,
+        isActive: true,
+      })
+      .then(async () => {
+        const authResponse = await api.post('/sessions', {
+          email: data.email,
+          password: data.password,
+        })
 
-        const name = data.name
+        setIsLoading(false)
+        dispatch(
+          handleSetUser({
+            user: {
+              name: authResponse.data.user.name,
+              email: authResponse.data.user.email,
+              photoUrl: authResponse.data.user.photoUrl,
+              role: authResponse.data.user.role,
+              id: authResponse.data.user.id,
+              isActive: authResponse.data.user.isActive,
+              isAuthenticated: authResponse.data.access_token,
+            },
+          }),
+        )
 
-        result.user
-          .updateProfile({
-            displayName: name,
-          })
-          .then(() => {
-            handleSaveInDatabase({
-              displayName: name,
-              email,
-              photoURL,
-              uid,
-              plan: 'free',
-            })
-          })
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'Home',
+              params: undefined,
+            },
+          ],
+        })
       })
       .catch((error) => {
         setIsLoading(false)
-        if (error.code === 'auth/email-already-in-use') {
-          setError('email', { message: '* E-mail já está em uso!' })
+
+        let message =
+          'Desculpe, não foi possível concluir o cadastro neste momento. Por favor, tente novamente.'
+
+        if (axios.isAxiosError(error)) {
+          message =
+            error.response?.data?.error ||
+            error.response?.data?.message ||
+            message
+        } else {
+          console.log('register unknown error:', error)
         }
 
-        if (error.code === 'auth/invalid-email') {
-          setError('email', { message: '* E-mail inválido!' })
-        }
+        openModal({
+          title: 'Atenção',
+          description: message,
+          singleAction: {
+            action() {
+              closeModal()
+            },
+            title: 'OK',
+          },
+        })
       })
   }
 
   return (
     <>
       <ScrollView className="bg-gray-700">
-        <View className="p-4 items-center h-full ">
+        <View className="p-4 pt-24 items-center h-full ">
           <Image
             source={logo}
             alt="logo"

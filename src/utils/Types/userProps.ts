@@ -7,10 +7,12 @@ export interface FormDataProps {
 
 export interface UserDataProps {
   email: string | null
-  displayName: string | null
-  photoURL: string | null
-  uid: string
-  plan: string | null
+  name: string | null
+  photoUrl: string | null
+  id: string
+  role: 'USER' | 'ADMIN'
+  isActive: boolean
   favoritesArtists?: string[]
   favoritesMusics?: string[]
+  isAuthenticated?: string | null
 }

@@ -15,7 +15,7 @@ import {
 } from 'react-native'
 import { useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { PlaylistProps } from '@utils/Types/playlistProps'
@@ -28,16 +28,14 @@ export function PlaylistModal() {
     modalState: { visible, music },
   } = usePlaylistModal()
 
-  const { handleFavoriteMusic, handleGetPlaylistByUserId } =
-    useFirebaseServices()
   const navigation = useNavigation<StackNavigationProps>()
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
-  const handleSearchMyPlaylists = useCallback(async () => {
-    const response = await handleGetPlaylistByUserId(user.uid)
+  // const handleSearchMyPlaylists = useMemo(async () => {
+  //   const playlist = user.playlists ?? []
 
-    setPlaylists(response)
-  }, [handleGetPlaylistByUserId, user.uid])
+  //   setPlaylists(playlist)
+  // }, [])
 
   const handleUserFavoriteTracks = (musics: number) => {
     if (musics > 1) {
@@ -47,9 +45,9 @@ export function PlaylistModal() {
     return `${musics} faixa`
   }
 
-  useEffect(() => {
-    handleSearchMyPlaylists()
-  }, [visible])
+  // useEffect(() => {
+  //   handleSearchMyPlaylists()
+  // }, [visible])
 
   return (
     <ModalView animationType="slide" transparent visible={visible}>
@@ -71,7 +69,7 @@ export function PlaylistModal() {
               activeOpacity={0.6}
               onPress={() => {
                 if (music) {
-                  handleFavoriteMusic(music)
+                  // handleFavoriteMusic(music)
                   closeModal()
                 }
               }}
@@ -99,7 +97,7 @@ export function PlaylistModal() {
                   activeOpacity={0.6}
                   onPress={() => {
                     if (music) {
-                      handleFavoriteMusic(music)
+                      // handleFavoriteMusic(music)
                       closeModal()
                     }
                   }}

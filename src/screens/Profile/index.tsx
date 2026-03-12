@@ -4,8 +4,6 @@ import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
 import { Image, Text, View } from 'react-native'
 import { useDispatch, useSelector } from 'react-redux'
 
-import auth from '@react-native-firebase/auth'
-
 import Icon from 'react-native-vector-icons/Ionicons'
 import colors from 'tailwindcss/colors'
 import { TouchableOpacity } from 'react-native-gesture-handler'
@@ -39,76 +37,46 @@ export function Profile() {
 
   const handleSignOutApp = () => {
     TrackPlayer.stop()
-    auth()
-      .signOut()
-      .then(() => {
-        dispatch(setFavoriteArtists({ favoriteArtists: [] }))
-        dispatch(handleSetFavoriteMusics({ favoriteMusics: [] }))
-        dispatch(handleClearHistoric())
-        dispatch(clearSearchHistoric())
-        dispatch(
-          setInspiredMixes({
-            musics: [],
-          }),
-        )
-        dispatch(handleSetReleases({ releases: [] }))
-        dispatch(
-          handleSetUser({
-            user: {
-              displayName: '',
-              email: '',
-              photoURL: '',
-              plan: '',
-              uid: '',
-            },
-          }),
-        )
+    dispatch(setFavoriteArtists({ favoriteArtists: [] }))
+    dispatch(handleSetFavoriteMusics({ favoriteMusics: [] }))
+    dispatch(handleClearHistoric())
+    dispatch(clearSearchHistoric())
+    dispatch(
+      setInspiredMixes({
+        musics: [],
+      }),
+    )
+    dispatch(handleSetReleases({ releases: [] }))
+    dispatch(
+      handleSetUser({
+        user: {
+          name: '',
+          email: '',
+          photoUrl: '',
+          isActive: false,
+          role: 'USER',
+          id: '',
+        },
+      }),
+    )
 
-        closeModal()
+    closeModal()
 
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: 'SignIn',
-              params: undefined,
-            },
-          ],
-        })
-      })
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'SignIn',
+          params: undefined,
+        },
+      ],
+    })
   }
 
   function handleRecoveryPassword() {
     if (!user.email) return
 
-    auth()
-      .sendPasswordResetEmail(user.email)
-      .then(() => {
-        openModal({
-          title: 'Recuperação de Senha Enviada',
-          description:
-            'Enviamos um e-mail de recuperação de senha para você. Por favor, verifique sua caixa de entrada e siga as instruções para redefinir sua senha.',
-          singleAction: {
-            title: 'Entendi',
-            action() {
-              closeModal()
-            },
-          },
-        })
-      })
-      .catch(() => {
-        openModal({
-          title: 'Erro ao Enviar Recuperação de Senha',
-          description:
-            'Ops... Encontramos um problema ao enviar o e-mail de recuperação de senha. Verifique se o endereço de e-mail fornecido é válido e tente novamente. Se o problema persistir, entre em contato com o suporte.',
-          singleAction: {
-            title: 'Entendi',
-            action() {
-              closeModal()
-            },
-          },
-        })
-      })
+    console.log('recovery password')
   }
 
   return (
@@ -142,9 +110,9 @@ export function Profile() {
 
       <View className="items-center flex-1 mt-6">
         <View className="bg-purple-600 rounded-full w-40 h-40 items-center justify-center overflow-hidden">
-          {user.photoURL ? (
+          {user.photoUrl ? (
             <Image
-              source={{ uri: user.photoURL }}
+              source={{ uri: user.photoUrl }}
               alt="user pic"
               className="w-full h-full object-cover"
             />
@@ -153,7 +121,7 @@ export function Profile() {
           )}
         </View>
         <Text className="font-nunito-bold text-2xl mt-4 text-white">
-          {user.displayName}
+          {user.name}
         </Text>
         <Text className="font-nunito-regular text-gray-300">{user.email}</Text>
 

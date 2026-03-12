@@ -46,7 +46,6 @@ import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer
 
 import { useNetInfo } from '@react-native-community/netinfo'
 import { UserProps } from '@storage/modules/user/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 import {
   InspiredMixesProps,
@@ -65,6 +64,7 @@ import { setNewsNotifications } from '@storage/modules/newsNotifications/reducer
 import { Header } from '@components/Header'
 
 import messaging from '@react-native-firebase/messaging'
+import { api } from '@services/api'
 
 export function Home() {
   const { historic } = useSelector<ReduxProps, HistoricProps>(
@@ -76,17 +76,6 @@ export function Home() {
   const dispatch = useDispatch()
 
   const { getCurrentMusic } = useTrackPlayer()
-
-  const {
-    handleGetFavoritesMusics,
-    handleGetFavoritesArtists,
-    handleGetPlaylistByUserId,
-    handleGetReleases,
-    handleGetInspiredMixes,
-    handleGetMusicsNewUser,
-    handleGetArtistsNewUser,
-    handleGetNotifications,
-  } = useFirebaseServices()
 
   const { openModalErrNetwork } = useNetwork()
 
@@ -144,90 +133,90 @@ export function Home() {
     return historicOffline
   }, [historic, trackListOffline])
 
-  const handleGetDataUser = useCallback(async () => {
-    try {
-      if (isConnected) {
-        let musics = [] as MusicProps[]
+  // const handleGetDataUser = useCallback(async () => {
+  //   try {
+  //     if (isConnected) {
+  //       let musics = [] as MusicProps[]
 
-        if (user?.favoritesMusics && user.favoritesMusics) {
-          const result = await handleGetFavoritesMusics(user.favoritesMusics)
-          musics = result
-          dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
-        } else {
-          const result = await handleGetMusicsNewUser()
-          musics = result
-          dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
-        }
+  //       if (user?.favoritesMusics && user.favoritesMusics) {
+  //         const result = await handleGetFavoritesMusics(user.favoritesMusics)
+  //         musics = result
+  //         dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
+  //       } else {
+  //         const result = await handleGetMusicsNewUser()
+  //         musics = result
+  //         dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
+  //       }
 
-        if (user?.favoritesArtists) {
-          const result = await handleGetFavoritesArtists(user.favoritesArtists)
+  //       if (user?.favoritesArtists) {
+  //         const result = await handleGetFavoritesArtists(user.favoritesArtists)
 
-          dispatch(setFavoriteArtists({ favoriteArtists: result }))
-        } else {
-          const result = await handleGetArtistsNewUser()
+  //         dispatch(setFavoriteArtists({ favoriteArtists: result }))
+  //       } else {
+  //         const result = await handleGetArtistsNewUser()
 
-          dispatch(setFavoriteArtists({ favoriteArtists: result }))
-        }
+  //         dispatch(setFavoriteArtists({ favoriteArtists: result }))
+  //       }
 
-        const excludesMusics = musics.map((item) => item.id)
+  //       const excludesMusics = musics.map((item) => item.id)
 
-        const filterGenres = shuffleArray(musics.map((music) => music.genre))
+  //       const filterGenres = shuffleArray(musics.map((music) => music.genre))
 
-        const excludeGenres = [...new Set(filterGenres)]
+  //       const excludeGenres = [...new Set(filterGenres)]
 
-        const responseInspiredMixes = await handleGetInspiredMixes(
-          excludeGenres,
-          excludesMusics,
-        )
+  //       const responseInspiredMixes = await handleGetInspiredMixes(
+  //         excludeGenres,
+  //         excludesMusics,
+  //       )
 
-        const responseUserPlaylist = await handleGetPlaylistByUserId(user.uid)
+  //       const responseUserPlaylist = await handleGetPlaylistByUserId(user.uid)
 
-        console.log(responseUserPlaylist)
+  //       console.log(responseUserPlaylist)
 
-        dispatch(
-          setInspiredMixes({
-            musics: responseInspiredMixes,
-          }),
-        )
+  //       dispatch(
+  //         setInspiredMixes({
+  //           musics: responseInspiredMixes,
+  //         }),
+  //       )
 
-        const responseReleses = await handleGetReleases()
+  //       const responseReleses = await handleGetReleases()
 
-        dispatch(handleSetReleases({ releases: responseReleses }))
+  //       dispatch(handleSetReleases({ releases: responseReleses }))
 
-        dispatch(handleSetNetStatus(true))
-      } else {
-        dispatch(handleSetNetStatus(false))
-      }
-    } catch (error) {
-      console.log(error, 'home')
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    dispatch,
-    favoriteMusics,
-    isConnected,
-    topMusicalGenres,
-    user.favoritesArtists,
-    user.favoritesMusics,
-  ])
+  //       dispatch(handleSetNetStatus(true))
+  //     } else {
+  //       dispatch(handleSetNetStatus(false))
+  //     }
+  //   } catch (error) {
+  //     console.log(error, 'home')
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [
+  //   dispatch,
+  //   favoriteMusics,
+  //   isConnected,
+  //   topMusicalGenres,
+  //   user.favoritesArtists,
+  //   user.favoritesMusics,
+  // ])
 
-  const handleFetchNoticationsDB = useCallback(async () => {
-    await handleGetNotifications()
-      .then((response) => {
-        if (JSON.stringify(response) !== JSON.stringify(notifications)) {
-          dispatch(setNewsNotifications({ newsNotifications: true }))
-        }
+  // const handleFetchNoticationsDB = useCallback(async () => {
+  //   await handleGetNotifications()
+  //     .then((response) => {
+  //       if (JSON.stringify(response) !== JSON.stringify(notifications)) {
+  //         dispatch(setNewsNotifications({ newsNotifications: true }))
+  //       }
 
-        dispatch(setNotification({ notifications: response }))
-      })
-      .catch((err) => console.log(err, 'err'))
-  }, [dispatch, handleGetNotifications, notifications])
+  //       dispatch(setNotification({ notifications: response }))
+  //     })
+  //     .catch((err) => console.log(err, 'err'))
+  // }, [dispatch, handleGetNotifications, notifications])
 
   useEffect(() => {
     if (isConnected === null) return
     if (isConnected) {
-      handleFetchNoticationsDB()
-      handleGetDataUser()
+      // handleFetchNoticationsDB()
+      // handleGetDataUser()
     } else if (!isConnected) {
       dispatch(handleSetNetStatus(false))
       if (!ignoreAlert) {
@@ -280,16 +269,28 @@ export function Home() {
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [])
 
-  useEffect(() => {
-    const unsubscribe = messaging().onMessage(async () => {
-      handleFetchNoticationsDB()
-    })
+  // useEffect(() => {
+  //   const unsubscribe = messaging().onMessage(async () => {
+  //     handleFetchNoticationsDB()
+  //   })
 
-    return unsubscribe
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  //   return unsubscribe
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [])
 
-  if (user.plan === 'free') {
+  // useEffect(() => {
+  //   async function handleGetDataUser() {
+  //     api.get(`/me`).then((response) => {
+  //       const userData = response.data as UserProps
+
+  //       console.log('User data fetched successfully:', userData)
+  //     })
+  //   }
+
+  //   handleGetDataUser()
+  // }, [user])
+
+  if (user.isActive !== true) {
     return (
       <View className="bg-gray-700 flex-1 items-center justify-center p-8">
         <AnimatedLottieView

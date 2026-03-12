@@ -84,9 +84,9 @@ export function SideMenu() {
       <View className="bg-gray-700 w-10/12 flex-1 ">
         <View className="flex-row items-center border-b border-purple-600/60 p-4 pt-12">
           <View className="bg-white w-16 h-16 rounded-full overflow-hidden items-center justify-center">
-            {user.photoURL ? (
+            {user.photoUrl ? (
               <Image
-                source={{ uri: user.photoURL }}
+                source={{ uri: user.photoUrl }}
                 alt="user pic"
                 className="w-full h-full object-contain"
               />
@@ -97,10 +97,10 @@ export function SideMenu() {
 
           <View className="ml-4">
             <Text className="font-nunito-bold text-xl text-white">
-              {user.displayName}
+              {user.name}
             </Text>
             <Text className="text-xs font-nunito-regular text-gray-300">
-              Sonoriza {user.plan === 'premium' ? 'Premium' : 'Free'}
+              Sonoriza Pro
             </Text>
           </View>
         </View>
