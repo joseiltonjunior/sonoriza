@@ -1,3 +1,7 @@
+import { ArtistsDataProps } from './artistsProps'
+import { MusicalGenresDataProps } from './musicalGenresProps'
+import { MusicProps } from './musicProps'
+
 export interface FormDataProps {
   name: string
   email: string
@@ -7,10 +11,14 @@ export interface FormDataProps {
 
 export interface UserDataProps {
   email: string | null
-  displayName: string | null
-  photoURL: string | null
-  uid: string
-  plan: string | null
-  favoritesArtists?: string[]
-  favoritesMusics?: string[]
+  name: string | null
+  photoUrl: string | null
+  id: string
+  role: 'USER' | 'ADMIN'
+  accountStatus: 'PENDING_VERIFICATION' | 'ACTIVE' | 'SUSPENDED'
+  favoriteArtists?: ArtistsDataProps[]
+  favoriteMusics?: MusicProps[]
+  favoriteGenres?: MusicalGenresDataProps[]
+  accessToken?: string | null
+  refreshToken?: string | null
 }

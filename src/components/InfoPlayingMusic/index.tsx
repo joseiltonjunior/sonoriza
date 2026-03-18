@@ -3,7 +3,6 @@ import { useBottomModal } from '@hooks/useBottomModal'
 
 import { MusicProps } from '@utils/Types/musicProps'
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useFavorites } from '@hooks/useFavorites'
 // import { usePlaylistModal } from '@hooks/usePlaylistModal'
 import { useDispatch, useSelector } from 'react-redux'
@@ -22,6 +21,9 @@ import TrackPlayer from 'react-native-track-player'
 import { handleSetQueue } from '@storage/modules/queue/reducer'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 import { usePlaylistModal } from '@hooks/usePlaylistModal'
+import { api } from '@services/api'
+import { UserDataProps } from '@utils/Types/userProps'
+import { handleSetFavoriteMusics } from '@storage/modules/favoriteMusics/reducer'
 
 interface InfoPlayingMusicProps {
   musicSelected: MusicProps
@@ -49,8 +51,6 @@ export function InfoPlayingMusic({
   const { status } = useSelector<ReduxProps, NetInfoProps>(
     (state) => state.netInfo,
   )
-
-  const { handleFavoriteMusic } = useFirebaseServices()
 
   const { isFavoriteMusic } = useFavorites(musicSelected)
 
@@ -151,6 +151,25 @@ export function InfoPlayingMusic({
     await TrackPlayer.add(musicSelected)
   }
 
+  async function handleFavoriteMusic(musicId: string) {
+      await api
+        .post(`/musics/${musicId}/like`)
+        .then(async () => { 
+          const userUpdated = await api
+            .get('/me')
+            .then((response) => response.data as UserDataProps)       
+  
+          if (userUpdated.favoriteMusics) {
+            dispatch(
+              handleSetFavoriteMusics({
+                favoriteMusics: userUpdated.favoriteMusics,
+              }),
+            )
+          }                 
+        })
+        .catch((err) => console.log(err, 'err'))
+    }
+
   useEffect(() => {
     handleVerifyQueue()
   }, [handleVerifyQueue])
@@ -186,7 +205,7 @@ export function InfoPlayingMusic({
             onPress={() => {
               if (musicSelected) {
                 if (isCloseModal) closeModal()
-                handleFavoriteMusic(musicSelected)
+                handleFavoriteMusic(musicSelected.id)
               }
             }}
           >
@@ -197,7 +216,7 @@ export function InfoPlayingMusic({
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             activeOpacity={0.6}
             className="flex-row px-4 py-3"
             onPress={() => {
@@ -208,7 +227,7 @@ export function InfoPlayingMusic({
             <Text className="ml-4 font-nunito-medium text-base text-gray-300">
               Adicionar à playlist
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </>
       )}
 

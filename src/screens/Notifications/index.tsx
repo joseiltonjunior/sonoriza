@@ -21,15 +21,13 @@ import {
   setHistoricNotification,
 } from '@storage/modules/historicNotifications/reducer'
 import colors from 'tailwindcss/colors'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import { useModal } from '@hooks/useModal'
 
 export function Notifications() {
   const { notifications } = useSelector<ReduxProps, NotificationsProps>(
     (state) => state.notifications,
   )
-
-  const { handleFetchNewVersionApp } = useFirebaseServices()
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -99,27 +97,27 @@ export function Notifications() {
     return !!exist
   }
 
-  const handleDownloadNewVersion = async (versionId: string) => {
-    const version = await handleFetchNewVersionApp(versionId)
+  // const handleDownloadNewVersion = async (versionId: string) => {
+  //   const version = await handleFetchNewVersionApp(versionId)
 
-    const supported = await Linking.canOpenURL(version.link)
+  //   const supported = await Linking.canOpenURL(version.link)
 
-    if (supported) {
-      await Linking.openURL(version.link)
-    } else {
-      openModal({
-        title: 'Atenção',
-        description:
-          'Desculpe, não foi possível abrir o link neste momento. Por favor, tente novamente.',
-        singleAction: {
-          action() {
-            closeModal()
-          },
-          title: 'OK',
-        },
-      })
-    }
-  }
+  //   if (supported) {
+  //     await Linking.openURL(version.link)
+  //   } else {
+  //     openModal({
+  //       title: 'Atenção',
+  //       description:
+  //         'Desculpe, não foi possível abrir o link neste momento. Por favor, tente novamente.',
+  //       singleAction: {
+  //         action() {
+  //           closeModal()
+  //         },
+  //         title: 'OK',
+  //       },
+  //     })
+  //   }
+  // }
 
   return (
     <View className="bg-gray-700 flex-1">
@@ -158,7 +156,8 @@ export function Notifications() {
               } else if (item.type === 'artist' && item.artistId) {
                 navigation.navigate('Artist', { artistId: item.artistId })
               } else if (item.type === 'version' && item.versionId) {
-                handleDownloadNewVersion(item.versionId)
+                console.log('tratar version')
+                // handleDownloadNewVersion(item.versionId)
               }
             }}
           >

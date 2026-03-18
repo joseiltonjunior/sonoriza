@@ -14,7 +14,7 @@ import TrackPlayer, {
   Capability,
 } from 'react-native-track-player'
 
-import { ReduxProps } from '@storage/index'
+import { ReduxProps, store } from '@storage/index'
 import { useDispatch, useSelector } from 'react-redux'
 import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
 import { useNetInfo } from '@react-native-community/netinfo'
@@ -23,14 +23,20 @@ import {
   TrackPlayerProps,
   setIsInitialized,
 } from '@storage/modules/trackPlayer/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import ImmersiveMode from 'react-native-immersive-mode'
+import { api } from '@services/api'
+import { UserDataProps } from '@utils/Types/userProps'
+import {
+  clearStoredSessionAndRedirect,
+  ensureValidAccessToken,
+  hasStoredSession,
+} from '@services/session'
 
 const size = Dimensions.get('window').width * 0.9
 
 export function SplashScreen() {
   const navigation = useNavigation<StackNavigationProps>()
-  const { handleFetchDataUser } = useFirebaseServices()
 
   const { isConnected } = useNetInfo()
 
@@ -44,9 +50,8 @@ export function SplashScreen() {
   const handleInitializePlayer = async () => {
     await TrackPlayer.setupPlayer()
 
-    dispatch(setIsInitialized({ isInitialized: true }))
-
     TrackPlayer.updateOptions({
+      progressUpdateEventInterval: 1,
       android: {
         appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
       },
@@ -66,22 +71,74 @@ export function SplashScreen() {
         Capability.SkipToNext,
       ],
     })
+
+    dispatch(setIsInitialized({ isInitialized: true }))
   }
 
   const handleVerifyUser = async () => {
-    if (!user.uid) {
+    if (!hasStoredSession(user)) {
       navigation.reset({
         index: 0,
         routes: [{ name: 'SignIn' }],
       })
-    } else {
-      const userResponse = await handleFetchDataUser(user.uid)
+
+      return
+    }
+
+    if (!isConnected) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      })
+
+      return
+    }
+
+    const accessToken = await ensureValidAccessToken()
+
+    if (!accessToken) {
+      await clearStoredSessionAndRedirect()
+
+      return
+    }
+
+    try {
+      const userResponse = await api
+        .get('/me')
+        .then((response) => response.data as UserDataProps)
+
+      const latestUser = store.getState().user.user
 
       dispatch(
         handleSetUser({
-          user: userResponse,
+          user: {
+            ...latestUser,
+            photoUrl: userResponse.photoUrl,
+            name: userResponse.name,
+            role: userResponse.role,
+            email: userResponse.email,
+            accountStatus: userResponse.accountStatus,
+            id: userResponse.id,
+            favoriteArtists: userResponse.favoriteArtists,
+            favoriteMusics: userResponse.favoriteMusics,
+            favoriteGenres: userResponse.favoriteGenres,
+          },
         }),
       )
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      })
+    } catch (error) {
+      console.log('Error fetching user data:', error)
+
+      const currentUser = store.getState().user.user
+
+      if (!hasStoredSession(currentUser)) {
+        return
+      }
+
       navigation.reset({
         index: 0,
         routes: [{ name: 'Home' }],

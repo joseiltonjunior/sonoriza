@@ -2,7 +2,7 @@ import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 import { Header } from '@components/Header'
 import { ReleasesCarousel } from '@components/ReleasesCarousel'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
@@ -24,10 +24,10 @@ import {
 import { useSelector } from 'react-redux'
 import { useModal } from '@hooks/useModal'
 import { Loading } from '@components/Loading'
+import { api } from '@services/api'
+import { MusicalGenresDataProps } from '@utils/Types/musicalGenresProps'
 
 export function Explorer() {
-  const { handleGetMusicalGenres } = useFirebaseServices()
-
   const [isLoading, setIsLoading] = useState(false)
 
   const navigation = useNavigation<StackNavigationProps>()
@@ -40,15 +40,19 @@ export function Explorer() {
     (state) => state.currentMusic,
   )
 
-  const [musicalGenres, setMusicalGenres] = useState<string[]>([])
+  const [musicalGenres, setMusicalGenres] = useState<MusicalGenresDataProps[]>(
+    [],
+  )
 
   const { openModal, closeModal } = useModal()
 
   const handleGetData = async () => {
     setIsLoading(true)
     try {
-      const resultMusicalGenres = await handleGetMusicalGenres()
-      setMusicalGenres(resultMusicalGenres.map((item) => item.name))
+      const resultMusicalGenres = await api
+        .get('/genres')
+        .then((response) => response.data.data as MusicalGenresDataProps[])
+      setMusicalGenres(resultMusicalGenres.map((item) => item))
       setIsLoading(false)
     } catch (error) {
       setIsLoading(false)
@@ -72,7 +76,7 @@ export function Explorer() {
     return newList
   }, [notifications])
 
-  function chunkArray(array: string[], chunkSize: number) {
+  function chunkArray(array: MusicalGenresDataProps[], chunkSize: number) {
     const result = []
     for (let i = 0; i < array.length; i += chunkSize) {
       result.push(array.slice(i, i + chunkSize))
@@ -114,7 +118,7 @@ export function Explorer() {
       <Header title="Explorar" />
 
       <ScrollView>
-        {handleFormatReleasesArtists && (
+        {handleFormatReleasesArtists.length > 0 && (
           <View className="mt-4">
             <Text className="pl-4 mb-2 text-lg font-nunito-bold text-white">
               Novos artistas
@@ -135,15 +139,18 @@ export function Explorer() {
                     {col.map((item) => (
                       <TouchableOpacity
                         activeOpacity={0.6}
-                        key={item}
+                        key={item.id}
                         className="flex-1 p-2"
                         onPress={() =>
-                          navigation.navigate('GenreSelected', { type: item })
+                          navigation.navigate('GenreSelected', {
+                            id: item.id,
+                            title: item.title,
+                          })
                         }
                       >
                         <View className="bg-purple-600 rounded-lg items-center justify-center h-16">
                           <Text className="font-nunito-bold text-white text-base">
-                            {item}
+                            {item.title}
                           </Text>
                         </View>
                       </TouchableOpacity>

@@ -1,9 +1,6 @@
 import { ReduxProps } from '@storage/index'
 
-import { launchImageLibrary } from 'react-native-image-picker'
-
-import storage from '@react-native-firebase/storage'
-import firestore from '@react-native-firebase/firestore'
+import { Asset, launchImageLibrary } from 'react-native-image-picker'
 
 import { UserProps } from '@storage/modules/user/reducer'
 import {
@@ -32,7 +29,7 @@ export function NewPlaylist() {
   const [isLoading, setIsLoading] = useState(false)
 
   const [name, setName] = useState('')
-  const [photo, setPhoto] = useState('')
+  const [photo, setPhoto] = useState<Asset | null>(null)
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -41,10 +38,10 @@ export function NewPlaylist() {
       { mediaType: 'photo', maxWidth: 500, maxHeight: 500 },
       (response) => {
         if (response.assets) {
-          const uri = response.assets[0].uri
+          const assets = response.assets[0]
 
-          if (uri) {
-            setPhoto(uri)
+          if (assets) {
+            setPhoto(assets)
           }
         }
       },
@@ -53,40 +50,11 @@ export function NewPlaylist() {
 
   const handleSaveNewPlaylist = useCallback(async () => {
     try {
-      let imageUrl = ''
+      const imageUrl = ''
 
       Keyboard.dismiss()
       setIsLoading(true)
-      const docRef = await firestore().collection('playlists').add({})
-
-      if (photo.length < 1 && music.artwork) {
-        imageUrl = music.artwork
-      } else {
-        const storageRef = storage().ref(`${docRef.id}.jpg`)
-
-        const response = await fetch(photo)
-        const blob = await response.blob()
-
-        await storageRef.put(blob)
-
-        const responseUrl = await storageRef.getDownloadURL()
-
-        imageUrl = responseUrl
-      }
-
-      const data = {
-        title: name,
-        artworkURL: imageUrl,
-        createdAt: new Date(),
-        createdFor: {
-          name: user.displayName,
-          id: user.uid,
-        },
-        musics: [music],
-        id: docRef.id,
-      }
-
-      await docRef.set(data)
+      console.log('create new playlist')
 
       setIsLoading(false)
       navigation.goBack()
@@ -129,7 +97,12 @@ export function NewPlaylist() {
         <View className="items-center mt-6">
           <View className="bg-purple-600 rounded-full w-40 h-40 items-center justify-center relative">
             <Image
-              source={{ uri: photo.length > 0 ? photo : music.artwork }}
+              source={{
+                uri:
+                  photo?.uri && photo.uri.length > 0
+                    ? photo?.uri
+                    : music.artwork,
+              }}
               alt="playlist artwork"
               className="w-full h-full object-cover rounded-md"
             />

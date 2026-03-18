@@ -1,8 +1,6 @@
 import { BottomMenu } from '@components/BottomMenu/Index'
 import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
-
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
@@ -26,11 +24,10 @@ import colors from 'tailwindcss/colors'
 import { Section } from '@components/Section'
 import { MusicalGenres } from '@components/MusicalGenres'
 import { Header } from '@components/Header'
+import { api } from '@services/api'
+import { MusicalGenresDataProps } from '@utils/Types/musicalGenresProps'
 
 export function Search() {
-  const { handleGetMusicalGenres, handleGetArtistsByFilter } =
-    useFirebaseServices()
-
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
@@ -39,7 +36,9 @@ export function Search() {
     (state) => state.searchHistoric,
   )
 
-  const [musicalGenres, setMusicalGenres] = useState<string[]>([])
+  const [musicalGenres, setMusicalGenres] = useState<MusicalGenresDataProps[]>(
+    [],
+  )
 
   const [filter, setFilter] = useState('')
 
@@ -48,15 +47,19 @@ export function Search() {
   const dispatch = useDispatch()
 
   const { handleMusicSelected } = useTrackPlayer()
-  const { handleGetMusicsByFilter } = useFirebaseServices()
 
   const [musicsFiltered, setMusicsFiltered] = useState<MusicProps[]>([])
   const [artistsFiltered, setArtistsFiltered] = useState<ArtistsDataProps[]>([])
 
   const handleFilterData = async (filter: string) => {
     if (filter.length > 2) {
-      const response = await handleGetMusicsByFilter(filter)
-      const responseArtists = await handleGetArtistsByFilter(filter)
+      const response = await api
+        .get(`/musics?title=${filter}&page=1`)
+        .then((response) => response.data.data as MusicProps[])
+      const responseArtists = await api
+        .get(`/artists?title=${filter}&page=1`)
+        .then((response) => response.data.data as ArtistsDataProps[])
+
       setMusicsFiltered(response)
       setArtistsFiltered(responseArtists)
     } else {
@@ -65,16 +68,19 @@ export function Search() {
     }
   }
 
-  const handleGetData = async () => {
-    try {
-      const resultMusicalGenres = await handleGetMusicalGenres()
-      setMusicalGenres(resultMusicalGenres.map((item) => item.name))
-    } catch (error) {}
-  }
-
   useEffect(() => {
+    async function handleGetData() {
+      try {
+        const resultMusicalGenres = await api
+          .get('/genres')
+          .then((response) => response.data.data as MusicalGenresDataProps[])
+        setMusicalGenres(resultMusicalGenres.map((item) => item))
+      } catch (error) {
+        console.error('Error fetching musical genres:', error)
+      }
+    }
+
     handleGetData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -166,7 +172,7 @@ export function Search() {
                 onPress={() => {
                   dispatch(
                     setSearchHistoric({
-                      name: item.name,
+                      name: item.title,
                       photoURL: item.photoURL,
                       id: item.id,
                     }),
@@ -183,7 +189,7 @@ export function Search() {
                 </View>
 
                 <Text className="font-nunito-bold text-white text-base ml-2">
-                  {item.name}
+                  {item.title}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -223,7 +229,7 @@ export function Search() {
                 <View className="ml-2">
                   <Text className="font-bold text-white">{item.title}</Text>
                   <Text className="font-regular text-gray-300">
-                    {item.artists[0].name}
+                    {item.artists[0].title}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -231,13 +237,13 @@ export function Search() {
           </View>
         </View>
 
-        {artistsFiltered.length === 0 &&
+        {/* {artistsFiltered.length === 0 &&
           musicsFiltered.length === 0 &&
           musicalGenres.length > 0 && (
             <Section title="Gêneros" className="mt-4">
               <MusicalGenres musicalGenres={musicalGenres} />
             </Section>
-          )}
+          )} */}
       </ScrollView>
 
       <View className="absolute bottom-0 w-full">

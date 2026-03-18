@@ -1,9 +1,6 @@
 import { ReduxProps } from '@storage/index'
 
-import { launchImageLibrary } from 'react-native-image-picker'
-
-import storage from '@react-native-firebase/storage'
-import firestore from '@react-native-firebase/firestore'
+import { Asset, launchImageLibrary } from 'react-native-image-picker'
 
 import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
 import {
@@ -23,14 +20,19 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { useCallback, useEffect, useState } from 'react'
+import { api } from '@services/api'
+import { UploadObjectResponseProps } from '@utils/Types/uploadProps'
+import axios from 'axios'
+import { useModal } from '@hooks/useModal'
+import { UserDataProps } from '@utils/Types/userProps'
 
 export function EditProfile() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
-
+  const { closeModal, openModal } = useModal()
   const [isLoading, setIsLoading] = useState(false)
 
   const [name, setName] = useState('')
-  const [photo, setPhoto] = useState('')
+  const [photo, setPhoto] = useState<Asset | null>(null)
 
   const dispatch = useDispatch()
 
@@ -41,50 +43,56 @@ export function EditProfile() {
       { mediaType: 'photo', maxWidth: 500, maxHeight: 500 },
       (response) => {
         if (response.assets) {
-          const uri = response.assets[0].uri
+          const asset = response.assets[0]
 
-          if (uri) {
-            setPhoto(uri)
+          if (asset) {
+            setPhoto(asset)
           }
         }
       },
     )
   }
 
+  const slugify = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\.[^/.]+$/, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
   const handleEditUser = useCallback(async () => {
     try {
-      let imageUrl = ''
-
+      let imageUrl = user.photoUrl || null
       Keyboard.dismiss()
+      setIsLoading(true)
 
-      if (photo.length < 1 && user.photoURL) {
-        imageUrl = user.photoURL
-      } else {
-        setIsLoading(true)
-        const storageRef = storage().ref(`${user.uid}.jpg`)
+      if (photo) {
+        const formData = new FormData()
 
-        const response = await fetch(photo)
-        const blob = await response.blob()
+        const file = {
+          uri: String(photo.uri),
+          name: photo.fileName ?? 'profile.jpg',
+          type: photo.type ?? 'image/jpeg',
+        } as any
 
-        await storageRef.put(blob)
+        formData.append('file', file)
 
-        const responseUrl = await storageRef.getDownloadURL()
+        const uploadedUser = await api
+          .post('/me/photo', formData)
+          .then((res) => res.data as UserDataProps)
 
-        imageUrl = responseUrl
+        imageUrl = uploadedUser.photoUrl
       }
 
-      const userDocRef = firestore().collection('users').doc(user.uid)
-
-      const data = {
+      await api.patch(`/me`, {
         name,
-        photoURL: imageUrl,
-      }
-
-      await userDocRef.update(data)
+      })
 
       dispatch(
         handleSetUser({
-          user: { ...user, displayName: name, photoURL: imageUrl },
+          user: { ...user, name, photoUrl: imageUrl },
         }),
       )
 
@@ -93,23 +101,44 @@ export function EditProfile() {
       navigation.goBack()
     } catch (error) {
       setIsLoading(false)
+      let message =
+        'Desculpe, não foi possível atualizar o perfil neste momento. Por favor, tente novamente.'
+
+      if (axios.isAxiosError(error)) {
+        message =
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          message
+      }
+
+      openModal({
+        title: 'Atenção',
+        description: message,
+        singleAction: {
+          action() {
+            closeModal()
+          },
+          title: 'OK',
+        },
+      })
+      setIsLoading(false)
       console.log(error, 'err')
     }
   }, [dispatch, name, navigation, photo, user])
 
   useEffect(() => {
-    if (user.displayName) {
-      setName(user.displayName)
+    if (user.name) {
+      setName(user.name)
     }
-  }, [user.displayName])
+  }, [user.name])
 
   return (
     <View className="relative bg-gray-700 flex-1">
-      {isLoading && (
+      {/* {isLoading && (
         <View className="absolute flex-1 bg-black/60 w-full h-full z-10 justify-center items-center">
           <ActivityIndicator size={'large'} color={colors.purple[600]} />
         </View>
-      )}
+      )} */}
 
       <View className="p-4 mt-10">
         <View className="flex-row items-center justify-between">
@@ -125,23 +154,31 @@ export function EditProfile() {
           </Text>
 
           <TouchableOpacity onPress={handleEditUser} activeOpacity={0.6}>
-            <Text
-              className={`font-nunito-regular ${
-                user.displayName === name && !photo
-                  ? 'text-gray-300'
-                  : 'text-red-600 underline'
-              } text-base transition-all duration-150`}
-            >
-              Salvar
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator size="small" color={colors.white} />
+            ) : (
+              <Text
+                className={`font-nunito-regular ${
+                  user.name === name && !photo
+                    ? 'text-gray-300'
+                    : 'text-red-600 underline'
+                } text-base transition-all duration-150`}
+              >
+                Salvar
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
 
         <View className="items-center mt-6">
           <View className="bg-purple-600 rounded-full w-40 h-40 items-center justify-center relative">
-            {user.photoURL ? (
+            {user.photoUrl || photo?.uri ? (
               <Image
-                source={{ uri: photo.length > 0 ? photo : user.photoURL }}
+                source={{
+                  uri:
+                    (photo?.uri && (photo.uri as string)) ||
+                    (user.photoUrl as string),
+                }}
                 alt="user pic"
                 className="w-full h-full object-cover rounded-full"
               />
