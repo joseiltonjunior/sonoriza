@@ -29,6 +29,7 @@ import { InspiredMixesProps } from './modules/inspiredMixes/reducer'
 import { NotificationsProps } from './modules/notifications/reducer'
 import { NewsNotificationsProps } from './modules/newsNotifications/reducer'
 import { HistoricNotificationsProps } from './modules/historicNotifications/reducer'
+import { PLaylistPropsReducer } from './modules/playlist/reducer'
 
 export interface ReduxProps {
   user: UserProps
@@ -43,6 +44,7 @@ export interface ReduxProps {
 
   netInfo: NetInfoProps
   trackPlayer: TrackPlayerProps
+  playlist: PLaylistPropsReducer
 
   searchHistoric: SearchHistoricProps
   inspiredMixes: InspiredMixesProps

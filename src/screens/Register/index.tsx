@@ -2,6 +2,8 @@ import { Input } from '@components/Input'
 import {
   Image,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -10,23 +12,18 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { WEB_CLIENT_ID } from '@env'
-
-import { GoogleSignin } from '@react-native-google-signin/google-signin'
 
 import logo from '@assets/logo.png'
 import { Button } from '@components/Button'
-import { useState } from 'react'
-
-import auth from '@react-native-firebase/auth'
+import { useCallback, useRef, useState } from 'react'
 
 import { StackNavigationProps } from '@routes/routes'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useModal } from '@hooks/useModal'
-import { useDispatch } from 'react-redux'
-import { handleSetUser } from '@storage/modules/user/reducer'
-import { FormDataProps, UserDataProps } from '@utils/Types/userProps'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { FormDataProps } from '@utils/Types/userProps'
+
+import { api } from '@services/api'
+import axios from 'axios'
 
 const schema = z
   .object({
@@ -62,108 +59,99 @@ export function Register() {
   })
 
   const navigation = useNavigation<StackNavigationProps>()
+  const scrollRef = useRef<ScrollView>(null)
 
   const { closeModal, openModal } = useModal()
 
   const [isLoading, setIsLoading] = useState(false)
+  const [keyboardOffset, setKeyboardOffset] = useState(32)
 
-  const { handleSaveUser, handleRequestPermissionNotifications } =
-    useFirebaseServices()
+  useFocusEffect(
+    useCallback(() => {
+      setKeyboardOffset(32)
 
-  const dispatch = useDispatch()
+      const keyboardShowSubscription = Keyboard.addListener(
+        'keyboardDidShow',
+        (event) => {
+          setKeyboardOffset(event.endCoordinates.height + 32)
 
-  GoogleSignin.configure({
-    webClientId: WEB_CLIENT_ID,
-  })
-
-  async function handleSaveInDatabase({
-    email,
-    displayName,
-    photoURL,
-    uid,
-    plan,
-  }: UserDataProps) {
-    try {
-      await handleSaveUser({ displayName, email, photoURL, plan, uid })
-      await handleRequestPermissionNotifications(uid)
-      setIsLoading(false)
-      dispatch(
-        handleSetUser({
-          user: {
-            displayName,
-            email,
-            photoURL,
-            uid,
-            plan,
-          },
-        }),
-      )
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'Home',
-            params: undefined,
-          },
-        ],
-      })
-    } catch (error) {
-      setIsLoading(false)
-      openModal({
-        title: 'Atenção',
-        description:
-          'Desculpe, não foi possível concluir o cadastro neste momento. Por favor, tente novamente.',
-        singleAction: {
-          action() {
-            closeModal()
-          },
-          title: 'OK',
+          requestAnimationFrame(() => {
+            scrollRef.current?.scrollToEnd({ animated: true })
+          })
         },
-      })
-    }
-  }
+      )
+
+      const keyboardHideSubscription = Keyboard.addListener(
+        'keyboardDidHide',
+        () => {
+          setKeyboardOffset(32)
+        },
+      )
+
+      return () => {
+        keyboardShowSubscription.remove()
+        keyboardHideSubscription.remove()
+        setKeyboardOffset(32)
+      }
+    }, []),
+  )
 
   function handleRegisterWithEmail(data: FormDataProps) {
     Keyboard.dismiss()
     setIsLoading(true)
 
-    auth()
-      .createUserWithEmailAndPassword(data.email, data.password)
-      .then((result) => {
-        const { email, photoURL, uid } = result.user
-
-        const name = data.name
-
-        result.user
-          .updateProfile({
-            displayName: name,
-          })
-          .then(() => {
-            handleSaveInDatabase({
-              displayName: name,
-              email,
-              photoURL,
-              uid,
-              plan: 'free',
-            })
-          })
+    api
+      .post('/accounts', {
+        email: data.email,
+        name: data.name,
+        password: data.password,
+      })
+      .then(async () => {
+        navigation.navigate('ConfirmCode', { email: data.email })
       })
       .catch((error) => {
-        setIsLoading(false)
-        if (error.code === 'auth/email-already-in-use') {
-          setError('email', { message: '* E-mail já está em uso!' })
+        let message =
+          'Desculpe, não foi possível concluir o cadastro neste momento. Por favor, tente novamente.'
+
+        if (axios.isAxiosError(error)) {
+          message =
+            error.response?.data?.error ||
+            error.response?.data?.message ||
+            message
+        } else {
+          console.log('register unknown error:', error)
         }
 
-        if (error.code === 'auth/invalid-email') {
-          setError('email', { message: '* E-mail inválido!' })
-        }
+        openModal({
+          title: 'Atenção',
+          description: message,
+          singleAction: {
+            action() {
+              closeModal()
+            },
+            title: 'OK',
+          },
+        })
+      })
+      .finally(() => {
+        setIsLoading(false)
       })
   }
 
   return (
-    <>
-      <ScrollView className="bg-gray-700">
-        <View className="p-4 items-center h-full ">
+    <KeyboardAvoidingView
+      className="flex-1 bg-gray-700"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        ref={scrollRef}
+        className="flex-1 bg-gray-700"
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: keyboardOffset }}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="items-center p-4 pt-24">
           <Image
             source={logo}
             alt="logo"
@@ -233,6 +221,6 @@ export function Register() {
           </View>
         </View>
       </ScrollView>
-    </>
+    </KeyboardAvoidingView>
   )
 }

@@ -25,7 +25,6 @@ import colors from 'tailwindcss/colors'
 import { useCallback, useEffect, useState } from 'react'
 
 import { UserProps } from '@storage/modules/user/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 
 import { PlaylistProps } from '@utils/Types/playlistProps'
 import { Loading } from '@components/Loading'
@@ -35,8 +34,6 @@ export function Playlists() {
   const [playlists, setPlaylists] = useState<PlaylistProps[]>([])
 
   const size = Dimensions.get('window').width * 0.7
-
-  const { handleGetPlaylistByUserId } = useFirebaseServices()
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
@@ -49,12 +46,14 @@ export function Playlists() {
   const handleSearchMyPlaylists = useCallback(async () => {
     setIsLoading(true)
 
-    const response = await handleGetPlaylistByUserId(user.uid)
+    // const response = await handleGetPlaylistByUserId(user.uid)
 
-    setPlaylists(response)
+    // setPlaylists(response)
+
+    console.log('buscar playlist do user')
 
     setIsLoading(false)
-  }, [handleGetPlaylistByUserId, user.uid])
+  }, [])
 
   useEffect(() => {
     handleSearchMyPlaylists()
@@ -101,21 +100,17 @@ export function Playlists() {
           )}
           ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item, index }) => (
-            <View
-              className={`flex-row gap-4 justify-between items-center ${
-                isCurrentMusic ? 'mb-32' : 'mb-16'
-              }`}
-            >
+            <View className={`flex-row gap-4 justify-between items-center`}>
               <TouchableOpacity
                 key={index}
                 className="flex-row items-center gap-2 flex-1 overflow-hidden"
                 onPress={() => {
-                  navigation.navigate('EditPlaylist', item)
+                  return console.log(item)
                 }}
               >
                 <View className="w-20 h-20 bg-purple-600 rounded-xl overflow-hidden items-center justify-center">
                   <ImageBackground
-                    source={{ uri: item.imageUrl }}
+                    source={{ uri: item.artworkURL }}
                     alt="artwork"
                     className="h-full w-full items-center justify-center"
                   />

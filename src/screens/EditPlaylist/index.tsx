@@ -1,9 +1,6 @@
 import { ReduxProps } from '@storage/index'
 
-import { launchImageLibrary } from 'react-native-image-picker'
-
-import storage from '@react-native-firebase/storage'
-import firestore from '@react-native-firebase/firestore'
+import { Asset, launchImageLibrary } from 'react-native-image-picker'
 
 import { UserProps } from '@storage/modules/user/reducer'
 import {
@@ -24,6 +21,8 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
 import { useCallback, useState } from 'react'
 import { MusicComponent } from '@components/MusicComponent'
+import { api } from '@services/api'
+import { UploadObjectResponseProps } from '@utils/Types/uploadProps'
 
 export function EditPlaylist() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
@@ -32,7 +31,7 @@ export function EditPlaylist() {
   const [isLoading, setIsLoading] = useState(false)
 
   const [name, setName] = useState(playlist.title)
-  const [photo, setPhoto] = useState('')
+  const [photo, setPhoto] = useState<Asset | null>(null)
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -41,46 +40,53 @@ export function EditPlaylist() {
       { mediaType: 'photo', maxWidth: 500, maxHeight: 500 },
       (response) => {
         if (response.assets) {
-          const uri = response.assets[0].uri
+          const asset = response.assets[0]
 
-          if (uri) {
-            setPhoto(uri)
+          if (asset) {
+            setPhoto(asset)
           }
         }
       },
     )
   }
 
-  const handleEditUser = useCallback(async () => {
-    try {
-      let imageUrl = ''
+  const slugify = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\.[^/.]+$/, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
 
+  const handleEditPlaylist = useCallback(async () => {
+    try {
+      setIsLoading(true)
       Keyboard.dismiss()
 
-      if (photo.length < 1 && user.photoURL) {
-        imageUrl = user.photoURL
-      } else {
-        setIsLoading(true)
-        const storageRef = storage().ref(`${user.uid}.jpg`)
-
-        const response = await fetch(photo)
-        const blob = await response.blob()
-
-        await storageRef.put(blob)
-
-        const responseUrl = await storageRef.getDownloadURL()
-
-        imageUrl = responseUrl
+      if (!photo?.uri) {
+        return
       }
 
-      const userDocRef = firestore().collection('users').doc(user.uid)
+      console.log('subir img playlist')
 
-      const data = {
-        name,
-        photoURL: imageUrl,
-      }
+      // const formData = new FormData()
 
-      await userDocRef.update(data)
+      // formData.append('files', {
+      //   uri: photo.uri,
+      // } as any)
+
+      // formData.append('folder', 'playlist')
+      // formData.append('slug', slugify(name))
+
+      // const objectPathSigned = await api
+      //   .post('/uploads', formData)
+      //   .then((res) => res.data.files as UploadObjectResponseProps)
+
+      // await api.patch(`/me`, {
+      //   name,
+      //   photoUrl: objectPathSigned.signedUrl,
+      // })
 
       setIsLoading(false)
 
@@ -112,7 +118,7 @@ export function EditPlaylist() {
             Editar Playlist
           </Text>
 
-          <TouchableOpacity onPress={handleEditUser} activeOpacity={0.6}>
+          <TouchableOpacity onPress={handleEditPlaylist} activeOpacity={0.6}>
             <Text
               className={`font-nunito-regular text-gray-300 text-base transition-all duration-150`}
             >
@@ -124,7 +130,12 @@ export function EditPlaylist() {
         <View className="items-center mt-6">
           <View className="bg-purple-600 rounded-full w-40 h-40 items-center justify-center relative">
             <Image
-              source={{ uri: photo.length > 0 ? photo : playlist.imageUrl }}
+              source={{
+                uri:
+                  photo?.uri && photo.uri?.length > 0
+                    ? photo.uri
+                    : playlist.artworkURL,
+              }}
               alt="playlist artwork"
               className="w-full h-full object-cover rounded-md"
             />

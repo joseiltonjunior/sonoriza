@@ -1,4 +1,11 @@
-import { ScrollView, Text, View, Dimensions, BackHandler } from 'react-native'
+import {
+  ScrollView,
+  Text,
+  View,
+  Dimensions,
+  BackHandler,
+  RefreshControl,
+} from 'react-native'
 import AnimatedLottieView from 'lottie-react-native'
 import splash from '@assets/access-denied.json'
 import bad from '@assets/bad.json'
@@ -33,7 +40,7 @@ import { RoundedCarousel } from '@components/RoundedCarousel'
 import { Section } from '@components/Section'
 
 import { MusicalGenres } from '@components/MusicalGenres'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import TrackPlayer, { Event, State } from 'react-native-track-player'
 
@@ -45,8 +52,7 @@ import { useNetwork } from '@hooks/useNetwork'
 import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
 
 import { useNetInfo } from '@react-native-community/netinfo'
-import { UserProps } from '@storage/modules/user/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { handleSetUser, UserProps } from '@storage/modules/user/reducer'
 
 import {
   InspiredMixesProps,
@@ -65,6 +71,9 @@ import { setNewsNotifications } from '@storage/modules/newsNotifications/reducer
 import { Header } from '@components/Header'
 
 import messaging from '@react-native-firebase/messaging'
+import { api } from '@services/api'
+import { MusicalGenresDataProps } from '@utils/Types/musicalGenresProps'
+import { UserDataProps } from '@utils/Types/userProps'
 
 export function Home() {
   const { historic } = useSelector<ReduxProps, HistoricProps>(
@@ -75,17 +84,12 @@ export function Home() {
 
   const dispatch = useDispatch()
 
-  const { getCurrentMusic } = useTrackPlayer()
+  const [topMusicalGenres, setTopMusicalGenres] = useState<
+    MusicalGenresDataProps[]
+  >([])
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const {
-    handleGetFavoritesMusics,
-    handleGetFavoritesArtists,
-    handleGetReleases,
-    handleGetInspiredMixes,
-    handleGetMusicsNewUser,
-    handleGetArtistsNewUser,
-    handleGetNotifications,
-  } = useFirebaseServices()
+  const { getCurrentMusic } = useTrackPlayer()
 
   const { openModalErrNetwork } = useNetwork()
 
@@ -121,16 +125,6 @@ export function Home() {
     (state) => state.trackListOffline,
   )
 
-  const topMusicalGenres = useMemo(() => {
-    const filterGenres = shuffleArray(
-      favoriteMusics.map((music) => music.genre),
-    )
-
-    const excludeDuplicates = [...new Set(filterGenres)]
-
-    return excludeDuplicates.slice(0, 5)
-  }, [favoriteMusics])
-
   const handleGetCurrentMusic = async () => {
     await getCurrentMusic()
   }
@@ -146,82 +140,96 @@ export function Home() {
   const handleGetDataUser = useCallback(async () => {
     try {
       if (isConnected) {
-        let musics = [] as MusicProps[]
+        const userData = await api
+          .get('/me')
+          .then((response) => response.data as UserDataProps)
+        const recommendationData = await api
+          .get(`/me/recommendations/musics`)
+          .then((response) => response.data)
 
-        if (user?.favoritesMusics && user.favoritesMusics) {
-          const result = await handleGetFavoritesMusics(user.favoritesMusics)
-          musics = result
-          dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
-        } else {
-          const result = await handleGetMusicsNewUser()
-          musics = result
-          dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
+        if (userData.favoriteMusics) {
+          dispatch(
+            handleSetFavoriteMusics({
+              favoriteMusics: userData.favoriteMusics,
+            }),
+          )
         }
 
-        if (user?.favoritesArtists) {
-          const result = await handleGetFavoritesArtists(user.favoritesArtists)
-
-          dispatch(setFavoriteArtists({ favoriteArtists: result }))
-        } else {
-          const result = await handleGetArtistsNewUser()
-
-          dispatch(setFavoriteArtists({ favoriteArtists: result }))
+        if (userData.favoriteArtists) {
+          dispatch(
+            setFavoriteArtists({ favoriteArtists: userData.favoriteArtists }),
+          )
         }
 
-        const excludesMusics = musics.map((item) => item.id)
+        if (userData.favoriteMusics && userData.favoriteArtists) {
+          dispatch(
+            handleSetUser({
+              user: {
+                ...user,
+                favoriteArtists: userData.favoriteArtists,
+                favoriteMusics: userData.favoriteMusics,
+                favoriteGenres: userData.favoriteGenres,
+              },
+            }),
+          )
+        }
 
-        const filterGenres = shuffleArray(musics.map((music) => music.genre))
+        if (recommendationData.data) {
+          const inspiredMixes = recommendationData.data as MusicProps[]
+          const basedOnGenres = recommendationData.basedOnGenres
 
-        const excludeGenres = [...new Set(filterGenres)]
+          dispatch(
+            setInspiredMixes({
+              musics: inspiredMixes,
+            }),
+          )
 
-        const responseInspiredMixes = await handleGetInspiredMixes(
-          excludeGenres,
-          excludesMusics,
-        )
+          if (userData.favoriteGenres) {
+            setTopMusicalGenres(basedOnGenres)
+          }
+        }
 
-        dispatch(
-          setInspiredMixes({
-            musics: responseInspiredMixes,
-          }),
-        )
-
-        const responseReleses = await handleGetReleases()
-
-        dispatch(handleSetReleases({ releases: responseReleses }))
-
-        dispatch(handleSetNetStatus(true))
+        dispatch(handleSetNetStatus(true))        
       } else {
         dispatch(handleSetNetStatus(false))
       }
     } catch (error) {
       console.log(error, 'home')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     dispatch,
-    favoriteMusics,
-    isConnected,
     topMusicalGenres,
-    user.favoritesArtists,
-    user.favoritesMusics,
+    isConnected,
+    user.favoriteArtists,
+    user.favoriteMusics,
   ])
 
-  const handleFetchNoticationsDB = useCallback(async () => {
-    await handleGetNotifications()
-      .then((response) => {
-        if (JSON.stringify(response) !== JSON.stringify(notifications)) {
-          dispatch(setNewsNotifications({ newsNotifications: true }))
-        }
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true)
 
-        dispatch(setNotification({ notifications: response }))
-      })
-      .catch((err) => console.log(err, 'err'))
-  }, [dispatch, handleGetNotifications, notifications])
+    try {
+      await handleGetDataUser()
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [handleGetDataUser])
+
+  // const handleFetchNoticationsDB = useCallback(async () => {
+  //   await handleGetNotifications()
+  //     .then((response) => {
+  //       if (JSON.stringify(response) !== JSON.stringify(notifications)) {
+  //         dispatch(setNewsNotifications({ newsNotifications: true }))
+  //       }
+
+  //       dispatch(setNotification({ notifications: response }))
+  //     })
+  //     .catch((err) => console.log(err, 'err'))
+  // }, [dispatch, handleGetNotifications, notifications])
 
   useEffect(() => {
     if (isConnected === null) return
     if (isConnected) {
-      handleFetchNoticationsDB()
+      // handleFetchNoticationsDB()
       handleGetDataUser()
     } else if (!isConnected) {
       dispatch(handleSetNetStatus(false))
@@ -229,8 +237,6 @@ export function Home() {
         openModalErrNetwork()
       }
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ignoreAlert, isConnected])
 
   useEffect(() => {
@@ -255,62 +261,23 @@ export function Home() {
   }, [])
 
   // useEffect(() => {
-  //   const playbackStateListener = TrackPlayer.addEventListener(
-  //     Event.PlaybackState,
-  //     ({ state }) => {
-  //       if ([State.Playing].includes(state)) {
-  //         setTimeout(() => {
-  //           console.log(
-  //             'Música tocada por pelo menos 1 minuto:',
-  //             isCurrentMusic?.title,
-  //           )
-  //         }, 60 * 1000) // Verifica após 1 minu
-  //       }
-  //     },
-  //   )
+  //   const unsubscribe = messaging().onMessage(async () => {
+  //     handleFetchNoticationsDB()
+  //   })
 
-  //   return () => {
-  //     playbackStateListener.remove()
-  //   }
+  //   return unsubscribe
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [])
 
-  useEffect(() => {
-    const unsubscribe = messaging().onMessage(async () => {
-      handleFetchNoticationsDB()
-    })
-
-    return unsubscribe
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  if (user.plan === 'free') {
-    return (
-      <View className="bg-gray-700 flex-1 items-center justify-center p-8">
-        <AnimatedLottieView
-          source={splash}
-          autoPlay
-          resizeMode="contain"
-          style={{ width: size, height: size }}
-        />
-        <Text className="font-nunito-bold text-lg text-white text-center">
-          Acesso não autorizado. Por favor, regularize o seu plano para
-          continuar.
-        </Text>
-        <Button
-          title="Sair da aplicação"
-          className="mt-8 rounded-md w-full"
-          onPress={() => {
-            BackHandler.exitApp()
-          }}
-        />
-      </View>
-    )
-  }
-
   return (
     <>
-      <ScrollView className="bg-gray-700" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="bg-gray-700"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+      >
         <Header title="Início" />
 
         <View className={isCurrentMusic ? 'pb-32' : 'pb-16'}>
@@ -364,12 +331,12 @@ export function Home() {
           {isConnected && inspiredMixes.length > 0 && (
             <Section
               title={
-                user.favoritesMusics
+                user.favoriteMusics
                   ? 'Mixes inspirador por'
                   : 'Explore novas possibilidades'
               }
               description={
-                user.favoritesMusics
+                user.favoriteMusics
                   ? 'Descrubra faixas similiares aos seus hits favoritos'
                   : ''
               }
@@ -382,7 +349,7 @@ export function Home() {
           {isConnected && topMusicalGenres.length > 0 && (
             <Section
               title={
-                user?.favoritesMusics
+                user?.favoriteGenres
                   ? 'Os seus top gêneros musicais'
                   : 'Explore por gêneros musicais'
               }
@@ -392,18 +359,20 @@ export function Home() {
             </Section>
           )}
 
-          {isConnected && favoriteArtists.length > 0 && (
-            <Section
-              title={
-                user.favoritesArtists
-                  ? 'Artistas que você ama'
-                  : 'Explore por artistas'
-              }
-              className="mt-14"
-            >
-              <RoundedCarousel artists={favoriteArtists} />
-            </Section>
-          )}
+          {isConnected &&
+            user.favoriteArtists &&
+            user.favoriteArtists.length > 0 && (
+              <Section
+                title={
+                  user.favoriteArtists
+                    ? 'Artistas que você ama'
+                    : 'Explore por artistas'
+                }
+                className="mt-14"
+              >
+                <RoundedCarousel artists={favoriteArtists} />
+              </Section>
+            )}
         </View>
       </ScrollView>
 

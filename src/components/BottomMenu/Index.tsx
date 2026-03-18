@@ -12,7 +12,7 @@ export function BottomMenu() {
   const { isConnected } = useNetInfo()
 
   return (
-    <View className="bg-gray-950/90 px-4 flex-row justify-between border-t border-purple-600/30">
+    <View className="bg-gray-950/90 px-4 pb-4 flex-row justify-between border-t border-purple-600/30">
       <TouchableOpacity
         activeOpacity={0.6}
         className="items-center py-2 px-4"

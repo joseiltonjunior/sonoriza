@@ -2,6 +2,8 @@ import { Input } from '@components/Input'
 import {
   Image,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -10,39 +12,22 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { WEB_CLIENT_ID } from '@env'
-
-import iconGoogle from '@assets/icon-google.png'
-
-import { GoogleSignin } from '@react-native-google-signin/google-signin'
 
 import logo from '@assets/logo.png'
 import { Button } from '@components/Button'
-import { useState } from 'react'
-
-import auth from '@react-native-firebase/auth'
+import { useCallback, useRef, useState } from 'react'
 
 import { StackNavigationProps } from '@routes/routes'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 
-import { useModal } from '@hooks/useModal'
-
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useDispatch } from 'react-redux'
 import { handleSetUser } from '@storage/modules/user/reducer'
+import { api } from '@services/api'
+import { authSessionResponseProps } from '@utils/Types/authSessionProps'
 
 interface FormDataProps {
   email: string
   password: string
-}
-
-interface SaveUserProps {
-  uid: string
-  withGoogle?: {
-    displayName: string | null
-    email: string | null
-    photoURL: string | null
-  }
 }
 
 const schema = z.object({
@@ -61,138 +46,107 @@ export function SignIn() {
   })
 
   const navigation = useNavigation<StackNavigationProps>()
+  const scrollRef = useRef<ScrollView>(null)
 
   const [isLoading, setIsLoading] = useState(false)
-
-  const { closeModal, openModal } = useModal()
+  const [keyboardOffset, setKeyboardOffset] = useState(32)
 
   const dispatch = useDispatch()
 
-  const {
-    handleFetchDataUser,
-    handleSaveUser,
-    handleRequestPermissionNotifications,
-  } = useFirebaseServices()
+  useFocusEffect(
+    useCallback(() => {
+      setKeyboardOffset(32)
 
-  GoogleSignin.configure({
-    webClientId: WEB_CLIENT_ID,
-  })
+      const keyboardShowSubscription = Keyboard.addListener(
+        'keyboardDidShow',
+        (event) => {
+          setKeyboardOffset(event.endCoordinates.height + 32)
 
-  async function handleDataUser({ uid, withGoogle }: SaveUserProps) {
-    try {
-      const user = await handleFetchDataUser(uid)
+          requestAnimationFrame(() => {
+            scrollRef.current?.scrollToEnd({ animated: true })
+          })
+        },
+      )
 
-      await handleRequestPermissionNotifications(uid)
+      const keyboardHideSubscription = Keyboard.addListener(
+        'keyboardDidHide',
+        () => {
+          setKeyboardOffset(32)
+        },
+      )
 
-      if (!user && withGoogle) {
-        const { displayName, email, photoURL } = withGoogle
-
-        const newUser = {
-          displayName,
-          email,
-          photoURL,
-          plan: 'free',
-          uid,
-        }
-
-        await handleSaveUser({
-          displayName,
-          email,
-          photoURL,
-          plan: 'free',
-          uid,
-        })
-
-        dispatch(
-          handleSetUser({
-            user: newUser,
-          }),
-        )
-      } else {
-        dispatch(
-          handleSetUser({
-            user,
-          }),
-        )
+      return () => {
+        keyboardShowSubscription.remove()
+        keyboardHideSubscription.remove()
+        setKeyboardOffset(32)
       }
+    }, []),
+  )
+
+  async function handleSignInWithEmail(data: FormDataProps) {
+    Keyboard.dismiss()
+    setIsLoading(true)
+
+    try {
+      const authResponse = await api
+        .post('/sessions', {
+          email: data.email,
+          password: data.password,
+        })
+        .then((response) => response.data as authSessionResponseProps)
+
+      const {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        user,
+      } = authResponse
 
       setIsLoading(false)
+      dispatch(
+        handleSetUser({
+          user: {
+            name: user.name,
+            email: user.email,
+            photoUrl: user.photoUrl,
+            role: user.role,
+            id: user.id,
+            accountStatus: user.accountStatus,
+            accessToken,
+            refreshToken,
+          },
+        }),
+      )
 
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Home' }],
+        routes: [
+          {
+            name: 'Home',
+            params: undefined,
+          },
+        ],
       })
     } catch (error) {
+      setError('email', { message: '* credenciais inválidas' })
+      setError('password', { message: '* credenciais inválidas' })
       setIsLoading(false)
-      openModal({
-        title: 'Atenção',
-        description:
-          'No momento, não foi possível realizar o cadastro utilizando sua conta do Google. Pedimos desculpas pelo inconveniente e sugerimos que tente novamente mais tarde.',
-        singleAction: {
-          action() {
-            closeModal()
-          },
-          title: 'OK',
-        },
-      })
     }
-  }
-
-  async function handleSignInWithGoogle() {
-    setIsLoading(true)
-    try {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
-
-      const { idToken } = await GoogleSignin.signIn()
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken)
-      const response = await auth().signInWithCredential(googleCredential)
-
-      const { uid, displayName, email, photoURL } = response.user
-
-      handleDataUser({
-        uid,
-        withGoogle: {
-          displayName,
-          email,
-          photoURL,
-        },
-      })
-    } catch (error) {
-      setIsLoading(false)
-      openModal({
-        title: 'Atenção',
-        description:
-          'No momento, não foi possível autenticar com a sua conta do Google. Por favor, tente novamente mais tarde.',
-        singleAction: {
-          action() {
-            closeModal()
-          },
-          title: 'OK',
-        },
-      })
-    }
-  }
-
-  function handleSignInWithEmail(data: FormDataProps) {
-    Keyboard.dismiss()
-    setIsLoading(true)
-    auth()
-      .signInWithEmailAndPassword(data.email, data.password)
-      .then(async (result) => {
-        const { uid } = result.user
-        handleDataUser({ uid })
-      })
-      .catch(() => {
-        setError('email', { message: '* credenciais inválidas' })
-        setError('password', { message: '* credenciais inválidas' })
-        setIsLoading(false)
-      })
   }
 
   return (
-    <>
-      <ScrollView className="bg-gray-700">
-        <View className="p-4 items-center h-full ">
+    <KeyboardAvoidingView
+      className="flex-1 bg-gray-700"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        ref={scrollRef}
+        className="flex-1 bg-gray-700"
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: keyboardOffset }}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="items-center p-4 pt-24">
           <Image
             source={logo}
             alt="logo"
@@ -204,29 +158,7 @@ export function SignIn() {
             Bem vindo(a), de volta!
           </Text>
 
-          <View className="w-full mt-12 px-4">
-            <TouchableOpacity
-              onPress={handleSignInWithGoogle}
-              className="bg-gray-100 w-full rounded-full h-12 items-center justify-center flex-row"
-            >
-              <Image
-                source={iconGoogle}
-                alt="google icon"
-                width={20}
-                height={20}
-                style={{ width: 24, objectFit: 'contain' }}
-              />
-              <Text className="text-gray-500 font-nunito-bold ml-6">
-                ENTRAR COM O GOOGLE
-              </Text>
-            </TouchableOpacity>
-
-            <View className="flex-row overflow-hidden items-center my-6">
-              <View className="h-[1px] flex-1 bg-gray-300" />
-              <Text className="font-nunito-bold text-gray-300 mx-2">OU</Text>
-              <View className="h-[1px] flex-1 bg-gray-300" />
-            </View>
-
+          <View className="mt-12 w-full px-4">
             <Input
               icon="mail"
               name="email"
@@ -249,7 +181,7 @@ export function SignIn() {
             <Button
               isLoading={isLoading}
               title="Entrar"
-              className="w-full ml-auto mr-auto mt-6"
+              className="mt-6 ml-auto mr-auto w-full"
               onPress={handleSubmit(handleSignInWithEmail)}
             />
 
@@ -260,22 +192,23 @@ export function SignIn() {
               <Text className="font-nunito-regular text-gray-300">
                 NÃO TEM UMA CONTA?
               </Text>
-              <Text className="font-nunito-bold text-gray-300 ml-1 underline">
+              <Text className="ml-1 font-nunito-bold text-gray-300 underline">
                 INSCREVA-SE
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
+              disabled
               className="ml-auto mr-auto mt-8"
               onPress={() => navigation.navigate('RecoveryPassword')}
             >
-              <Text className="text-gray-300 font-nunito-regular">
+              <Text className="font-nunito-regular text-gray-300">
                 REDEFINIR SENHA
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </ScrollView>
-    </>
+    </KeyboardAvoidingView>
   )
 }

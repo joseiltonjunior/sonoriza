@@ -3,10 +3,11 @@ import { ControlCurrentMusic } from '@components/ControlCurrentMusic'
 import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 import { Loading } from '@components/Loading'
 import { useBottomModal } from '@hooks/useBottomModal'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
+import { api } from '@services/api'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
@@ -31,8 +32,6 @@ export function Album() {
   const { params } = useRoute<RouteParamsProps<'Album'>>()
   const { album, artistId } = params
 
-  const { handleGetArtistById, handleGetMusicsByAlbum } = useFirebaseServices()
-
   const [isLoading, setisLoading] = useState(false)
   const [artist, setArtist] = useState<ArtistsDataProps>()
   const [musics, setMusics] = useState<MusicProps[]>([])
@@ -52,8 +51,12 @@ export function Album() {
   const handleFetchData = useCallback(async () => {
     try {
       setisLoading(true)
-      const musics = await handleGetMusicsByAlbum(album)
-      const artist = await handleGetArtistById(artistId)
+      const musics = await api
+        .get(`/musics?album=${album}`)
+        .then((response) => response.data.data as MusicProps[])
+      const artist = await api
+        .get(`/artists/${artistId}`)
+        .then((response) => response.data as ArtistsDataProps)
       setMusics(musics)
       setArtist(artist)
       setisLoading(false)
@@ -61,7 +64,7 @@ export function Album() {
       setisLoading(false)
       console.log(error)
     }
-  }, [album, artistId, handleGetArtistById, handleGetMusicsByAlbum])
+  }, [album, artistId])
 
   useEffect(() => {
     handleFetchData()

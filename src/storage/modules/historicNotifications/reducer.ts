@@ -17,6 +17,9 @@ const historicNotificationSlice = createSlice({
   name: 'historicNotifications',
   initialState,
   reducers: {
+    clearHistoricNotifications: (state) => {
+      state.historic = []
+    },
     setHistoricNotification: (
       state,
       action: PayloadAction<NewNotificationProps>,
@@ -35,6 +38,7 @@ const historicNotificationSlice = createSlice({
   },
 })
 
-export const { setHistoricNotification } = historicNotificationSlice.actions
+export const { clearHistoricNotifications, setHistoricNotification } =
+  historicNotificationSlice.actions
 
 export default historicNotificationSlice.reducer

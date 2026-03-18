@@ -1,21 +1,21 @@
 import { ReduxProps } from '@storage/index'
+import { FavoriteMusicsProps } from '@storage/modules/favoriteMusics/reducer'
 
-import { UserProps } from '@storage/modules/user/reducer'
 import { MusicProps } from '@utils/Types/musicProps'
 
 import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 
 export function useFavorites(currentMusic?: MusicProps) {
-  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+  const { favoriteMusics } = useSelector<ReduxProps, FavoriteMusicsProps>(
+    (state) => state.favoriteMusics,
+  )
 
   const isFavoriteMusic = useMemo(() => {
-    const filter = user.favoritesMusics?.find(
-      (item) => item === currentMusic?.id,
-    )
+    const filter = favoriteMusics.find((item) => item.id === currentMusic?.id)
 
     return !!filter
-  }, [currentMusic?.id, user.favoritesMusics])
+  }, [currentMusic?.id, favoriteMusics])
 
   return { isFavoriteMusic }
 }

@@ -9,10 +9,11 @@ export interface UserProps {
 const initialState: UserProps = {
   user: {
     email: '',
-    displayName: '',
-    photoURL: '',
-    uid: '',
-    plan: '',
+    name: '',
+    role: 'USER',
+    photoUrl: '',
+    id: '',
+    accountStatus: 'SUSPENDED',
   },
 }
 

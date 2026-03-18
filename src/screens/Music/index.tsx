@@ -42,11 +42,17 @@ import { MusicProps } from '@utils/Types/musicProps'
 import { DynamicBackgroundColor } from '@components/DynamicBackgroundColor'
 
 import { useFavorites } from '@hooks/useFavorites'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useNetInfo } from '@react-native-community/netinfo'
+import { api } from '@services/api'
+import { useToast } from '@hooks/useToast'
+import { UserDataProps } from '@utils/Types/userProps'
+import { handleSetUser, UserProps } from '@storage/modules/user/reducer'
+import { handleSetFavoriteMusics } from '@storage/modules/favoriteMusics/reducer'
 
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
+
+  const { showToast } = useToast()
 
   const { isConnected } = useNetInfo()
   const { TrackPlayer, useProgress } = useTrackPlayer()
@@ -63,6 +69,8 @@ export function Music() {
 
   const [repeatMode, setRepeatMode] = useState<number>(0)
 
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+
   const [currentPosition, setCurrentPosition] = useState<number>(0)
 
   const [isSeek, setIsSeek] = useState(false)
@@ -76,8 +84,6 @@ export function Music() {
   const dispatch = useDispatch()
 
   const { isFavoriteMusic } = useFavorites(isCurrentMusic)
-
-  const { handleFavoriteMusic } = useFirebaseServices()
 
   const havePrevious = useMemo(() => {
     const currentIndex = queue.findIndex(
@@ -237,6 +243,37 @@ export function Music() {
     }
   }, [TrackPlayer, repeatMode])
 
+  async function handleFavoriteMusic(musicId: string) {
+    await api
+      .post(`/musics/${musicId}/like`)
+      .then(async (response) => {
+        const isFavorite = response.data as { liked: false; likesCount: 0 }
+
+        const userUpdated = await api
+          .get('/me')
+          .then((response) => response.data as UserDataProps)       
+
+        if (userUpdated.favoriteMusics) {
+          dispatch(
+            handleSetFavoriteMusics({
+              favoriteMusics: userUpdated.favoriteMusics,
+            }),
+          )
+        }        
+
+        let message = ''
+
+        if (isFavorite.liked === false) {
+          message = 'Removido dos favoritos.'
+        } else {
+          message = 'Adicionado aos favoritos.'
+        }
+
+        showToast({ title: message })
+      })
+      .catch((err) => console.log(err, 'err'))
+  }
+
   useEffect(() => {
     handleVerifyRepeatMode()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -269,7 +306,7 @@ export function Music() {
   return (
     <View className="flex-1 -mt-8">
       <DynamicBackgroundColor color={isCurrentMusic?.color}>
-        <View className="flex-row items-center justify-between m-4 mt-[70px]">
+        <View className="flex-row items-center justify-between m-4 pt-16">
           <TouchableOpacity
             onPress={() => {
               navigation.goBack()
@@ -289,7 +326,7 @@ export function Music() {
               className="text-white font-nunito-bold text-base"
               style={{ color: fontColor }}
             >
-              {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
+              {isCurrentMusic?.artists && isCurrentMusic.artists[0].title}
             </Text>
           </View>
           <View className="w-10" />
@@ -361,7 +398,7 @@ export function Music() {
               <TouchableOpacity
                 onPress={() => {
                   if (isCurrentMusic) {
-                    handleFavoriteMusic(isCurrentMusic)
+                    handleFavoriteMusic(isCurrentMusic.id)
                   }
                 }}
               >
@@ -427,7 +464,7 @@ export function Music() {
               numberOfLines={1}
               style={{ color: fontColor }}
             >
-              {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
+              {isCurrentMusic?.artists && isCurrentMusic.artists[0].title}
               {isCurrentMusic?.album && ` - ${isCurrentMusic.album}`}
             </Text>
           </View>

@@ -22,7 +22,7 @@ import colors from 'tailwindcss/colors'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { MusicProps } from '@utils/Types/musicProps'
 import { UserProps } from '@storage/modules/user/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+
 import { HistoricProps } from '@storage/modules/historic/reducer'
 
 import playing from '@assets/playing.json'
@@ -31,10 +31,12 @@ import { Loading } from '@components/Loading'
 import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 
 import { useBottomModal } from '@hooks/useBottomModal'
+import { api } from '@services/api'
+import { FavoriteMusicsProps } from '@storage/modules/favoriteMusics/reducer'
 
 export function MoreMusic() {
   const { params } = useRoute<RouteParamsProps<'MoreMusic'>>()
-  const { type, title, artistFlow } = params
+  const { type, title, artistFlow, artistId } = params
 
   const [page, setPage] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
@@ -42,9 +44,6 @@ export function MoreMusic() {
 
   const { openModal } = useBottomModal()
   const [listMusics, setListMusics] = useState<MusicProps[]>([])
-
-  const { handleGetFavoritesMusics, handleGetMusicsById } =
-    useFirebaseServices()
 
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
     (state) => state.trackListOffline,
@@ -54,7 +53,11 @@ export function MoreMusic() {
     (state) => state.historic,
   )
 
-  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+  // const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+
+  const { favoriteMusics } = useSelector<ReduxProps, FavoriteMusicsProps>(
+      (state) => state.favoriteMusics,
+    )
 
   const { handleMusicSelected } = useTrackPlayer()
 
@@ -69,7 +72,9 @@ export function MoreMusic() {
 
     setIsLoading(true)
 
-    await handleGetMusicsById(artistFlow, page)
+    await api
+      .get(`/musics?artistId=${artistId}?page=${page}`)
+      .then((response) => response.data.data as MusicProps[])
       .then((result) => {
         setPage((prev) => prev + 1)
         setListMusics((prev) => [...prev, ...result])
@@ -81,26 +86,34 @@ export function MoreMusic() {
       .catch((err) => console.log(err, 'hmm'))
       .finally(() => setIsLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEndList, isLoading, user.favoritesMusics, page])
+  }, [isEndList, isLoading, favoriteMusics, page])
 
   const handleGetMusics = useCallback(async () => {
-    if (!user.favoritesMusics || isLoading || isEndList) return
+    // console.log(`que merda`, favoriteMusics)
 
-    setIsLoading(true)
+    const result = favoriteMusics as MusicProps[]
 
-    await handleGetFavoritesMusics(user.favoritesMusics, page)
-      .then((result) => {
-        setPage((prev) => prev + 1)
-        setListMusics((prev) => [...prev, ...result])
+    // setIsLoading(true)
 
-        if (result.length < 10) {
-          setIsEndList(true)
-        }
-      })
-      .catch((err) => console.log(err, 'err'))
-      .finally(() => setIsLoading(false))
+    setListMusics(result)
+
+    console.log(result)
+
+    // console.log('buscar musicas favoritas', user.favoriteMusics)
+
+    // await handleGetFavoritesMusics(user.favoritesMusics, page)
+    //   .then((result) => {
+    //     setPage((prev) => prev + 1)
+    //     setListMusics((prev) => [...prev, ...result])
+
+    //     if (result.length < 10) {
+    //       setIsEndList(true)
+    //     }
+    //   })
+    //   .catch((err) => console.log(err, 'err'))
+    //   .finally(() => setIsLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEndList, isLoading, user.favoritesMusics, page])
+  }, [favoriteMusics])
 
   const handlePaginatedOffline = useCallback(async () => {
     if (!trackListOffline || isEndList) return
@@ -134,10 +147,10 @@ export function MoreMusic() {
 
     if (
       type === 'favorites' &&
-      user.favoritesMusics &&
-      user.favoritesMusics.length > 0
+      favoriteMusics &&
+      favoriteMusics.length > 0
     ) {
-      handleGetMusics()
+      updatedListMusics = favoriteMusics
     } else if (type === 'historic') {
       updatedListMusics = historic
     } else if (type === 'offline') {
@@ -148,7 +161,7 @@ export function MoreMusic() {
 
     setListMusics(updatedListMusics)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, user.favoritesMusics])
+  }, [type, favoriteMusics])
 
   if (listMusics.length === 0) {
     return <Loading />
@@ -172,7 +185,7 @@ export function MoreMusic() {
         <FlatList
           className={`mt-4`}
           showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
           data={listMusics}
           onEndReached={verifyType}
           onEndReachedThreshold={0.2}
@@ -220,7 +233,7 @@ export function MoreMusic() {
                 <View>
                   <Text className="font-bold text-white">{item.title}</Text>
                   <Text className="font-regular text-gray-300">
-                    {item.artists[0].name}
+                    {item.artists[0].title}
                   </Text>
                 </View>
               </TouchableOpacity>

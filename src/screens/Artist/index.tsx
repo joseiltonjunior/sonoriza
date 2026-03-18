@@ -6,19 +6,21 @@ import { Loading } from '@components/Loading'
 import { MusicComponent } from '@components/MusicComponent'
 
 import { Section } from '@components/Section'
-
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
+import { useToast } from '@hooks/useToast'
 
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { RouteParamsProps, StackNavigationProps } from '@routes/routes'
+import { api } from '@services/api'
 import { ReduxProps } from '@storage/index'
 
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import { FavoriteArtistsProps, setFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
 
 import { UserProps } from '@storage/modules/user/reducer'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
 import { MusicProps } from '@utils/Types/musicProps'
+import { UserDataProps } from '@utils/Types/userProps'
 
 import { useEffect, useMemo, useState } from 'react'
 
@@ -32,7 +34,7 @@ import {
   View,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
 
 interface AlbumProps {
@@ -46,6 +48,10 @@ export function Artist() {
 
   const size = Dimensions.get('window').width * 1
 
+  const { showToast } = useToast()
+
+  const dispatch = useDispatch();
+
   const [artist, setArtist] = useState<ArtistsDataProps>()
   const [albums, setAlbums] = useState<AlbumProps[]>([])
   const [topMusics, setTopMusics] = useState<MusicProps[]>([])
@@ -53,15 +59,16 @@ export function Artist() {
 
   const navigation = useNavigation<StackNavigationProps>()
   const { handleMusicSelected } = useTrackPlayer()
-  const { handleGetArtistById, handleGetAllMusicsById } = useFirebaseServices()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
 
-  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+  const { favoriteArtists } = useSelector<ReduxProps, FavoriteArtistsProps>(
+      (state) => state.favoriteArtists,
+    )
 
-  const { handleFavoriteArtist } = useFirebaseServices()
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const removeDuplicates = (arr: AlbumProps[]): AlbumProps[] => {
     return arr.filter((value, index, self) => {
@@ -69,12 +76,20 @@ export function Artist() {
     })
   }
 
-  const handleGetMusics = async (musicsId: string[]) => {
-    await handleGetAllMusicsById(musicsId)
-      .then((result) => {
-        setTopMusics(result)
+  const handleGetArtist = async () => {
+    setIsLoading(true)
+    await api
+      .get(`/artists/${artistId}`)
+      .then(async (response) => {
+        const artist = response.data as ArtistsDataProps
 
-        const filterAlbums = result.map((music) => ({
+        const music = await api
+          .get(`/musics?artistId=${artistId}`)
+          .then((response) => response.data.data as MusicProps[])
+
+        setTopMusics(music)
+
+        const filterAlbums = music.map((music) => ({
           name: music.album,
           artwork: music.artwork,
         }))
@@ -82,26 +97,46 @@ export function Artist() {
         const uniqueAlbumList = removeDuplicates(filterAlbums)
 
         setAlbums(uniqueAlbumList)
+        setArtist(artist)
       })
       .catch((err) => console.log(err, 'err'))
       .finally(() => setIsLoading(false))
-  }
+  }  
 
-  const handleGetArtist = async () => {
-    setIsLoading(true)
-    await handleGetArtistById(artistId)
-      .then((result) => {
-        handleGetMusics(result.musics)
-        setArtist(result)
-      })
-      .catch((err) => console.log(err, 'err'))
-  }
+  async function handleFavoriteArtist(artistId: string) {
+      await api
+        .post(`/artists/${artistId}/like`)
+        .then(async (response) => {
+          const isFavorite = response.data as { liked: false; likesCount: 0 }
+  
+          const userUpdated = await api
+            .get('/me')
+            .then((response) => response.data as UserDataProps)       
+  
+          if (userUpdated.favoriteArtists) {
+            dispatch(
+              setFavoriteArtists({favoriteArtists: userUpdated.favoriteArtists}),
+            )
+          }        
+  
+          let message = ''
+  
+          if (isFavorite.liked === false) {
+            message = 'Removido dos favoritos.'
+          } else {
+            message = 'Adicionado aos favoritos.'
+          }
+  
+          showToast({ title: message })
+        })
+        .catch((err) => console.log(err, 'err'))
+    }
 
   const isFavorite = useMemo(() => {
-    const filter = user.favoritesArtists?.find((item) => item === artist?.id)
+    const filter = favoriteArtists?.find((item) => item.id === artistId)
 
     return !!filter
-  }, [artist?.id, user.favoritesArtists])
+  }, [artist?.id, favoriteArtists])
 
   useEffect(() => {
     if (artistId) {
@@ -120,9 +155,9 @@ export function Artist() {
       >
         <ImageBackground
           source={{ uri: artist?.photoURL }}
-          alt={artist?.name}
+          alt={artist?.title}
           style={{ height: size }}
-          className={`p-4 pt-10`}
+          className={`p-4 pt-12`}
         >
           <TouchableOpacity
             className="p-2 rounded-full"
@@ -135,7 +170,7 @@ export function Artist() {
 
           <View className="mt-auto">
             <Text className="font-nunito-bold text-white" style={styles.text}>
-              {artist?.name}
+              {artist?.title}
             </Text>
           </View>
         </ImageBackground>
@@ -145,7 +180,7 @@ export function Artist() {
             <TouchableOpacity
               onPress={() => {
                 if (!artist) return
-                handleFavoriteArtist(artist)
+                handleFavoriteArtist(artist.id)
               }}
               activeOpacity={0.6}
               className="p-4"
@@ -204,9 +239,10 @@ export function Artist() {
               className="bg-purple-600 rounded-md items-center py-1 mt-2"
               onPress={() => {
                 navigation.navigate('MoreMusic', {
-                  title: `${artist?.name}`,
+                  title: `${artist.title}`,
                   type: 'artist',
-                  artistFlow: artist?.musics,
+                  // artistFlow: artist?.musics,
+                  artistId: artist.id,
                 })
               }}
             >

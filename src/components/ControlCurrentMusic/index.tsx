@@ -16,10 +16,12 @@ import animation from '@assets/music-loading.json'
 
 import { MusicProps } from '@utils/Types/musicProps'
 
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import { useFavorites } from '@hooks/useFavorites'
 import { useCallback, useEffect, useState } from 'react'
 import { useNetInfo } from '@react-native-community/netinfo'
+import { api } from '@services/api'
+import { UserDataProps } from '@utils/Types/userProps'
+import { handleSetFavoriteMusics } from '@storage/modules/favoriteMusics/reducer'
 
 interface ControlCurrentMusicProps {
   music?: MusicProps
@@ -35,8 +37,6 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
   const { isCurrentMusic, state } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
-
-  const { handleFavoriteMusic } = useFirebaseServices()
 
   const { isFavoriteMusic } = useFavorites(music)
 
@@ -69,6 +69,27 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
 
     return { r, g, b }
   }
+
+  async function handleFavoriteMusic(musicId: string) {
+      await api
+        .post(`/musics/${musicId}/like`)
+        .then(async (response) => {
+          
+          const userUpdated = await api
+          .get('/me')
+          .then((response) => response.data as UserDataProps)       
+          
+          if (userUpdated.favoriteMusics) {
+            console.log(userUpdated.favoriteMusics)
+            dispatch(
+              handleSetFavoriteMusics({
+                favoriteMusics: userUpdated.favoriteMusics,
+              }),
+            )
+          }                  
+        })
+        .catch((err) => console.log(err, 'err'))
+    }
 
   useEffect(() => {
     if (isCurrentMusic?.color) {
@@ -117,7 +138,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
             className="font-nunito-regular text-white text-xs"
             style={{ color: fontColor }}
           >
-            {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
+            {isCurrentMusic?.artists && isCurrentMusic.artists[0].title}
           </Text>
         </View>
       </TouchableOpacity>
@@ -127,7 +148,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
           activeOpacity={0.6}
           onPress={() => {
             if (isCurrentMusic) {
-              handleFavoriteMusic(isCurrentMusic)
+              handleFavoriteMusic(isCurrentMusic.id)
             }
           }}
         >

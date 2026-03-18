@@ -21,11 +21,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
 
 import { UserProps } from '@storage/modules/user/reducer'
-import { useFirebaseServices } from '@hooks/useFirebaseServices'
 import colors from 'tailwindcss/colors'
 
 import { Loading } from '@components/Loading'
-import { setFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
+import { FavoriteArtistsProps, setFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
 
 export function MoreArtists() {
   const [listArtists, setListArtists] = useState<ArtistsDataProps[]>([])
@@ -36,10 +35,11 @@ export function MoreArtists() {
   const [isLoading, setIsLoading] = useState(false)
   const [isEndList, setIsEndList] = useState(false)
 
-  const { handleGetFavoritesArtists, handleFavoriteArtist } =
-    useFirebaseServices()
+  // const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
-  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+  const { favoriteArtists } = useSelector<ReduxProps, FavoriteArtistsProps>(
+      (state) => state.favoriteArtists,
+    )
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -50,27 +50,16 @@ export function MoreArtists() {
   )
 
   const handleGetArtists = useCallback(async () => {
-    if (!user.favoritesArtists || isLoading || isEndList) return
+    if (!favoriteArtists || isLoading || isEndList) return
+    const result = favoriteArtists
 
+    setListArtists(result)
     setIsLoading(true)
-    await handleGetFavoritesArtists(user.favoritesArtists, page)
-      .then((result) => {
-        setPage((prev) => prev + 1)
-        setListArtists((prev) => [...prev, ...result])
-        if (
-          result.length < 10 ||
-          (user.favoritesArtists && user.favoritesArtists.length <= 10)
-        ) {
-          setIsEndList(true)
-        }
-      })
-      .finally(() => setIsLoading(false))
-      .catch((e) => console.log(e))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isLoading, isEndList, page])
+  }, [favoriteArtists, isLoading, isEndList, page])
 
   const handleChangeFavoriteArtist = async (artist: ArtistsDataProps) => {
-    await handleFavoriteArtist(artist)
+    console.log('favoritar artistas')
+
     const filter = listArtists.filter((item) => item.id !== artist.id)
     setListArtists(filter)
     dispatch(setFavoriteArtists({ favoriteArtists: filter }))
@@ -130,7 +119,7 @@ export function MoreArtists() {
                 </View>
                 <View>
                   <Text className="font-nunito-bold text-white text-base">
-                    {item.name}
+                    {item.title}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -150,7 +139,7 @@ export function MoreArtists() {
           ItemSeparatorComponent={() => <View className="h-3" />}
         />
 
-        {isLoading && (
+        {/* {isLoading && (
           <View
             className={`absolute bottom-0 ${
               isCurrentMusic ? 'mb-32' : 'mb-16'
@@ -160,7 +149,7 @@ export function MoreArtists() {
               <ActivityIndicator color={colors.gray[300]} size={'large'} />
             </View>
           </View>
-        )}
+        )} */}
       </View>
 
       <View className="absolute bottom-0 w-full ">

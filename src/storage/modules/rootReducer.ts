@@ -14,6 +14,8 @@ import favoriteArtists from './favoriteArtists/reducer'
 
 import trackPlayer from './trackPlayer/reducer'
 
+import playlist from './playlist/reducer'
+
 import netInfo from './netInfo/reducer'
 import searchHistoric from './searchHistoric/reducer'
 import inspiredMixes from './inspiredMixes/reducer'
@@ -37,4 +39,5 @@ export default combineReducers({
   newsNotifications,
   notifications,
   historicNotifications,
+  playlist,
 })

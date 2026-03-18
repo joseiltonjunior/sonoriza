@@ -1,10 +1,8 @@
 import { ReduxProps } from '@storage/index'
 
-import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
+import { UserProps } from '@storage/modules/user/reducer'
 import { Image, Text, View } from 'react-native'
-import { useDispatch, useSelector } from 'react-redux'
-
-import auth from '@react-native-firebase/auth'
+import { useSelector } from 'react-redux'
 
 import Icon from 'react-native-vector-icons/Ionicons'
 import colors from 'tailwindcss/colors'
@@ -13,102 +11,40 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { useModal } from '@hooks/useModal'
-import { useTrackPlayer } from '@hooks/useTrackPlayer'
-
-import { handleSetFavoriteMusics } from '@storage/modules/favoriteMusics/reducer'
-import { setFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
-import { setInspiredMixes } from '@storage/modules/inspiredMixes/reducer'
-import { handleSetReleases } from '@storage/modules/releases/reducer'
-import { handleClearHistoric } from '@storage/modules/historic/reducer'
-import { clearSearchHistoric } from '@storage/modules/searchHistoric/reducer'
 
 import { Button } from '@components/SideMenu/Button'
 import { useNetInfo } from '@react-native-community/netinfo'
+import { clearStoredSession } from '@services/session'
 
 export function Profile() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const { openModal, closeModal } = useModal()
-  const { TrackPlayer } = useTrackPlayer()
 
   const { isConnected } = useNetInfo()
 
-  const dispatch = useDispatch()
-
   const navigation = useNavigation<StackNavigationProps>()
 
-  const handleSignOutApp = () => {
-    TrackPlayer.stop()
-    auth()
-      .signOut()
-      .then(() => {
-        dispatch(setFavoriteArtists({ favoriteArtists: [] }))
-        dispatch(handleSetFavoriteMusics({ favoriteMusics: [] }))
-        dispatch(handleClearHistoric())
-        dispatch(clearSearchHistoric())
-        dispatch(
-          setInspiredMixes({
-            musics: [],
-          }),
-        )
-        dispatch(handleSetReleases({ releases: [] }))
-        dispatch(
-          handleSetUser({
-            user: {
-              displayName: '',
-              email: '',
-              photoURL: '',
-              plan: '',
-              uid: '',
-            },
-          }),
-        )
+  const handleSignOutApp = async () => {
+    await clearStoredSession()
 
-        closeModal()
+    closeModal()
 
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: 'SignIn',
-              params: undefined,
-            },
-          ],
-        })
-      })
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'SignIn',
+          params: undefined,
+        },
+      ],
+    })
   }
 
   function handleRecoveryPassword() {
     if (!user.email) return
 
-    auth()
-      .sendPasswordResetEmail(user.email)
-      .then(() => {
-        openModal({
-          title: 'Recuperação de Senha Enviada',
-          description:
-            'Enviamos um e-mail de recuperação de senha para você. Por favor, verifique sua caixa de entrada e siga as instruções para redefinir sua senha.',
-          singleAction: {
-            title: 'Entendi',
-            action() {
-              closeModal()
-            },
-          },
-        })
-      })
-      .catch(() => {
-        openModal({
-          title: 'Erro ao Enviar Recuperação de Senha',
-          description:
-            'Ops... Encontramos um problema ao enviar o e-mail de recuperação de senha. Verifique se o endereço de e-mail fornecido é válido e tente novamente. Se o problema persistir, entre em contato com o suporte.',
-          singleAction: {
-            title: 'Entendi',
-            action() {
-              closeModal()
-            },
-          },
-        })
-      })
+    console.log('recovery password')
   }
 
   return (
@@ -142,9 +78,9 @@ export function Profile() {
 
       <View className="items-center flex-1 mt-6">
         <View className="bg-purple-600 rounded-full w-40 h-40 items-center justify-center overflow-hidden">
-          {user.photoURL ? (
+          {user.photoUrl ? (
             <Image
-              source={{ uri: user.photoURL }}
+              source={{ uri: user.photoUrl }}
               alt="user pic"
               className="w-full h-full object-cover"
             />
@@ -153,44 +89,48 @@ export function Profile() {
           )}
         </View>
         <Text className="font-nunito-bold text-2xl mt-4 text-white">
-          {user.displayName}
+          {user.name}
         </Text>
         <Text className="font-nunito-regular text-gray-300">{user.email}</Text>
 
-        <View className="border-t mt-6 pt-6 border-purple-600/60 w-full items-center px-10">
+        <View className="border-t mt-6 pt-6 border-purple-600/60 w-full items-center px-10 flex-1">
           {isConnected && (
-            <Button
-              disabled={!isConnected}
-              icon="lock-closed"
-              title="Redefinir senha"
-              onPress={handleRecoveryPassword}
-            />
+            <View className="items-center flex-1">
+              <Button
+                disabled={!isConnected}
+                icon="lock-closed"
+                title="Redefinir senha"
+                onPress={handleRecoveryPassword}
+                className="mb-auto"
+              />
+
+              <TouchableOpacity
+                className="ml-auto mr-auto mb-10 bg-purple-600 h-14 items-center justify-center px-6 rounded-full"
+                activeOpacity={0.6}
+                onPress={() => {
+                  openModal({
+                    title: 'Atenção',
+                    description:
+                      'Tem certeza de que deseja sair do aplicativo?',
+                    twoActions: {
+                      actionCancel() {
+                        closeModal()
+                      },
+                      textCancel: 'Voltar',
+                      actionConfirm() {
+                        handleSignOutApp()
+                      },
+                      textConfirm: 'Sair',
+                    },
+                  })
+                }}
+              >
+                <Text className="font-nunito-bold text-white">DESCONECTAR</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </View>
-
-      <TouchableOpacity
-        className="ml-auto mr-auto mb-8 bg-purple-600 h-14 items-center justify-center px-6 rounded-full"
-        activeOpacity={0.6}
-        onPress={() => {
-          openModal({
-            title: 'Atenção',
-            description: 'Tem certeza de que deseja sair do aplicativo?',
-            twoActions: {
-              actionCancel() {
-                closeModal()
-              },
-              textCancel: 'Voltar',
-              actionConfirm() {
-                handleSignOutApp()
-              },
-              textConfirm: 'Sair',
-            },
-          })
-        }}
-      >
-        <Text className="font-nunito-bold text-white">DESCONECTAR</Text>
-      </TouchableOpacity>
     </View>
   )
 }

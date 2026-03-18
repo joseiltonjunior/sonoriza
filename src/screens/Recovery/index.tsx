@@ -10,27 +10,13 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { WEB_CLIENT_ID } from '@env'
-
-import iconGoogle from '@assets/icon-google.png'
-
-import { GoogleSignin } from '@react-native-google-signin/google-signin'
 
 import logo from '@assets/logo.png'
 import { Button } from '@components/Button'
 import { useState } from 'react'
 
-import auth from '@react-native-firebase/auth'
-import firestore from '@react-native-firebase/firestore'
-
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
-
-import { useModal } from '@hooks/useModal'
-import { useDispatch } from 'react-redux'
-import { handleSetUser } from '@storage/modules/user/reducer'
-
-import { UserDataProps } from '@utils/Types/userProps'
 
 interface FormDataProps {
   email: string
@@ -56,83 +42,10 @@ export function SignIn() {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const { closeModal, openModal } = useModal()
-
-  const dispatch = useDispatch()
-
-  GoogleSignin.configure({
-    webClientId: WEB_CLIENT_ID,
-  })
-
-  async function handleFetchDataUser(userUid: string) {
-    firestore()
-      .collection('users')
-      .doc(userUid)
-      .get()
-      .then(async (querySnapshot) => {
-        const user = querySnapshot.data() as UserDataProps
-
-        dispatch(
-          handleSetUser({
-            user,
-          }),
-        )
-
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Home' }],
-        })
-      })
-      .finally(() => {
-        setIsLoading(false)
-      })
-  }
-
-  async function handleSignInWithGoogle() {
-    setIsLoading(true)
-    try {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
-
-      const { idToken } = await GoogleSignin.signIn()
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken)
-      const response = await auth().signInWithCredential(googleCredential)
-
-      const { uid } = response.user
-      handleFetchDataUser(uid)
-    } catch (error) {
-      setIsLoading(false)
-      openModal({
-        title: 'Atenção',
-        description:
-          'Para acessar o Sonoriza, basta realizar um rápido cadastro, que levará menos de 1 minuto.',
-        twoActions: {
-          actionCancel() {
-            closeModal()
-          },
-          textCancel: 'AGORA NÃO',
-          actionConfirm() {
-            navigation.navigate('Register')
-          },
-          textConfirm: 'VAMOS LÁ',
-        },
-      })
-    }
-  }
-
   function handleSignInWithEmail(data: FormDataProps) {
     Keyboard.dismiss()
     setIsLoading(true)
-    auth()
-      .signInWithEmailAndPassword(data.email, data.password)
-      .then(async (result) => {
-        const { uid } = result.user
-        handleFetchDataUser(uid)
-      })
-      .catch(() => {
-        setError('email', { message: '* credenciais inválidas' })
-        setError('password', { message: '* credenciais inválidas' })
-        setIsLoading(false)
-      })
+    console.log(data)
   }
 
   return (
@@ -149,22 +62,6 @@ export function SignIn() {
           <Text>Bem vindo(a), de volta!</Text>
 
           <View className="w-full mt-12 px-4">
-            <TouchableOpacity
-              onPress={handleSignInWithGoogle}
-              className="bg-gray-100 w-full rounded-full h-12 items-center justify-center flex-row"
-            >
-              <Image
-                source={iconGoogle}
-                alt="google icon"
-                width={20}
-                height={20}
-                style={{ width: 24, objectFit: 'contain' }}
-              />
-              <Text className="text-gray-500 font-bold ml-6">
-                ENTRAR COM O GOOGLE
-              </Text>
-            </TouchableOpacity>
-
             <View className="flex-row overflow-hidden items-center my-6">
               <View className="h-[1px] flex-1 bg-white" />
               <Text className="font-bold mx-2">OU</Text>
