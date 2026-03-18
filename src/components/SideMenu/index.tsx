@@ -47,27 +47,27 @@ export function SideMenu() {
     }
   }, [closeModal, openModal])
 
-  const handleOpenSonorizaInstagram = useCallback(async () => {
-    const url = `https://www.instagram.com/co.sonoriza/`
+  // const handleOpenSonorizaInstagram = useCallback(async () => {
+  //   const url = `https://www.instagram.com/dvlp.code/`
 
-    const supported = await Linking.canOpenURL(url)
+  //   const supported = await Linking.canOpenURL(url)
 
-    if (supported) {
-      await Linking.openURL(url)
-    } else {
-      openModal({
-        title: 'Atenção',
-        description:
-          'Desculpe, não foi possível abrir o link neste momento. Por favor, tente novamente.',
-        singleAction: {
-          action() {
-            closeModal()
-          },
-          title: 'OK',
-        },
-      })
-    }
-  }, [closeModal, openModal])
+  //   if (supported) {
+  //     await Linking.openURL(url)
+  //   } else {
+  //     openModal({
+  //       title: 'Atenção',
+  //       description:
+  //         'Desculpe, não foi possível abrir o link neste momento. Por favor, tente novamente.',
+  //       singleAction: {
+  //         action() {
+  //           closeModal()
+  //         },
+  //         title: 'OK',
+  //       },
+  //     })
+  //   }
+  // }, [closeModal, openModal])
 
   return (
     <View
@@ -82,7 +82,7 @@ export function SideMenu() {
         }}
       />
       <View className="bg-gray-700 w-10/12 flex-1 ">
-        <View className="flex-row items-center border-b border-purple-600/60 p-4 pt-12">
+        <View className="flex-row items-center border-b border-purple-600/60 p-4 pt-14">
           <View className="bg-white w-16 h-16 rounded-full overflow-hidden items-center justify-center">
             {user.photoUrl ? (
               <Image
@@ -117,12 +117,12 @@ export function SideMenu() {
 
           {/* <Button icon="star" title="Avaliar o aplicativo" className="mt-5" /> */}
 
-          <Button
+          {/* <Button
             icon="logo-instagram"
             title="Sonoriza notícias"
             className="mt-5"
             onPress={handleOpenSonorizaInstagram}
-          />
+          /> */}
 
           <Button
             icon="sonoriza-tv"

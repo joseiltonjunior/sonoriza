@@ -53,7 +53,7 @@ export function RecoveryPassword() {
           <Image
             source={logo}
             alt="logo"
-            className="items-center mt-14"
+            className="items-center mt-[136]"
             style={{ width: 200, objectFit: 'contain' }}
           />
 

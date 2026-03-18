@@ -11,26 +11,35 @@ It is intended to work as a shared reference for:
 - onboarding and architectural review
 
 It should not replace the project `README`.
-It should be treated as a broader integration and architecture reference for the React Native application.
+It should be treated as the broader integration and architecture reference for the React Native application.
 
 ## Project identity
 
 - Project: Sonoriza Mobile
 - Stack: React Native + TypeScript
 - Main target currently exercised: Android
-- Local repository role: end-user mobile client for Sonoriza
+- Repository role: end-user mobile client for Sonoriza
 
 ## Product context
 
 The mobile app started as a local music player focused on files stored on the device.
 
-Over time, the product evolved into a streaming-oriented client, and the app now sits in a transition state:
-- part of the application still reflects the old Firebase-first architecture
-- authentication has already started migrating to the Sonoriza API
-- catalog and profile flows are progressively moving away from direct Firebase usage
+Over time, the product evolved into a streaming-oriented client, and the app now sits in an advanced migration state:
+- authentication is already API-first
+- session lifecycle is already aligned with access token + refresh token
+- the app now separates public routes from authenticated routes
+- profile update and profile photo update already use the API contract
+- music and artist like toggles are already API-backed
+- playback analytics already register music views through the API
+- `Home` can rehydrate its authenticated data through pull-to-refresh
 - playback, offline support, and mobile UX remain native concerns of the app
+- push delivery still uses Firebase Messaging and Notifee at the app boundary
+- parts of the domain layer and repository structure still reflect the older Firebase-first architecture
 
-This means the application should currently be understood as a hybrid client during migration.
+This means the application should currently be understood as:
+- a React Native streaming client
+- with an API-aligned auth/session layer
+- and an ongoing domain migration away from legacy integrations
 
 ## Current runtime architecture
 
@@ -44,12 +53,14 @@ The application is organized around:
 - Axios for Sonoriza API communication
 
 Main entry points:
-- App root: [App.tsx](/C:/Users/IONIC/Projects/sonoriza/App.tsx)
-- Native registration: [index.js](/C:/Users/IONIC/Projects/sonoriza/index.js)
-- Routes: [src/routes/routes.tsx](/C:/Users/IONIC/Projects/sonoriza/src/routes/routes.tsx)
-- Global providers: [src/hooks/index.tsx](/C:/Users/IONIC/Projects/sonoriza/src/hooks/index.tsx)
-- API client: [src/services/api.ts](/C:/Users/IONIC/Projects/sonoriza/src/services/api.ts)
-- Redux store: [src/storage/index.ts](/C:/Users/IONIC/Projects/sonoriza/src/storage/index.ts)
+- App root: `App.tsx`
+- Native registration: `index.js`
+- Routes: `src/routes/routes.tsx`
+- Navigation ref: `src/routes/navigationRef.ts`
+- Global providers: `src/hooks/index.tsx`
+- API client: `src/services/api.ts`
+- Session module: `src/services/session.ts`
+- Redux store: `src/storage/index.ts`
 
 ## Current folder overview
 
@@ -83,7 +94,7 @@ ios/
 - `screens/`
   - page-level UI and screen-specific flows
 - `services/`
-  - integration layers such as Axios API client and playback service
+  - integration layers such as Axios API client, session lifecycle and playback service
 - `storage/`
   - Redux Toolkit slices, root reducer, store configuration, and persistence setup
 - `utils/Types/`
@@ -91,9 +102,10 @@ ios/
 
 ## Application shell
 
-The app shell is assembled in [App.tsx](/C:/Users/IONIC/Projects/sonoriza/App.tsx):
+The app shell is assembled in `App.tsx`:
 - wraps the application with global providers from `Hooks`
 - mounts `NavigationContainer`
+- attaches `navigationRef`
 - renders stack routes
 - mounts global overlay components outside screen trees
 
@@ -104,7 +116,7 @@ Global overlay and utility UI currently includes:
 - playlist modal
 - toast
 
-Global providers are wired in [src/hooks/index.tsx](/C:/Users/IONIC/Projects/sonoriza/src/hooks/index.tsx):
+Global providers are wired in `src/hooks/index.tsx`:
 - Redux `Provider`
 - `PersistGate`
 - bottom modal provider
@@ -115,12 +127,28 @@ Global providers are wired in [src/hooks/index.tsx](/C:/Users/IONIC/Projects/son
 
 ## Navigation architecture
 
-Navigation is handled with React Navigation stack routes in [src/routes/routes.tsx](/C:/Users/IONIC/Projects/sonoriza/src/routes/routes.tsx).
+Navigation is handled with React Navigation stack routes in `src/routes/routes.tsx`.
 
-Current registered screens:
-- `SplashScreen`
+Current navigation characteristics:
+- stack-based navigation
+- hidden native headers
+- custom opacity-based card transition
+- typed route params through `RootStackParamList`
+- `SplashScreen` as the bootstrap gate
+- public routes and private routes are separated
+- authenticated route rendering is gated by `hasStoredSession(user)`
+
+### Public routes
+
+These flows do not require an authenticated session:
 - `SignIn`
 - `Register`
+- `ConfirmCode`
+- `RecoveryPassword`
+
+### Private routes
+
+These flows require a stored authenticated session:
 - `Home`
 - `Music`
 - `MoreMusic`
@@ -130,7 +158,6 @@ Current registered screens:
 - `Favorites`
 - `Queue`
 - `Search`
-- `RecoveryPassword`
 - `Album`
 - `Profile`
 - `EditProfile`
@@ -140,17 +167,22 @@ Current registered screens:
 - `Playlists`
 - `NewPlaylist`
 
-Current navigation characteristics:
-- stack-based navigation
-- hidden native headers
-- custom opacity-based card transition
-- typed route params through `RootStackParamList`
+### Bootstrap route
 
-There is also a navigation ref helper in [src/routes/navigationRef.ts](/C:/Users/IONIC/Projects/sonoriza/src/routes/navigationRef.ts) intended for non-component navigation flows such as API interceptor-driven redirects.
+`SplashScreen` is always mounted as the entry point.
+
+Its responsibility is to:
+- initialize Track Player
+- inspect persisted session state
+- decide whether the app starts in public or private flow
+- attempt token refresh when needed
+- refresh the authenticated profile snapshot with `GET /me`
+
+There is also a navigation ref helper in `src/routes/navigationRef.ts` used for non-component navigation flows such as session invalidation after interceptor-driven `401`.
 
 ## State management and persistence
 
-The app uses Redux Toolkit plus `redux-persist` in [src/storage/index.ts](/C:/Users/IONIC/Projects/sonoriza/src/storage/index.ts).
+The app uses Redux Toolkit plus `redux-persist` in `src/storage/index.ts`.
 
 Persistence details:
 - storage backend: AsyncStorage
@@ -162,7 +194,7 @@ Persistence details:
 
 ### Current slices
 
-The root reducer in [src/storage/modules/rootReducer.ts](/C:/Users/IONIC/Projects/sonoriza/src/storage/modules/rootReducer.ts) currently combines:
+The root reducer in `src/storage/modules/rootReducer.ts` currently combines:
 - `user`
 - `currentMusic`
 - `queue`
@@ -182,25 +214,33 @@ The root reducer in [src/storage/modules/rootReducer.ts](/C:/Users/IONIC/Project
 
 ### Functional meaning of current state
 
-#### User session and identity
+#### User identity and session
 
-The `user` slice stores the authenticated user shape currently used by the mobile client.
+The `user` slice currently stores both:
+- authenticated user profile snapshot
+- current session credentials
 
-Current user properties in [src/utils/Types/userProps.ts](/C:/Users/IONIC/Projects/sonoriza/src/utils/Types/userProps.ts):
+Current user properties in `src/utils/Types/userProps.ts`:
 - `id`
 - `name`
 - `email`
 - `photoUrl`
 - `role`
-- `isActive`
-- `favoritesArtists`
-- `favoritesMusics`
-- `isAuthenticated`
+- `accountStatus`
+- `favoriteArtists`
+- `favoriteMusics`
+- `favoriteGenres`
+- `accessToken`
+- `refreshToken`
 
 Current practical meaning:
-- `isAuthenticated` is currently being used as the access token
-- user profile data is persisted locally
-- Redux now acts as the primary mobile session cache
+- the user slice is temporarily serving as the session container
+- profile data is persisted locally
+- `accessToken` is the token used for protected API requests
+- `refreshToken` is used to renew the session without forcing logout
+
+This is intentionally transitional.
+The project may later split `user` and `session`, but that separation has not been introduced yet.
 
 #### Playback state
 
@@ -229,86 +269,155 @@ Additional persisted slices currently support:
 - notification history
 - playlist state
 
-This means the app already behaves as a persisted client, not just a transient UI shell.
+This means the app behaves as a persisted mobile client, not just a transient UI shell.
 
 ## Current session and authentication flow
 
-The current mobile authentication direction is API-first.
+The current mobile authentication layer is API-first and already aligned with refresh-token-based sessions.
 
 ### Sign in
 
-Implemented in [src/screens/SignIn/index.tsx](/C:/Users/IONIC/Projects/sonoriza/src/screens/SignIn/index.tsx).
+Implemented in `src/screens/SignIn/index.tsx`.
 
 Current behavior:
 - user submits email and password
 - mobile calls `POST /sessions`
-- response user data is written into Redux
-- `access_token` is stored in `user.isAuthenticated`
+- response returns `access_token`, `refresh_token`, and `user`
+- mobile stores both tokens plus the user snapshot in Redux
 - user is redirected to `Home`
 
-Current stored values after login:
+Stored values after login:
 - `name`
 - `email`
 - `photoUrl`
 - `role`
 - `id`
-- `isActive`
-- `isAuthenticated` as access token
+- `accountStatus`
+- `accessToken`
+- `refreshToken`
 
 ### Register
 
-Implemented in [src/screens/Register/index.tsx](/C:/Users/IONIC/Projects/sonoriza/src/screens/Register/index.tsx).
+Implemented in `src/screens/Register/index.tsx`.
 
 Current behavior:
 - user submits account form
 - mobile calls `POST /accounts`
-- then immediately calls `POST /sessions`
-- the authenticated session result is written into Redux
+- successful account creation does not immediately create a local session
+- user is redirected to `ConfirmCode`
+
+### Current auth-form behavior
+
+The `SignIn` and `Register` screens currently include keyboard-aware scroll handling.
+
+Current behavior:
+- listens to keyboard show/hide only while the screen is focused
+- increases bottom padding when the keyboard opens
+- scrolls to the bottom when needed so the primary CTA remains reachable
+- keeps scroll usable while the keyboard is open
+- avoids carrying keyboard offset artifacts when moving between auth screens
+
+### Confirm account
+
+Implemented in `src/screens/ConfirmCode/index.tsx`.
+
+Current behavior:
+- mobile sends `email` and `code` to `POST /accounts/verify`
+- API returns `access_token`, `refresh_token`, and `user`
+- mobile stores the authenticated session in Redux
 - user is redirected to `Home`
 
 ### Sign out
 
-Currently handled in [src/screens/Profile/index.tsx](/C:/Users/IONIC/Projects/sonoriza/src/screens/Profile/index.tsx).
+Currently handled in `src/screens/Profile/index.tsx` through the shared session cleanup in `src/services/session.ts`.
 
 Current sign-out behavior:
 - stops playback
-- clears multiple cached slices
-- clears current user data from Redux
+- clears queue
+- clears favorites
+- clears historic and search cache
+- clears releases and inspired mixes
+- clears notifications-related slices
+- clears playlists
+- clears current user/session data from Redux
 - resets navigation to `SignIn`
 
-### Current session limitation
+### Session bootstrap on app start
 
-The API integration reference defines both `access_token` and `refresh_token`.
+Bootstrap is handled by `src/screens/SplashScreen/index.tsx`.
 
-The mobile client currently stores only the access token in Redux through `user.isAuthenticated`.
+Current cold-start behavior:
+- if there is no stored session, go to `SignIn`
+- if there is a stored session and the device is offline, go to `Home`
+- if there is a stored session and the device is online:
+  - validate the current access token
+  - refresh it when needed
+  - if refresh succeeds, call `GET /me`
+  - merge the fresh profile snapshot into Redux while preserving the session
+  - navigate to `Home`
+- if refresh fails and there is no valid session left, clear session and return to `SignIn`
+
+## Current session lifecycle implementation
+
+The session lifecycle is centralized in `src/services/session.ts`.
+
+Main responsibilities:
+- read the persisted session from Redux
+- decode JWT payload locally
+- detect access token expiration
+- detect near-expiration access token threshold
+- run refresh with a single in-flight promise lock
+- clear the stored session consistently
+- redirect to `SignIn` when session recovery fails
+
+### Current local refresh strategy
+
+The mobile client currently uses a `10 minute` threshold before access token expiration.
+
+Current rules:
+- if the access token is healthy, use it
+- if the access token is close to expiring, refresh before protected requests
+- if the access token is already expired, refresh before continuing
+- if the refresh token is missing or expired, invalidate the local session
+
+### Refresh concurrency protection
+
+The session module uses a shared `refreshPromise` lock.
 
 This means:
-- refresh lifecycle is not fully represented in the current mobile storage model yet
-- logout and token expiration handling are only partially aligned with the new backend contract
-- the user slice is functioning as a temporary session container during migration
+- only one `POST /sessions/refresh` request should be in flight at a time
+- concurrent requests wait for the same refresh result
+- refresh token rotation is less likely to break because of multiple simultaneous refresh calls
 
 ## Current API client behavior
 
-The Axios client is defined in [src/services/api.ts](/C:/Users/IONIC/Projects/sonoriza/src/services/api.ts).
+The Axios client is defined in `src/services/api.ts`.
+
+### Request interceptor
 
 Current request behavior:
 - reads `BASE_API_URL` from environment
-- reads the current token from Redux through `store.getState()`
+- ignores public auth routes
+- ignores `/sessions/refresh`
+- reads the current session from Redux through the session module
+- ensures a valid access token before protected requests
 - injects `Authorization: Bearer <token>` when available
 
-Current response behavior:
-- intercepts `401 Unauthorized`
-- clears the current Redux user state
-- attempts to redirect the user back to `SignIn` using `resetToSignIn`
+### Response interceptor
 
-This establishes the current mobile direction:
-- token-aware API client
-- centralized request auth header injection
-- centralized unauthorized handling
+Current response behavior:
+- listens for `401 Unauthorized`
+- ignores public auth routes
+- ignores refresh-route recursion
+- attempts a forced refresh one time
+- retries the original request once with the renewed access token
+- if refresh fails, clears the stored session and redirects to `SignIn`
+
+This means the mobile client now follows the API session contract much more closely than before.
 
 ## Current environment model
 
-Environment variables are typed in [src/@types/env.d.ts](/C:/Users/IONIC/Projects/sonoriza/src/@types/env.d.ts).
+Environment variables are typed in `src/@types/env.d.ts`.
 
 Current mobile env usage includes:
 - `WEB_CLIENT_ID`
@@ -321,15 +430,24 @@ Practical integration note:
 - on physical Android devices over USB debugging, local API access works best through `adb reverse` and `localhost`
 - on Wi-Fi device testing, the mobile client must use the machine LAN IP
 
+## External link handling on Android
+
+The app currently opens external web links through React Native `Linking`.
+
+Important Android note:
+- Android web-link opening depends on manifest `queries` declarations for `http` and `https`
+- these declarations already exist in `android/app/src/main/AndroidManifest.xml`
+- this is relevant for external surfaces such as the side menu and Sonoriza TV access in `Explorer`
+
 ## Current playback architecture
 
 Playback is handled with `react-native-track-player`.
 
 Main files:
-- player hook: [src/hooks/useTrackPlayer.ts](/C:/Users/IONIC/Projects/sonoriza/src/hooks/useTrackPlayer.ts)
-- playback service: [src/services/PlaybackService.ts](/C:/Users/IONIC/Projects/sonoriza/src/services/PlaybackService.ts)
-- native registration: [index.js](/C:/Users/IONIC/Projects/sonoriza/index.js)
-- player initialization screen flow: [src/screens/SplashScreen/index.tsx](/C:/Users/IONIC/Projects/sonoriza/src/screens/SplashScreen/index.tsx)
+- player hook: `src/hooks/useTrackPlayer.ts`
+- playback service: `src/services/PlaybackService.ts`
+- native registration: `index.js`
+- player initialization screen flow: `src/screens/SplashScreen/index.tsx`
 
 Current playback responsibilities:
 - initialize player once
@@ -345,6 +463,7 @@ Current playback responsibilities:
   - next
   - previous
   - stop
+- register music views through the API from playback logic
 
 ## Current notification architecture
 
@@ -354,13 +473,18 @@ Notification-related behavior is currently split between:
 - Redux slices for notification history and unread state
 
 Main file:
-- [index.js](/C:/Users/IONIC/Projects/sonoriza/index.js)
+- `index.js`
 
 Current behavior:
 - creates Android notification channel through Notifee
 - listens to foreground Firebase messages
 - displays local notification banners through Notifee
 - registers background message handler
+
+Important runtime note:
+- Firebase is no longer part of the core auth and catalog flow
+- Firebase Messaging still remains in the push delivery layer through `index.js`
+- some notification-related UI surfaces are intentionally reduced while the broader notification module is still being consolidated
 
 Current app-level notification state additionally tracks:
 - fetched notification payloads
@@ -373,27 +497,33 @@ Current app-level notification state additionally tracks:
 
 - `SplashScreen`
   - initializes Track Player
-  - decides between `SignIn` and `Home`
-  - currently acts as the bootstrap gate of the app
+  - decides between public and private app flow
+  - validates or refreshes session
+  - refreshes the authenticated profile snapshot
 
 ### Authentication and account access
 
 - `SignIn`
   - API login flow
 - `Register`
-  - account creation + immediate session creation
+  - account creation
+- `ConfirmCode`
+  - account verification and first authenticated session creation
 - `RecoveryPassword`
   - password recovery entry point
 
 ### Main content and catalog exploration
 
 - `Home`
-  - main content orchestration
-  - favorite and recommendation hydration
-  - releases loading
-  - notification refresh
+  - main authenticated landing flow
+  - `GET /me` snapshot hydration
+  - favorite artists, favorite musics, and favorite genres hydration
+  - recommendations hydration through `GET /me/recommendations/musics`
+  - pull-to-refresh reusing the same connected data loader
+  - offline fallback sections when the device is disconnected
 - `Explorer`
   - genre exploration entry point
+  - external Sonoriza TV web-link entry point
 - `Search`
   - text search and search history
 - `MoreMusic`
@@ -417,6 +547,9 @@ Current app-level notification state additionally tracks:
   - profile summary and sign out
 - `EditProfile`
   - profile editing flow
+  - updates own profile through `PATCH /me`
+  - uploads avatar through `POST /me/photo`
+  - shows inline loading feedback while save/upload is in progress
 - `Notifications`
   - notifications and version-related UI
 
@@ -433,26 +566,36 @@ Current app-level notification state additionally tracks:
 
 ## Legacy and migration state
 
-The codebase is currently in a mixed integration state.
+The codebase is still in a mixed integration state.
 
-### Already migrated or in active migration
+### Already aligned with the API
 
 - login through Sonoriza API
 - account creation through Sonoriza API
+- account verification through Sonoriza API
+- profile bootstrap through `GET /me`
+- profile update through `PATCH /me`
+- profile photo upload through `POST /me/photo`
+- music like toggles through the API
+- artist like toggles through the API
+- playback view registration through the API
+- authenticated recommendations through `GET /me/recommendations/musics`
 - token injection through Axios interceptor
-- unauthorized handling through Axios response interceptor
+- refresh-token lifecycle in the mobile session layer
+- centralized `401` handling with retry
+- public/private route separation
 
-### Still present as legacy Firebase-first behavior
+### Still present as legacy or ongoing migration
 
-- legacy data access hook in [src/hooks/useFirebaseServices.ts](/C:/Users/IONIC/Projects/sonoriza/src/hooks/useFirebaseServices.ts)
+- legacy data access hook in `src/hooks/useFirebaseServices.ts`
 - Firebase Messaging still used for push delivery handling
-- several content and profile flows still rely on the old Firebase service layer
-- older upload-related screen logic still reflects direct-storage-era assumptions
+- some repository structure and dormant helpers still reflect the old Firebase-first era
+- the session still lives inside the `user` slice instead of a dedicated auth slice
 
 This means the current app should be read as:
-- auth migration already started
-- domain data migration still ongoing
-- mobile playback and local UX architecture remain stable
+- authentication and session layer largely modernized
+- domain migration still ongoing
+- playback and local UX architecture already established
 
 ## Current mobile responsibilities versus API responsibilities
 
@@ -460,7 +603,7 @@ This means the current app should be read as:
 
 - UI rendering
 - navigation
-- local session cache
+- local persisted session cache
 - playback lifecycle
 - queue state
 - offline local list
@@ -482,69 +625,68 @@ This means the current app should be read as:
 
 ## Important mobile integration notes
 
-### Current token handling
+### Session shape
 
-Current mobile state stores the access token in `user.isAuthenticated`.
+Today the app stores session credentials inside the `user` slice.
 
-This is functional for the current stage, but the naming is semantically weak because the field behaves like a token holder rather than a boolean authentication flag.
+This is acceptable for the current stage, but it remains a transitional choice.
+The long-term design may still move toward:
+- a dedicated `auth` or `session` slice
+- a clearer separation between identity snapshot and credentials
 
 ### Profile photo uploads
 
 The API integration contract makes an important distinction:
 - `POST /uploads` is administrative
-- it is not the right endpoint for ordinary user avatar uploads
-
-For mobile profile photo updates, a dedicated authenticated endpoint under the `me` scope is the correct next step, for example:
-- `PATCH /me/photo`
+- `POST /me/photo` is the correct user-scoped upload endpoint
 
 This keeps:
 - permission boundaries correct
 - user identity bound to JWT
 - AWS operations centralized in the backend
 
-### Refresh token alignment
+Current mobile state:
+- `EditProfile` already uses `POST /me/photo`
+- avatar upload no longer needs the administrative upload route
 
-The backend already supports:
-- access token
-- refresh token
-- refresh rotation
-- logout revocation
+### Offline bootstrap
 
-The mobile application still needs a fully aligned refresh strategy so that:
-- `refresh_token` is stored safely
-- expired access tokens are renewed without forcing unnecessary logout
-- session invalidation falls back cleanly to login when refresh fails
+The splash flow intentionally allows:
+- entering the app with a persisted local session
+- even when the device is offline
+
+This preserves the mobile experience and avoids forcing login on transient connectivity loss.
 
 ## Known limitations in the current mobile state
 
-- auth storage model is not yet fully aligned with access + refresh token lifecycle
-- Firebase service layer still exists as a major dependency for several screens
-- navigation-ref-driven interceptor redirects depend on the navigation container integration path
-- upload flow for ordinary user avatars is not yet formalized in the API contract
-- some slices still behave as long-lived cache without explicit invalidation strategy
-- parts of the app still reflect assumptions from the previous Firebase-centered architecture
+- the session still shares the same slice as profile data
+- parts of the domain layer still depend on legacy Firebase-era structure
+- not every business flow has been migrated to the API yet
+- persisted slices still behave more like durable cache than explicitly versioned cache
+- push-token lifecycle is not yet integrated with the backend session model
+- some UI entry points are intentionally hidden or reduced while the corresponding backend modules are still incomplete
 
 ## Natural next steps for the mobile application
 
-- formalize a dedicated auth/session storage model
-- add refresh-token lifecycle support
-- migrate `GET /me` into the main profile bootstrap path
-- replace remaining Firebase data reads with Sonoriza API flows
-- separate admin upload assumptions from user profile upload flows
-- introduce dedicated authenticated avatar upload endpoint
-- review logout flow to align with API logout and token revocation
-- evaluate which persisted slices are source-of-truth cache versus disposable UI cache
+- split `user` and `session` when the auth layer stabilizes further
+- continue replacing legacy domain reads with API-backed services
+- align password recovery and remaining account flows with the backend contract
+- review playlist and notification surfaces as backend support matures
+- define a clearer invalidation policy for persisted catalog caches
+- integrate future FCM token lifecycle with the API when backend support is ready
 
 ## Executive summary
 
 Sonoriza Mobile is no longer just a local player and is no longer purely a Firebase client.
 
-It is now a React Native streaming-oriented mobile client in transition, with:
+It is now a React Native streaming-oriented mobile client with:
 - Redux-persisted local state
-- API-first authentication already in motion
-- interceptor-based token propagation
+- API-first authentication
+- access token + refresh token session lifecycle
+- public/private route separation
+- interceptor-based token validation and retry
 - playback and queue orchestration through Track Player
 - notification handling through Firebase Messaging and Notifee
-- gradual migration of domain flows away from Firebase toward the Sonoriza API
+- gradual migration of domain flows toward the Sonoriza API
 
 This document should be considered the current integration and architecture reference for Sonoriza Mobile.

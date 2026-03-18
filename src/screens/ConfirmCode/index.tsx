@@ -26,7 +26,6 @@ const schema = z.object({
 export function ConfirmCode() {
   const {
     control,
-    setError,
     handleSubmit,
     formState: { errors },
   } = useForm<ConfirmCodeDataProps>({
@@ -54,8 +53,11 @@ export function ConfirmCode() {
         code: data.code,
       })
       .then(async (response) => {
-        const { access_token, refresh_token, user } =
-          response.data as authSessionResponseProps
+        const {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          user,
+        } = response.data as authSessionResponseProps
 
         setIsLoading(false)
         dispatch(
@@ -67,8 +69,8 @@ export function ConfirmCode() {
               role: user.role,
               id: user.id,
               accountStatus: user.accountStatus,
-              accessToken: access_token,
-              refreshToken: refresh_token,
+              accessToken,
+              refreshToken,
             },
           }),
         )

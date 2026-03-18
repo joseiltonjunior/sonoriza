@@ -66,6 +66,7 @@ export function EditProfile() {
     try {
       let imageUrl = user.photoUrl || null
       Keyboard.dismiss()
+      setIsLoading(true)
 
       if (photo) {
         const formData = new FormData()
@@ -99,6 +100,7 @@ export function EditProfile() {
 
       navigation.goBack()
     } catch (error) {
+      setIsLoading(false)
       let message =
         'Desculpe, não foi possível atualizar o perfil neste momento. Por favor, tente novamente.'
 
@@ -107,8 +109,6 @@ export function EditProfile() {
           error.response?.data?.error ||
           error.response?.data?.message ||
           message
-      } else {
-        console.log('register unknown error:', error)
       }
 
       openModal({
@@ -134,11 +134,11 @@ export function EditProfile() {
 
   return (
     <View className="relative bg-gray-700 flex-1">
-      {isLoading && (
+      {/* {isLoading && (
         <View className="absolute flex-1 bg-black/60 w-full h-full z-10 justify-center items-center">
           <ActivityIndicator size={'large'} color={colors.purple[600]} />
         </View>
-      )}
+      )} */}
 
       <View className="p-4 mt-10">
         <View className="flex-row items-center justify-between">
@@ -154,15 +154,19 @@ export function EditProfile() {
           </Text>
 
           <TouchableOpacity onPress={handleEditUser} activeOpacity={0.6}>
-            <Text
-              className={`font-nunito-regular ${
-                user.name === name && !photo
-                  ? 'text-gray-300'
-                  : 'text-red-600 underline'
-              } text-base transition-all duration-150`}
-            >
-              Salvar
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator size="small" color={colors.white} />
+            ) : (
+              <Text
+                className={`font-nunito-regular ${
+                  user.name === name && !photo
+                    ? 'text-gray-300'
+                    : 'text-red-600 underline'
+                } text-base transition-all duration-150`}
+              >
+                Salvar
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
 

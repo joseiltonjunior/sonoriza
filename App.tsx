@@ -17,11 +17,12 @@ import { Hooks } from '@hooks/index'
 import { BottomModal } from '@components/BottomModal'
 import { PlaylistModal } from '@components/PlaylistModal'
 import { Toast } from '@components/Toast'
+import { navigationRef } from '@routes/navigationRef'
 
 function App(): JSX.Element {
   return (
     <Hooks>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <StatusBar backgroundColor={'#312e38'} />
         <Routes />
 

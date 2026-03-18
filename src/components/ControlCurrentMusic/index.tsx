@@ -19,6 +19,9 @@ import { MusicProps } from '@utils/Types/musicProps'
 import { useFavorites } from '@hooks/useFavorites'
 import { useCallback, useEffect, useState } from 'react'
 import { useNetInfo } from '@react-native-community/netinfo'
+import { api } from '@services/api'
+import { UserDataProps } from '@utils/Types/userProps'
+import { handleSetFavoriteMusics } from '@storage/modules/favoriteMusics/reducer'
 
 interface ControlCurrentMusicProps {
   music?: MusicProps
@@ -66,6 +69,27 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
 
     return { r, g, b }
   }
+
+  async function handleFavoriteMusic(musicId: string) {
+      await api
+        .post(`/musics/${musicId}/like`)
+        .then(async (response) => {
+          
+          const userUpdated = await api
+          .get('/me')
+          .then((response) => response.data as UserDataProps)       
+          
+          if (userUpdated.favoriteMusics) {
+            console.log(userUpdated.favoriteMusics)
+            dispatch(
+              handleSetFavoriteMusics({
+                favoriteMusics: userUpdated.favoriteMusics,
+              }),
+            )
+          }                  
+        })
+        .catch((err) => console.log(err, 'err'))
+    }
 
   useEffect(() => {
     if (isCurrentMusic?.color) {
@@ -124,7 +148,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
           activeOpacity={0.6}
           onPress={() => {
             if (isCurrentMusic) {
-              console.log(isCurrentMusic, 'favorite music')
+              handleFavoriteMusic(isCurrentMusic.id)
             }
           }}
         >

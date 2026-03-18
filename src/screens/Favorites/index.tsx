@@ -16,13 +16,15 @@ import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer
 import { NetInfoProps } from '@storage/modules/netInfo/reducer'
 
 import { Header } from '@components/Header'
-import { useCallback, useEffect, useState } from 'react'
-import { api } from '@services/api'
+// import { useCallback, useEffect, useState } from 'react'
+// import { api } from '@services/api'
 import { UserDataProps } from '@utils/Types/userProps'
+import { FavoriteArtistsProps } from '@storage/modules/favoriteArtists/reducer'
+import { FavoriteMusicsProps } from '@storage/modules/favoriteMusics/reducer'
 
 export function Favorites() {
-  const [totalPlaylist, setTotalPlaylist] = useState(0)
-  const dispatch = useDispatch()
+  // const [totalPlaylist, setTotalPlaylist] = useState(0)
+  // const dispatch = useDispatch()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
@@ -36,31 +38,39 @@ export function Favorites() {
     (state) => state.netInfo,
   )
 
-  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+  // const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const navigation = useNavigation<StackNavigationProps>()
 
-  const handleSearchMyPlaylists = useCallback(async () => {
-    const response = await api
-      .get('/me')
-      .then((response) => response.data as UserDataProps)   
-
-    dispatch(
-      handleSetUser({
-        user: {
-          ...user,
-          favoriteArtists: response.favoriteArtists,
-          favoriteMusics: response.favoriteMusics,
-        },
-      }),
+  const { favoriteMusics } = useSelector<ReduxProps, FavoriteMusicsProps>(
+      (state) => state.favoriteMusics,
     )
 
-    setTotalPlaylist(0)
-  }, [])
+    const { favoriteArtists } = useSelector<ReduxProps, FavoriteArtistsProps>(
+        (state) => state.favoriteArtists,
+      )
 
-  useEffect(() => {
-    handleSearchMyPlaylists()
-  }, [handleSearchMyPlaylists])
+  // const handleSearchMyPlaylists = useCallback(async () => {
+  //   const response = await api
+  //     .get('/me')
+  //     .then((response) => response.data as UserDataProps)
+
+  //   dispatch(
+  //     handleSetUser({
+  //       user: {
+  //         ...user,
+  //         favoriteArtists: response.favoriteArtists,
+  //         favoriteMusics: response.favoriteMusics,
+  //       },
+  //     }),
+  //   )
+
+  //   setTotalPlaylist(0)
+  // }, [])
+
+  // useEffect(() => {
+  //   handleSearchMyPlaylists()
+  // }, [handleSearchMyPlaylists])
 
   return (
     <View className="flex-1 bg-gray-700">
@@ -102,7 +112,7 @@ export function Favorites() {
                 Artistas
               </Text>
               <Text className="font-nunito-regular text-gray-300">
-                {user.favoriteArtists?.length ?? 0}
+                {favoriteArtists?.length ?? 0}
               </Text>
             </TouchableOpacity>
 
@@ -120,24 +130,24 @@ export function Favorites() {
                 Mais queridas
               </Text>
               <Text className="font-nunito-regular text-gray-300">
-                {user.favoriteMusics?.length ?? 0}
+                {favoriteMusics?.length ?? 0}
               </Text>
             </TouchableOpacity>
+
+            {/* <TouchableOpacity
+              onPress={() => navigation.navigate('Playlists')}
+              activeOpacity={0.6}
+              className="flex-row justify-between items-center px-4 py-2"
+            >
+              <Text className="font-nunito-medium text-lg text-white">
+                Playlists
+              </Text>
+              <Text className="font-nunito-regular text-gray-300">
+                {totalPlaylist}
+              </Text>
+            </TouchableOpacity> */}
           </>
         )}
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Playlists')}
-          activeOpacity={0.6}
-          className="flex-row justify-between items-center px-4 py-2"
-        >
-          <Text className="font-nunito-medium text-lg text-white">
-            Playlists
-          </Text>
-          <Text className="font-nunito-regular text-gray-300">
-            {totalPlaylist}
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {isCurrentMusic && <ControlCurrentMusic music={isCurrentMusic} />}

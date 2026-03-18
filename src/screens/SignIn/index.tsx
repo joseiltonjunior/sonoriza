@@ -2,6 +2,8 @@ import { Input } from '@components/Input'
 import {
   Image,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -13,10 +15,10 @@ import * as z from 'zod'
 
 import logo from '@assets/logo.png'
 import { Button } from '@components/Button'
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import { StackNavigationProps } from '@routes/routes'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 
 import { useDispatch } from 'react-redux'
 import { handleSetUser } from '@storage/modules/user/reducer'
@@ -44,10 +46,42 @@ export function SignIn() {
   })
 
   const navigation = useNavigation<StackNavigationProps>()
+  const scrollRef = useRef<ScrollView>(null)
 
   const [isLoading, setIsLoading] = useState(false)
+  const [keyboardOffset, setKeyboardOffset] = useState(32)
 
   const dispatch = useDispatch()
+
+  useFocusEffect(
+    useCallback(() => {
+      setKeyboardOffset(32)
+
+      const keyboardShowSubscription = Keyboard.addListener(
+        'keyboardDidShow',
+        (event) => {
+          setKeyboardOffset(event.endCoordinates.height + 32)
+
+          requestAnimationFrame(() => {
+            scrollRef.current?.scrollToEnd({ animated: true })
+          })
+        },
+      )
+
+      const keyboardHideSubscription = Keyboard.addListener(
+        'keyboardDidHide',
+        () => {
+          setKeyboardOffset(32)
+        },
+      )
+
+      return () => {
+        keyboardShowSubscription.remove()
+        keyboardHideSubscription.remove()
+        setKeyboardOffset(32)
+      }
+    }, []),
+  )
 
   async function handleSignInWithEmail(data: FormDataProps) {
     Keyboard.dismiss()
@@ -61,7 +95,11 @@ export function SignIn() {
         })
         .then((response) => response.data as authSessionResponseProps)
 
-      const { access_token, refresh_token, user } = authResponse
+      const {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        user,
+      } = authResponse
 
       setIsLoading(false)
       dispatch(
@@ -73,8 +111,8 @@ export function SignIn() {
             role: user.role,
             id: user.id,
             accountStatus: user.accountStatus,
-            accessToken: access_token,
-            refreshToken: refresh_token,
+            accessToken,
+            refreshToken,
           },
         }),
       )
@@ -96,9 +134,19 @@ export function SignIn() {
   }
 
   return (
-    <>
-      <ScrollView className="bg-gray-700">
-        <View className="p-4 pt-24 items-center h-full ">
+    <KeyboardAvoidingView
+      className="flex-1 bg-gray-700"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        ref={scrollRef}
+        className="flex-1 bg-gray-700"
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: keyboardOffset }}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="items-center p-4 pt-24">
           <Image
             source={logo}
             alt="logo"
@@ -110,7 +158,7 @@ export function SignIn() {
             Bem vindo(a), de volta!
           </Text>
 
-          <View className="w-full mt-12 px-4">
+          <View className="mt-12 w-full px-4">
             <Input
               icon="mail"
               name="email"
@@ -133,7 +181,7 @@ export function SignIn() {
             <Button
               isLoading={isLoading}
               title="Entrar"
-              className="w-full ml-auto mr-auto mt-6"
+              className="mt-6 ml-auto mr-auto w-full"
               onPress={handleSubmit(handleSignInWithEmail)}
             />
 
@@ -144,22 +192,23 @@ export function SignIn() {
               <Text className="font-nunito-regular text-gray-300">
                 NÃO TEM UMA CONTA?
               </Text>
-              <Text className="font-nunito-bold text-gray-300 ml-1 underline">
+              <Text className="ml-1 font-nunito-bold text-gray-300 underline">
                 INSCREVA-SE
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
+              disabled
               className="ml-auto mr-auto mt-8"
               onPress={() => navigation.navigate('RecoveryPassword')}
             >
-              <Text className="text-gray-300 font-nunito-regular">
+              <Text className="font-nunito-regular text-gray-300">
                 REDEFINIR SENHA
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </ScrollView>
-    </>
+    </KeyboardAvoidingView>
   )
 }

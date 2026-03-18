@@ -5,6 +5,7 @@ import {
 } from '@react-navigation/stack'
 
 import { RouteProp } from '@react-navigation/native'
+import { useSelector } from 'react-redux'
 
 import { Home } from '@screens/Home'
 import { SplashScreen } from '@screens/SplashScreen'
@@ -31,6 +32,9 @@ import { PlaylistProps } from '@utils/Types/playlistProps'
 import { NewPlaylist } from '@screens/NewPlaylist'
 import { MusicProps } from '@utils/Types/musicProps'
 import { ConfirmCode } from '@screens/ConfirmCode'
+import { ReduxProps } from '@storage/index'
+import { UserProps } from '@storage/modules/user/reducer'
+import { hasStoredSession } from '@services/session'
 
 type RootStackParamList = {
   Home: undefined
@@ -83,7 +87,46 @@ export type RouteParamsProps<T extends keyof RootStackParamList> = RouteProp<
 
 const Stack = createStackNavigator<RootStackParamList>()
 
+function renderPublicRoutes() {
+  return (
+    <Stack.Group>
+      <Stack.Screen name="SignIn" component={SignIn} />
+      <Stack.Screen name="Register" component={Register} />
+      <Stack.Screen name="ConfirmCode" component={ConfirmCode} />
+      <Stack.Screen name="RecoveryPassword" component={RecoveryPassword} />
+    </Stack.Group>
+  )
+}
+
+function renderPrivateRoutes() {
+  return (
+    <Stack.Group>
+      <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="Music" component={Music} />
+      <Stack.Screen name="MoreMusic" component={MoreMusic} />
+      <Stack.Screen name="MoreArtists" component={MoreArtists} />
+      <Stack.Screen name="Artist" component={Artist} />
+      <Stack.Screen name="GenreSelected" component={GenreSelected} />
+      <Stack.Screen name="Favorites" component={Favorites} />
+      <Stack.Screen name="Queue" component={Queue} />
+      <Stack.Screen name="Search" component={Search} />
+      <Stack.Screen name="Album" component={Album} />
+      <Stack.Screen name="Profile" component={Profile} />
+      <Stack.Screen name="EditProfile" component={EditProfile} />
+      <Stack.Screen name="Notifications" component={Notifications} />
+      <Stack.Screen name="Explorer" component={Explorer} />
+      <Stack.Screen name="EditPlaylist" component={EditPlaylist} />
+      <Stack.Screen name="Playlists" component={Playlists} />
+      <Stack.Screen name="NewPlaylist" component={NewPlaylist} />
+    </Stack.Group>
+  )
+}
+
 export function Routes() {
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+
+  const isAuthenticated = hasStoredSession(user)
+
   return (
     <Stack.Navigator
       screenOptions={{
@@ -97,27 +140,7 @@ export function Routes() {
       }}
     >
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
-      <Stack.Screen name="SignIn" component={SignIn} />
-      <Stack.Screen name="Register" component={Register} />
-      <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="Music" component={Music} />
-      <Stack.Screen name="MoreMusic" component={MoreMusic} />
-      <Stack.Screen name="MoreArtists" component={MoreArtists} />
-      <Stack.Screen name="Artist" component={Artist} />
-      <Stack.Screen name="GenreSelected" component={GenreSelected} />
-      <Stack.Screen name="Favorites" component={Favorites} />
-      <Stack.Screen name="Queue" component={Queue} />
-      <Stack.Screen name="Search" component={Search} />
-      <Stack.Screen name="RecoveryPassword" component={RecoveryPassword} />
-      <Stack.Screen name="Album" component={Album} />
-      <Stack.Screen name="Profile" component={Profile} />
-      <Stack.Screen name="EditProfile" component={EditProfile} />
-      <Stack.Screen name="Notifications" component={Notifications} />
-      <Stack.Screen name="Explorer" component={Explorer} />
-      <Stack.Screen name="EditPlaylist" component={EditPlaylist} />
-      <Stack.Screen name="Playlists" component={Playlists} />
-      <Stack.Screen name="NewPlaylist" component={NewPlaylist} />
-      <Stack.Screen name="ConfirmCode" component={ConfirmCode} />
+      {isAuthenticated ? renderPrivateRoutes() : renderPublicRoutes()}
     </Stack.Navigator>
   )
 }

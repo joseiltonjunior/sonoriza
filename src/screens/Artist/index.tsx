@@ -15,10 +15,12 @@ import { api } from '@services/api'
 import { ReduxProps } from '@storage/index'
 
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
+import { FavoriteArtistsProps, setFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
 
 import { UserProps } from '@storage/modules/user/reducer'
 import { ArtistsDataProps } from '@utils/Types/artistsProps'
 import { MusicProps } from '@utils/Types/musicProps'
+import { UserDataProps } from '@utils/Types/userProps'
 
 import { useEffect, useMemo, useState } from 'react'
 
@@ -32,7 +34,7 @@ import {
   View,
 } from 'react-native'
 import Icon from 'react-native-vector-icons/Ionicons'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import colors from 'tailwindcss/colors'
 
 interface AlbumProps {
@@ -48,6 +50,8 @@ export function Artist() {
 
   const { showToast } = useToast()
 
+  const dispatch = useDispatch();
+
   const [artist, setArtist] = useState<ArtistsDataProps>()
   const [albums, setAlbums] = useState<AlbumProps[]>([])
   const [topMusics, setTopMusics] = useState<MusicProps[]>([])
@@ -59,6 +63,10 @@ export function Artist() {
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
   )
+
+  const { favoriteArtists } = useSelector<ReduxProps, FavoriteArtistsProps>(
+      (state) => state.favoriteArtists,
+    )
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
@@ -93,32 +101,42 @@ export function Artist() {
       })
       .catch((err) => console.log(err, 'err'))
       .finally(() => setIsLoading(false))
-  }
+  }  
 
   async function handleFavoriteArtist(artistId: string) {
-    await api
-      .post(`/artists/${artistId}/like`)
-      .then((response) => {
-        const isFavorite = response.data as { liked: false; likesCount: 0 }
-
-        let message = ''
-
-        if (isFavorite.liked === false) {
-          message = 'Removido dos favoritos.'
-        } else {
-          message = 'Adicionado aos favoritos.'
-        }
-
-        showToast({ title: message })
-      })
-      .catch((err) => console.log(err, 'err'))
-  }
+      await api
+        .post(`/artists/${artistId}/like`)
+        .then(async (response) => {
+          const isFavorite = response.data as { liked: false; likesCount: 0 }
+  
+          const userUpdated = await api
+            .get('/me')
+            .then((response) => response.data as UserDataProps)       
+  
+          if (userUpdated.favoriteArtists) {
+            dispatch(
+              setFavoriteArtists({favoriteArtists: userUpdated.favoriteArtists}),
+            )
+          }        
+  
+          let message = ''
+  
+          if (isFavorite.liked === false) {
+            message = 'Removido dos favoritos.'
+          } else {
+            message = 'Adicionado aos favoritos.'
+          }
+  
+          showToast({ title: message })
+        })
+        .catch((err) => console.log(err, 'err'))
+    }
 
   const isFavorite = useMemo(() => {
-    const filter = user.favoriteArtists?.find((item) => item.id === artistId)
+    const filter = favoriteArtists?.find((item) => item.id === artistId)
 
     return !!filter
-  }, [artist?.id, user.favoriteArtists])
+  }, [artist?.id, favoriteArtists])
 
   useEffect(() => {
     if (artistId) {

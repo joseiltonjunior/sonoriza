@@ -1,8 +1,8 @@
 import { ReduxProps } from '@storage/index'
 
-import { UserProps, handleSetUser } from '@storage/modules/user/reducer'
+import { UserProps } from '@storage/modules/user/reducer'
 import { Image, Text, View } from 'react-native'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import Icon from 'react-native-vector-icons/Ionicons'
 import colors from 'tailwindcss/colors'
@@ -11,54 +11,22 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { useModal } from '@hooks/useModal'
-import { useTrackPlayer } from '@hooks/useTrackPlayer'
-
-import { handleSetFavoriteMusics } from '@storage/modules/favoriteMusics/reducer'
-import { setFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
-import { setInspiredMixes } from '@storage/modules/inspiredMixes/reducer'
-import { handleSetReleases } from '@storage/modules/releases/reducer'
-import { handleClearHistoric } from '@storage/modules/historic/reducer'
-import { clearSearchHistoric } from '@storage/modules/searchHistoric/reducer'
 
 import { Button } from '@components/SideMenu/Button'
 import { useNetInfo } from '@react-native-community/netinfo'
+import { clearStoredSession } from '@services/session'
 
 export function Profile() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const { openModal, closeModal } = useModal()
-  const { TrackPlayer } = useTrackPlayer()
 
   const { isConnected } = useNetInfo()
 
-  const dispatch = useDispatch()
-
   const navigation = useNavigation<StackNavigationProps>()
 
-  const handleSignOutApp = () => {
-    TrackPlayer.stop()
-    dispatch(setFavoriteArtists({ favoriteArtists: [] }))
-    dispatch(handleSetFavoriteMusics({ favoriteMusics: [] }))
-    dispatch(handleClearHistoric())
-    dispatch(clearSearchHistoric())
-    dispatch(
-      setInspiredMixes({
-        musics: [],
-      }),
-    )
-    dispatch(handleSetReleases({ releases: [] }))
-    dispatch(
-      handleSetUser({
-        user: {
-          name: '',
-          email: '',
-          photoUrl: '',
-          accountStatus: 'SUSPENDED',
-          role: 'USER',
-          id: '',
-        },
-      }),
-    )
+  const handleSignOutApp = async () => {
+    await clearStoredSession()
 
     closeModal()
 
@@ -125,40 +93,44 @@ export function Profile() {
         </Text>
         <Text className="font-nunito-regular text-gray-300">{user.email}</Text>
 
-        <View className="border-t mt-6 pt-6 border-purple-600/60 w-full items-center px-10">
+        <View className="border-t mt-6 pt-6 border-purple-600/60 w-full items-center px-10 flex-1">
           {isConnected && (
-            <Button
-              disabled={!isConnected}
-              icon="lock-closed"
-              title="Redefinir senha"
-              onPress={handleRecoveryPassword}
-            />
+            <View className="items-center flex-1">
+              <Button
+                disabled={!isConnected}
+                icon="lock-closed"
+                title="Redefinir senha"
+                onPress={handleRecoveryPassword}
+                className="mb-auto"
+              />
+
+              <TouchableOpacity
+                className="ml-auto mr-auto mb-10 bg-purple-600 h-14 items-center justify-center px-6 rounded-full"
+                activeOpacity={0.6}
+                onPress={() => {
+                  openModal({
+                    title: 'Atenção',
+                    description:
+                      'Tem certeza de que deseja sair do aplicativo?',
+                    twoActions: {
+                      actionCancel() {
+                        closeModal()
+                      },
+                      textCancel: 'Voltar',
+                      actionConfirm() {
+                        handleSignOutApp()
+                      },
+                      textConfirm: 'Sair',
+                    },
+                  })
+                }}
+              >
+                <Text className="font-nunito-bold text-white">DESCONECTAR</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </View>
-
-      <TouchableOpacity
-        className="ml-auto mr-auto mb-8 bg-purple-600 h-14 items-center justify-center px-6 rounded-full"
-        activeOpacity={0.6}
-        onPress={() => {
-          openModal({
-            title: 'Atenção',
-            description: 'Tem certeza de que deseja sair do aplicativo?',
-            twoActions: {
-              actionCancel() {
-                closeModal()
-              },
-              textCancel: 'Voltar',
-              actionConfirm() {
-                handleSignOutApp()
-              },
-              textConfirm: 'Sair',
-            },
-          })
-        }}
-      >
-        <Text className="font-nunito-bold text-white">DESCONECTAR</Text>
-      </TouchableOpacity>
     </View>
   )
 }

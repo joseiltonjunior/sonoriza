@@ -45,6 +45,9 @@ import { useFavorites } from '@hooks/useFavorites'
 import { useNetInfo } from '@react-native-community/netinfo'
 import { api } from '@services/api'
 import { useToast } from '@hooks/useToast'
+import { UserDataProps } from '@utils/Types/userProps'
+import { handleSetUser, UserProps } from '@storage/modules/user/reducer'
+import { handleSetFavoriteMusics } from '@storage/modules/favoriteMusics/reducer'
 
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
@@ -65,6 +68,8 @@ export function Music() {
   const [changeProgress, setChangeProgress] = useState<number>(0)
 
   const [repeatMode, setRepeatMode] = useState<number>(0)
+
+  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const [currentPosition, setCurrentPosition] = useState<number>(0)
 
@@ -241,8 +246,20 @@ export function Music() {
   async function handleFavoriteMusic(musicId: string) {
     await api
       .post(`/musics/${musicId}/like`)
-      .then((response) => {
+      .then(async (response) => {
         const isFavorite = response.data as { liked: false; likesCount: 0 }
+
+        const userUpdated = await api
+          .get('/me')
+          .then((response) => response.data as UserDataProps)       
+
+        if (userUpdated.favoriteMusics) {
+          dispatch(
+            handleSetFavoriteMusics({
+              favoriteMusics: userUpdated.favoriteMusics,
+            }),
+          )
+        }        
 
         let message = ''
 

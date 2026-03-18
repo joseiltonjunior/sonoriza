@@ -1,4 +1,11 @@
-import { ScrollView, Text, View, Dimensions, BackHandler } from 'react-native'
+import {
+  ScrollView,
+  Text,
+  View,
+  Dimensions,
+  BackHandler,
+  RefreshControl,
+} from 'react-native'
 import AnimatedLottieView from 'lottie-react-native'
 import splash from '@assets/access-denied.json'
 import bad from '@assets/bad.json'
@@ -80,6 +87,7 @@ export function Home() {
   const [topMusicalGenres, setTopMusicalGenres] = useState<
     MusicalGenresDataProps[]
   >([])
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const { getCurrentMusic } = useTrackPlayer()
 
@@ -147,7 +155,7 @@ export function Home() {
           )
         }
 
-        if (userData.favoriteArtists) {          
+        if (userData.favoriteArtists) {
           dispatch(
             setFavoriteArtists({ favoriteArtists: userData.favoriteArtists }),
           )
@@ -160,6 +168,7 @@ export function Home() {
                 ...user,
                 favoriteArtists: userData.favoriteArtists,
                 favoriteMusics: userData.favoriteMusics,
+                favoriteGenres: userData.favoriteGenres,
               },
             }),
           )
@@ -180,7 +189,7 @@ export function Home() {
           }
         }
 
-        dispatch(handleSetNetStatus(true))
+        dispatch(handleSetNetStatus(true))        
       } else {
         dispatch(handleSetNetStatus(false))
       }
@@ -194,6 +203,16 @@ export function Home() {
     user.favoriteArtists,
     user.favoriteMusics,
   ])
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true)
+
+    try {
+      await handleGetDataUser()
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [handleGetDataUser])
 
   // const handleFetchNoticationsDB = useCallback(async () => {
   //   await handleGetNotifications()
@@ -252,7 +271,13 @@ export function Home() {
 
   return (
     <>
-      <ScrollView className="bg-gray-700" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="bg-gray-700"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+      >
         <Header title="Início" />
 
         <View className={isCurrentMusic ? 'pb-32' : 'pb-16'}>
@@ -334,18 +359,20 @@ export function Home() {
             </Section>
           )}
 
-          {isConnected && user.favoriteArtists && (
-            <Section
-              title={
-                user.favoriteArtists
-                  ? 'Artistas que você ama'
-                  : 'Explore por artistas'
-              }
-              className="mt-14"
-            >
-              <RoundedCarousel artists={favoriteArtists} />
-            </Section>
-          )}
+          {isConnected &&
+            user.favoriteArtists &&
+            user.favoriteArtists.length > 0 && (
+              <Section
+                title={
+                  user.favoriteArtists
+                    ? 'Artistas que você ama'
+                    : 'Explore por artistas'
+                }
+                className="mt-14"
+              >
+                <RoundedCarousel artists={favoriteArtists} />
+              </Section>
+            )}
         </View>
       </ScrollView>
 

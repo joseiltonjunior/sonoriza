@@ -38,7 +38,7 @@ export function ListCarousel({ musics }: ListCourselProps) {
   return (
     <Carousel
       loop={false}
-      style={{ width: 'auto' }}
+      style={{ width: 'auto'}}
       width={320}
       height={230}
       data={chunkArray(musics, 3)}
@@ -95,7 +95,7 @@ export function ListCarousel({ musics }: ListCourselProps) {
                     {music.title}
                   </Text>
                   <Text className="font-nunito-regular text-gray-300">
-                    {music.artists[0].name}
+                    {music.artists[0].title}
                   </Text>
                 </View>
               </TouchableOpacity>

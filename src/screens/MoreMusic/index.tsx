@@ -32,6 +32,7 @@ import { InfoPlayingMusic } from '@components/InfoPlayingMusic'
 
 import { useBottomModal } from '@hooks/useBottomModal'
 import { api } from '@services/api'
+import { FavoriteMusicsProps } from '@storage/modules/favoriteMusics/reducer'
 
 export function MoreMusic() {
   const { params } = useRoute<RouteParamsProps<'MoreMusic'>>()
@@ -52,7 +53,11 @@ export function MoreMusic() {
     (state) => state.historic,
   )
 
-  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+  // const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+
+  const { favoriteMusics } = useSelector<ReduxProps, FavoriteMusicsProps>(
+      (state) => state.favoriteMusics,
+    )
 
   const { handleMusicSelected } = useTrackPlayer()
 
@@ -81,12 +86,12 @@ export function MoreMusic() {
       .catch((err) => console.log(err, 'hmm'))
       .finally(() => setIsLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEndList, isLoading, user.favoriteMusics, page])
+  }, [isEndList, isLoading, favoriteMusics, page])
 
   const handleGetMusics = useCallback(async () => {
-    // console.log(`que merda`, user.favoriteMusics)
+    // console.log(`que merda`, favoriteMusics)
 
-    const result = user.favoriteMusics as MusicProps[]
+    const result = favoriteMusics as MusicProps[]
 
     // setIsLoading(true)
 
@@ -108,7 +113,7 @@ export function MoreMusic() {
     //   .catch((err) => console.log(err, 'err'))
     //   .finally(() => setIsLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user.favoriteMusics])
+  }, [favoriteMusics])
 
   const handlePaginatedOffline = useCallback(async () => {
     if (!trackListOffline || isEndList) return
@@ -142,10 +147,10 @@ export function MoreMusic() {
 
     if (
       type === 'favorites' &&
-      user.favoriteMusics &&
-      user.favoriteMusics.length > 0
+      favoriteMusics &&
+      favoriteMusics.length > 0
     ) {
-      updatedListMusics = user.favoriteMusics
+      updatedListMusics = favoriteMusics
     } else if (type === 'historic') {
       updatedListMusics = historic
     } else if (type === 'offline') {
@@ -156,7 +161,7 @@ export function MoreMusic() {
 
     setListMusics(updatedListMusics)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, user.favoriteMusics])
+  }, [type, favoriteMusics])
 
   if (listMusics.length === 0) {
     return <Loading />

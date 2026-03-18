@@ -2,6 +2,8 @@ import { Input } from '@components/Input'
 import {
   Image,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -13,10 +15,10 @@ import * as z from 'zod'
 
 import logo from '@assets/logo.png'
 import { Button } from '@components/Button'
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import { StackNavigationProps } from '@routes/routes'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { useModal } from '@hooks/useModal'
 import { FormDataProps } from '@utils/Types/userProps'
 
@@ -57,10 +59,42 @@ export function Register() {
   })
 
   const navigation = useNavigation<StackNavigationProps>()
+  const scrollRef = useRef<ScrollView>(null)
 
   const { closeModal, openModal } = useModal()
 
   const [isLoading, setIsLoading] = useState(false)
+  const [keyboardOffset, setKeyboardOffset] = useState(32)
+
+  useFocusEffect(
+    useCallback(() => {
+      setKeyboardOffset(32)
+
+      const keyboardShowSubscription = Keyboard.addListener(
+        'keyboardDidShow',
+        (event) => {
+          setKeyboardOffset(event.endCoordinates.height + 32)
+
+          requestAnimationFrame(() => {
+            scrollRef.current?.scrollToEnd({ animated: true })
+          })
+        },
+      )
+
+      const keyboardHideSubscription = Keyboard.addListener(
+        'keyboardDidHide',
+        () => {
+          setKeyboardOffset(32)
+        },
+      )
+
+      return () => {
+        keyboardShowSubscription.remove()
+        keyboardHideSubscription.remove()
+        setKeyboardOffset(32)
+      }
+    }, []),
+  )
 
   function handleRegisterWithEmail(data: FormDataProps) {
     Keyboard.dismiss()
@@ -105,9 +139,19 @@ export function Register() {
   }
 
   return (
-    <>
-      <ScrollView className="bg-gray-700">
-        <View className="p-4 pt-24 items-center h-full ">
+    <KeyboardAvoidingView
+      className="flex-1 bg-gray-700"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        ref={scrollRef}
+        className="flex-1 bg-gray-700"
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: keyboardOffset }}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="items-center p-4 pt-24">
           <Image
             source={logo}
             alt="logo"
@@ -177,6 +221,6 @@ export function Register() {
           </View>
         </View>
       </ScrollView>
-    </>
+    </KeyboardAvoidingView>
   )
 }

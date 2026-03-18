@@ -24,7 +24,7 @@ import { UserProps } from '@storage/modules/user/reducer'
 import colors from 'tailwindcss/colors'
 
 import { Loading } from '@components/Loading'
-import { setFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
+import { FavoriteArtistsProps, setFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
 
 export function MoreArtists() {
   const [listArtists, setListArtists] = useState<ArtistsDataProps[]>([])
@@ -35,7 +35,11 @@ export function MoreArtists() {
   const [isLoading, setIsLoading] = useState(false)
   const [isEndList, setIsEndList] = useState(false)
 
-  const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+  // const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
+
+  const { favoriteArtists } = useSelector<ReduxProps, FavoriteArtistsProps>(
+      (state) => state.favoriteArtists,
+    )
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -46,12 +50,12 @@ export function MoreArtists() {
   )
 
   const handleGetArtists = useCallback(async () => {
-    if (!user.favoriteArtists || isLoading || isEndList) return
-    const result = user.favoriteArtists
+    if (!favoriteArtists || isLoading || isEndList) return
+    const result = favoriteArtists
 
     setListArtists(result)
     setIsLoading(true)
-  }, [user, isLoading, isEndList, page])
+  }, [favoriteArtists, isLoading, isEndList, page])
 
   const handleChangeFavoriteArtist = async (artist: ArtistsDataProps) => {
     console.log('favoritar artistas')

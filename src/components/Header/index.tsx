@@ -36,7 +36,7 @@ export function Header({ title }: HeaderProps) {
       <Text className="text-white text-3xl font-nunito-bold">{title}</Text>
 
       <View className="flex-row">
-        {isConnected && (
+        {/* {isConnected && (
           <TouchableOpacity
             activeOpacity={0.6}
             onPress={() => {
@@ -55,7 +55,7 @@ export function Header({ title }: HeaderProps) {
               </View>
             )}
           </TouchableOpacity>
-        )}
+        )} */}
         <TouchableOpacity
           onPress={handleIsVisible}
           activeOpacity={0.6}

@@ -36,7 +36,7 @@ export function RoundedCarousel({
       renderItem={({ item }) => (
         <Rounded
           disabled={!status}
-          artist={item.name}
+          artist={item.title}
           artwork={item.photoURL}
           roundedSmall={roundedSmall}
           onPress={() => {
