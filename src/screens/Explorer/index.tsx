@@ -40,7 +40,9 @@ export function Explorer() {
     (state) => state.currentMusic,
   )
 
-  const [musicalGenres, setMusicalGenres] = useState<string[]>([])
+  const [musicalGenres, setMusicalGenres] = useState<MusicalGenresDataProps[]>(
+    [],
+  )
 
   const { openModal, closeModal } = useModal()
 
@@ -48,9 +50,9 @@ export function Explorer() {
     setIsLoading(true)
     try {
       const resultMusicalGenres = await api
-        .get('/gentes')
+        .get('/genres')
         .then((response) => response.data.data as MusicalGenresDataProps[])
-      setMusicalGenres(resultMusicalGenres.map((item) => item.name))
+      setMusicalGenres(resultMusicalGenres.map((item) => item))
       setIsLoading(false)
     } catch (error) {
       setIsLoading(false)
@@ -74,7 +76,7 @@ export function Explorer() {
     return newList
   }, [notifications])
 
-  function chunkArray(array: string[], chunkSize: number) {
+  function chunkArray(array: MusicalGenresDataProps[], chunkSize: number) {
     const result = []
     for (let i = 0; i < array.length; i += chunkSize) {
       result.push(array.slice(i, i + chunkSize))
@@ -116,7 +118,7 @@ export function Explorer() {
       <Header title="Explorar" />
 
       <ScrollView>
-        {handleFormatReleasesArtists && (
+        {handleFormatReleasesArtists.length > 0 && (
           <View className="mt-4">
             <Text className="pl-4 mb-2 text-lg font-nunito-bold text-white">
               Novos artistas
@@ -137,15 +139,18 @@ export function Explorer() {
                     {col.map((item) => (
                       <TouchableOpacity
                         activeOpacity={0.6}
-                        key={item}
+                        key={item.id}
                         className="flex-1 p-2"
                         onPress={() =>
-                          navigation.navigate('GenreSelected', { type: item })
+                          navigation.navigate('GenreSelected', {
+                            id: item.id,
+                            title: item.title,
+                          })
                         }
                       >
                         <View className="bg-purple-600 rounded-lg items-center justify-center h-16">
                           <Text className="font-nunito-bold text-white text-base">
-                            {item}
+                            {item.title}
                           </Text>
                         </View>
                       </TouchableOpacity>

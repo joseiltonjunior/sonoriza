@@ -53,7 +53,7 @@ export function Profile() {
           name: '',
           email: '',
           photoUrl: '',
-          isActive: false,
+          accountStatus: 'SUSPENDED',
           role: 'USER',
           id: '',
         },

@@ -43,9 +43,13 @@ import { DynamicBackgroundColor } from '@components/DynamicBackgroundColor'
 
 import { useFavorites } from '@hooks/useFavorites'
 import { useNetInfo } from '@react-native-community/netinfo'
+import { api } from '@services/api'
+import { useToast } from '@hooks/useToast'
 
 export function Music() {
   const navigation = useNavigation<StackNavigationProps>()
+
+  const { showToast } = useToast()
 
   const { isConnected } = useNetInfo()
   const { TrackPlayer, useProgress } = useTrackPlayer()
@@ -234,6 +238,25 @@ export function Music() {
     }
   }, [TrackPlayer, repeatMode])
 
+  async function handleFavoriteMusic(musicId: string) {
+    await api
+      .post(`/musics/${musicId}/like`)
+      .then((response) => {
+        const isFavorite = response.data as { liked: false; likesCount: 0 }
+
+        let message = ''
+
+        if (isFavorite.liked === false) {
+          message = 'Removido dos favoritos.'
+        } else {
+          message = 'Adicionado aos favoritos.'
+        }
+
+        showToast({ title: message })
+      })
+      .catch((err) => console.log(err, 'err'))
+  }
+
   useEffect(() => {
     handleVerifyRepeatMode()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -286,7 +309,7 @@ export function Music() {
               className="text-white font-nunito-bold text-base"
               style={{ color: fontColor }}
             >
-              {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
+              {isCurrentMusic?.artists && isCurrentMusic.artists[0].title}
             </Text>
           </View>
           <View className="w-10" />
@@ -358,7 +381,7 @@ export function Music() {
               <TouchableOpacity
                 onPress={() => {
                   if (isCurrentMusic) {
-                    console.log('handleFavoriteMusic(isCurrentMusic)')
+                    handleFavoriteMusic(isCurrentMusic.id)
                   }
                 }}
               >
@@ -424,7 +447,7 @@ export function Music() {
               numberOfLines={1}
               style={{ color: fontColor }}
             >
-              {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
+              {isCurrentMusic?.artists && isCurrentMusic.artists[0].title}
               {isCurrentMusic?.album && ` - ${isCurrentMusic.album}`}
             </Text>
           </View>

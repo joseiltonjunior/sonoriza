@@ -2,7 +2,7 @@ import { MusicProps } from './musicProps'
 
 export interface ArtistsDataProps {
   id: string
-  name: string
+  title: string
   photoURL: string
   musics: MusicProps[]
   like: number

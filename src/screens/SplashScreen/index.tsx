@@ -45,9 +45,8 @@ export function SplashScreen() {
   const handleInitializePlayer = async () => {
     await TrackPlayer.setupPlayer()
 
-    dispatch(setIsInitialized({ isInitialized: true }))
-
     TrackPlayer.updateOptions({
+      progressUpdateEventInterval: 1,
       android: {
         appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
       },
@@ -67,6 +66,8 @@ export function SplashScreen() {
         Capability.SkipToNext,
       ],
     })
+
+    dispatch(setIsInitialized({ isInitialized: true }))
   }
 
   const handleVerifyUser = async () => {

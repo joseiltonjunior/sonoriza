@@ -81,14 +81,20 @@ export function MoreMusic() {
       .catch((err) => console.log(err, 'hmm'))
       .finally(() => setIsLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEndList, isLoading, user.favoritesMusics, page])
+  }, [isEndList, isLoading, user.favoriteMusics, page])
 
   const handleGetMusics = useCallback(async () => {
-    if (!user.favoritesMusics || isLoading || isEndList) return
+    // console.log(`que merda`, user.favoriteMusics)
 
-    setIsLoading(true)
+    const result = user.favoriteMusics as MusicProps[]
 
-    console.log('buscar musicas favoritas')
+    // setIsLoading(true)
+
+    setListMusics(result)
+
+    console.log(result)
+
+    // console.log('buscar musicas favoritas', user.favoriteMusics)
 
     // await handleGetFavoritesMusics(user.favoritesMusics, page)
     //   .then((result) => {
@@ -102,7 +108,7 @@ export function MoreMusic() {
     //   .catch((err) => console.log(err, 'err'))
     //   .finally(() => setIsLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEndList, isLoading, user.favoritesMusics, page])
+  }, [user.favoriteMusics])
 
   const handlePaginatedOffline = useCallback(async () => {
     if (!trackListOffline || isEndList) return
@@ -136,10 +142,10 @@ export function MoreMusic() {
 
     if (
       type === 'favorites' &&
-      user.favoritesMusics &&
-      user.favoritesMusics.length > 0
+      user.favoriteMusics &&
+      user.favoriteMusics.length > 0
     ) {
-      handleGetMusics()
+      updatedListMusics = user.favoriteMusics
     } else if (type === 'historic') {
       updatedListMusics = historic
     } else if (type === 'offline') {
@@ -150,7 +156,7 @@ export function MoreMusic() {
 
     setListMusics(updatedListMusics)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, user.favoritesMusics])
+  }, [type, user.favoriteMusics])
 
   if (listMusics.length === 0) {
     return <Loading />
@@ -174,7 +180,7 @@ export function MoreMusic() {
         <FlatList
           className={`mt-4`}
           showsVerticalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
           data={listMusics}
           onEndReached={verifyType}
           onEndReachedThreshold={0.2}
@@ -222,7 +228,7 @@ export function MoreMusic() {
                 <View>
                   <Text className="font-bold text-white">{item.title}</Text>
                   <Text className="font-regular text-gray-300">
-                    {item.artists[0].name}
+                    {item.artists[0].title}
                   </Text>
                 </View>
               </TouchableOpacity>

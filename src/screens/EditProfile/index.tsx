@@ -22,10 +22,13 @@ import { StackNavigationProps } from '@routes/routes'
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '@services/api'
 import { UploadObjectResponseProps } from '@utils/Types/uploadProps'
+import axios from 'axios'
+import { useModal } from '@hooks/useModal'
+import { UserDataProps } from '@utils/Types/userProps'
 
 export function EditProfile() {
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
-
+  const { closeModal, openModal } = useModal()
   const [isLoading, setIsLoading] = useState(false)
 
   const [name, setName] = useState('')
@@ -61,35 +64,34 @@ export function EditProfile() {
 
   const handleEditUser = useCallback(async () => {
     try {
-      const imageUrl = ''
-
+      let imageUrl = user.photoUrl || null
       Keyboard.dismiss()
 
-      if (!photo?.uri) {
-        return
+      if (photo) {
+        const formData = new FormData()
+
+        const file = {
+          uri: String(photo.uri),
+          name: photo.fileName ?? 'profile.jpg',
+          type: photo.type ?? 'image/jpeg',
+        } as any
+
+        formData.append('file', file)
+
+        const uploadedUser = await api
+          .post('/me/photo', formData)
+          .then((res) => res.data as UserDataProps)
+
+        imageUrl = uploadedUser.photoUrl
       }
-
-      const formData = new FormData()
-
-      formData.append('files', {
-        uri: photo.uri,
-      } as any)
-
-      formData.append('folder', 'users')
-      formData.append('slug', slugify(name))
-
-      const objectPathSigned = await api
-        .post('/uploads', formData)
-        .then((res) => res.data.files as UploadObjectResponseProps)
 
       await api.patch(`/me`, {
         name,
-        photoUrl: objectPathSigned.signedUrl,
       })
 
       dispatch(
         handleSetUser({
-          user: { ...user, name, photoUrl: objectPathSigned.signedUrl },
+          user: { ...user, name, photoUrl: imageUrl },
         }),
       )
 
@@ -97,6 +99,28 @@ export function EditProfile() {
 
       navigation.goBack()
     } catch (error) {
+      let message =
+        'Desculpe, não foi possível atualizar o perfil neste momento. Por favor, tente novamente.'
+
+      if (axios.isAxiosError(error)) {
+        message =
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          message
+      } else {
+        console.log('register unknown error:', error)
+      }
+
+      openModal({
+        title: 'Atenção',
+        description: message,
+        singleAction: {
+          action() {
+            closeModal()
+          },
+          title: 'OK',
+        },
+      })
       setIsLoading(false)
       console.log(error, 'err')
     }
@@ -144,13 +168,12 @@ export function EditProfile() {
 
         <View className="items-center mt-6">
           <View className="bg-purple-600 rounded-full w-40 h-40 items-center justify-center relative">
-            {user.photoUrl ? (
+            {user.photoUrl || photo?.uri ? (
               <Image
                 source={{
                   uri:
-                    photo?.uri && photo.uri?.length > 0
-                      ? photo.uri
-                      : user.photoUrl,
+                    (photo?.uri && (photo.uri as string)) ||
+                    (user.photoUrl as string),
                 }}
                 alt="user pic"
                 className="w-full h-full object-cover rounded-full"

@@ -19,7 +19,7 @@ import colors from 'tailwindcss/colors'
 
 export function GenreSelected() {
   const { params } = useRoute<RouteParamsProps<'GenreSelected'>>()
-  const { type } = params
+  const { id: genreId, title: genreTitle } = params
 
   const [page, setPage] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
@@ -38,7 +38,7 @@ export function GenreSelected() {
     setIsLoading(true)
     try {
       const response = await api
-        .get(`/artists?genreId=${type}?page=${page}`)
+        .get(`/artists?genreId=${genreId}&page=${page}`)
         .then((response) => response.data.data as ArtistsDataProps[])
       setPage((prev) => prev + 1)
       setArtists((prev) => [...prev, ...response])
@@ -52,7 +52,7 @@ export function GenreSelected() {
       setIsLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, isLoading, isEndList])
+  }, [genreId, isLoading, isEndList])
 
   useEffect(() => {
     handleGetArtistsData()
@@ -66,7 +66,7 @@ export function GenreSelected() {
   return (
     <View className="flex-1 bg-gray-700">
       <View className="px-4 flex-1">
-        <View className="py-4 pt-10">
+        <View className="py-4 pt-16">
           <TouchableOpacity
             onPress={() => {
               navigation.goBack()
@@ -76,7 +76,7 @@ export function GenreSelected() {
             <Icon name="chevron-back-outline" size={30} color="#fff" />
           </TouchableOpacity>
           <Text className="text-lg  my-auto font-nunito-bold text-white ml-auto mr-auto mt-2">
-            {type}
+            {genreTitle}
           </Text>
         </View>
 
@@ -108,7 +108,7 @@ export function GenreSelected() {
                   />
                 </View>
                 <View>
-                  <Text className="font-bold text-white">{item.name}</Text>
+                  <Text className="font-bold text-white">{item.title}</Text>
                 </View>
               </TouchableOpacity>
             )}

@@ -46,8 +46,10 @@ export function MoreArtists() {
   )
 
   const handleGetArtists = useCallback(async () => {
-    if (!user.favoritesArtists || isLoading || isEndList) return
-    console.log('buscar artistas favoritos')
+    if (!user.favoriteArtists || isLoading || isEndList) return
+    const result = user.favoriteArtists
+
+    setListArtists(result)
     setIsLoading(true)
   }, [user, isLoading, isEndList, page])
 
@@ -113,7 +115,7 @@ export function MoreArtists() {
                 </View>
                 <View>
                   <Text className="font-nunito-bold text-white text-base">
-                    {item.name}
+                    {item.title}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -133,7 +135,7 @@ export function MoreArtists() {
           ItemSeparatorComponent={() => <View className="h-3" />}
         />
 
-        {isLoading && (
+        {/* {isLoading && (
           <View
             className={`absolute bottom-0 ${
               isCurrentMusic ? 'mb-32' : 'mb-16'
@@ -143,7 +145,7 @@ export function MoreArtists() {
               <ActivityIndicator color={colors.gray[300]} size={'large'} />
             </View>
           </View>
-        )}
+        )} */}
       </View>
 
       <View className="absolute bottom-0 w-full ">

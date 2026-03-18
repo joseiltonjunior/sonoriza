@@ -6,20 +6,23 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProps } from '@routes/routes'
 import { ReduxProps } from '@storage/index'
 import { CurrentMusicProps } from '@storage/modules/currentMusic/reducer'
-import { UserProps } from '@storage/modules/user/reducer'
+import { handleSetUser, UserProps } from '@storage/modules/user/reducer'
 
 import { Text, View, TouchableOpacity } from 'react-native'
 
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
 import { NetInfoProps } from '@storage/modules/netInfo/reducer'
 
 import { Header } from '@components/Header'
 import { useCallback, useEffect, useState } from 'react'
+import { api } from '@services/api'
+import { UserDataProps } from '@utils/Types/userProps'
 
 export function Favorites() {
   const [totalPlaylist, setTotalPlaylist] = useState(0)
+  const dispatch = useDispatch()
 
   const { isCurrentMusic } = useSelector<ReduxProps, CurrentMusicProps>(
     (state) => state.currentMusic,
@@ -38,8 +41,20 @@ export function Favorites() {
   const navigation = useNavigation<StackNavigationProps>()
 
   const handleSearchMyPlaylists = useCallback(async () => {
-    // const response = await handleGetPlaylistByUserId(user.uid)
-    console.log('buscar playlist')
+    const response = await api
+      .get('/me')
+      .then((response) => response.data as UserDataProps)   
+
+    dispatch(
+      handleSetUser({
+        user: {
+          ...user,
+          favoriteArtists: response.favoriteArtists,
+          favoriteMusics: response.favoriteMusics,
+        },
+      }),
+    )
+
     setTotalPlaylist(0)
   }, [])
 
@@ -87,7 +102,7 @@ export function Favorites() {
                 Artistas
               </Text>
               <Text className="font-nunito-regular text-gray-300">
-                {user.favoritesArtists?.length}
+                {user.favoriteArtists?.length ?? 0}
               </Text>
             </TouchableOpacity>
 
@@ -105,7 +120,7 @@ export function Favorites() {
                 Mais queridas
               </Text>
               <Text className="font-nunito-regular text-gray-300">
-                {user.favoritesMusics?.length}
+                {user.favoriteMusics?.length ?? 0}
               </Text>
             </TouchableOpacity>
           </>

@@ -13,7 +13,7 @@ const initialState: UserProps = {
     role: 'USER',
     photoUrl: '',
     id: '',
-    isActive: false,
+    accountStatus: 'SUSPENDED',
   },
 }
 

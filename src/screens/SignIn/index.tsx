@@ -21,6 +21,7 @@ import { useNavigation } from '@react-navigation/native'
 import { useDispatch } from 'react-redux'
 import { handleSetUser } from '@storage/modules/user/reducer'
 import { api } from '@services/api'
+import { authSessionResponseProps } from '@utils/Types/authSessionProps'
 
 interface FormDataProps {
   email: string
@@ -53,22 +54,27 @@ export function SignIn() {
     setIsLoading(true)
 
     try {
-      const authResponse = await api.post('/sessions', {
-        email: data.email,
-        password: data.password,
-      })
+      const authResponse = await api
+        .post('/sessions', {
+          email: data.email,
+          password: data.password,
+        })
+        .then((response) => response.data as authSessionResponseProps)
+
+      const { access_token, refresh_token, user } = authResponse
 
       setIsLoading(false)
       dispatch(
         handleSetUser({
           user: {
-            name: authResponse.data.user.name,
-            email: authResponse.data.user.email,
-            photoUrl: authResponse.data.user.photoUrl,
-            role: authResponse.data.user.role,
-            id: authResponse.data.user.id,
-            isActive: authResponse.data.user.isActive,
-            isAuthenticated: authResponse.data.access_token,
+            name: user.name,
+            email: user.email,
+            photoUrl: user.photoUrl,
+            role: user.role,
+            id: user.id,
+            accountStatus: user.accountStatus,
+            accessToken: access_token,
+            refreshToken: refresh_token,
           },
         }),
       )

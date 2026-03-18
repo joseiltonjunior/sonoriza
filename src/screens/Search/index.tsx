@@ -36,7 +36,9 @@ export function Search() {
     (state) => state.searchHistoric,
   )
 
-  const [musicalGenres, setMusicalGenres] = useState<string[]>([])
+  const [musicalGenres, setMusicalGenres] = useState<MusicalGenresDataProps[]>(
+    [],
+  )
 
   const [filter, setFilter] = useState('')
 
@@ -55,7 +57,7 @@ export function Search() {
         .get(`/musics?title=${filter}&page=1`)
         .then((response) => response.data.data as MusicProps[])
       const responseArtists = await api
-        .get(`/artists?name=${filter}&page=1`)
+        .get(`/artists?title=${filter}&page=1`)
         .then((response) => response.data.data as ArtistsDataProps[])
 
       setMusicsFiltered(response)
@@ -72,7 +74,7 @@ export function Search() {
         const resultMusicalGenres = await api
           .get('/genres')
           .then((response) => response.data.data as MusicalGenresDataProps[])
-        setMusicalGenres(resultMusicalGenres.map((item) => item.name))
+        setMusicalGenres(resultMusicalGenres.map((item) => item))
       } catch (error) {
         console.error('Error fetching musical genres:', error)
       }
@@ -170,7 +172,7 @@ export function Search() {
                 onPress={() => {
                   dispatch(
                     setSearchHistoric({
-                      name: item.name,
+                      name: item.title,
                       photoURL: item.photoURL,
                       id: item.id,
                     }),
@@ -187,7 +189,7 @@ export function Search() {
                 </View>
 
                 <Text className="font-nunito-bold text-white text-base ml-2">
-                  {item.name}
+                  {item.title}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -227,7 +229,7 @@ export function Search() {
                 <View className="ml-2">
                   <Text className="font-bold text-white">{item.title}</Text>
                   <Text className="font-regular text-gray-300">
-                    {item.artists[0].name}
+                    {item.artists[0].title}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -235,13 +237,13 @@ export function Search() {
           </View>
         </View>
 
-        {artistsFiltered.length === 0 &&
+        {/* {artistsFiltered.length === 0 &&
           musicsFiltered.length === 0 &&
           musicalGenres.length > 0 && (
             <Section title="Gêneros" className="mt-4">
               <MusicalGenres musicalGenres={musicalGenres} />
             </Section>
-          )}
+          )} */}
       </ScrollView>
 
       <View className="absolute bottom-0 w-full">

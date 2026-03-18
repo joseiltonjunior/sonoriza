@@ -30,6 +30,7 @@ import { Playlists } from '@screens/Playlists'
 import { PlaylistProps } from '@utils/Types/playlistProps'
 import { NewPlaylist } from '@screens/NewPlaylist'
 import { MusicProps } from '@utils/Types/musicProps'
+import { ConfirmCode } from '@screens/ConfirmCode'
 
 type RootStackParamList = {
   Home: undefined
@@ -48,10 +49,11 @@ type RootStackParamList = {
     type: 'favorites' | 'default' | 'historic' | 'offline' | 'artist'
     title: string
     artistFlow?: string[]
-    artistId: string
+    artistId?: string
   }
   GenreSelected: {
-    type: string
+    id: string
+    title: string
   }
   Favorites: undefined
   Queue: undefined
@@ -68,6 +70,9 @@ type RootStackParamList = {
   EditPlaylist: PlaylistProps
   Playlists: undefined
   NewPlaylist: MusicProps
+  ConfirmCode: {
+    email: string
+  }
 }
 
 export type StackNavigationProps = StackNavigationProp<RootStackParamList>
@@ -112,6 +117,7 @@ export function Routes() {
       <Stack.Screen name="EditPlaylist" component={EditPlaylist} />
       <Stack.Screen name="Playlists" component={Playlists} />
       <Stack.Screen name="NewPlaylist" component={NewPlaylist} />
+      <Stack.Screen name="ConfirmCode" component={ConfirmCode} />
     </Stack.Navigator>
   )
 }

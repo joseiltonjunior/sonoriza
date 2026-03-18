@@ -6,6 +6,7 @@ import { Loading } from '@components/Loading'
 import { MusicComponent } from '@components/MusicComponent'
 
 import { Section } from '@components/Section'
+import { useToast } from '@hooks/useToast'
 
 import { useTrackPlayer } from '@hooks/useTrackPlayer'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -45,6 +46,8 @@ export function Artist() {
 
   const size = Dimensions.get('window').width * 1
 
+  const { showToast } = useToast()
+
   const [artist, setArtist] = useState<ArtistsDataProps>()
   const [albums, setAlbums] = useState<AlbumProps[]>([])
   const [topMusics, setTopMusics] = useState<MusicProps[]>([])
@@ -63,7 +66,7 @@ export function Artist() {
     return arr.filter((value, index, self) => {
       return self.findIndex((m) => m.name === value.name) === index
     })
-  }  
+  }
 
   const handleGetArtist = async () => {
     setIsLoading(true)
@@ -92,11 +95,30 @@ export function Artist() {
       .finally(() => setIsLoading(false))
   }
 
+  async function handleFavoriteArtist(artistId: string) {
+    await api
+      .post(`/artists/${artistId}/like`)
+      .then((response) => {
+        const isFavorite = response.data as { liked: false; likesCount: 0 }
+
+        let message = ''
+
+        if (isFavorite.liked === false) {
+          message = 'Removido dos favoritos.'
+        } else {
+          message = 'Adicionado aos favoritos.'
+        }
+
+        showToast({ title: message })
+      })
+      .catch((err) => console.log(err, 'err'))
+  }
+
   const isFavorite = useMemo(() => {
-    const filter = user.favoritesArtists?.find((item) => item === artist?.id)
+    const filter = user.favoriteArtists?.find((item) => item.id === artistId)
 
     return !!filter
-  }, [artist?.id, user.favoritesArtists])
+  }, [artist?.id, user.favoriteArtists])
 
   useEffect(() => {
     if (artistId) {
@@ -115,7 +137,7 @@ export function Artist() {
       >
         <ImageBackground
           source={{ uri: artist?.photoURL }}
-          alt={artist?.name}
+          alt={artist?.title}
           style={{ height: size }}
           className={`p-4 pt-12`}
         >
@@ -130,7 +152,7 @@ export function Artist() {
 
           <View className="mt-auto">
             <Text className="font-nunito-bold text-white" style={styles.text}>
-              {artist?.name}
+              {artist?.title}
             </Text>
           </View>
         </ImageBackground>
@@ -140,7 +162,7 @@ export function Artist() {
             <TouchableOpacity
               onPress={() => {
                 if (!artist) return
-                console.log(artist, 'artista favorito')
+                handleFavoriteArtist(artist.id)
               }}
               activeOpacity={0.6}
               className="p-4"
@@ -199,7 +221,7 @@ export function Artist() {
               className="bg-purple-600 rounded-md items-center py-1 mt-2"
               onPress={() => {
                 navigation.navigate('MoreMusic', {
-                  title: `${artist.name}`,
+                  title: `${artist.title}`,
                   type: 'artist',
                   // artistFlow: artist?.musics,
                   artistId: artist.id,

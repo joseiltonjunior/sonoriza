@@ -33,7 +33,7 @@ import { RoundedCarousel } from '@components/RoundedCarousel'
 import { Section } from '@components/Section'
 
 import { MusicalGenres } from '@components/MusicalGenres'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import TrackPlayer, { Event, State } from 'react-native-track-player'
 
@@ -45,7 +45,7 @@ import { useNetwork } from '@hooks/useNetwork'
 import { TrackListOfflineProps } from '@storage/modules/trackListOffline/reducer'
 
 import { useNetInfo } from '@react-native-community/netinfo'
-import { UserProps } from '@storage/modules/user/reducer'
+import { handleSetUser, UserProps } from '@storage/modules/user/reducer'
 
 import {
   InspiredMixesProps,
@@ -65,6 +65,8 @@ import { Header } from '@components/Header'
 
 import messaging from '@react-native-firebase/messaging'
 import { api } from '@services/api'
+import { MusicalGenresDataProps } from '@utils/Types/musicalGenresProps'
+import { UserDataProps } from '@utils/Types/userProps'
 
 export function Home() {
   const { historic } = useSelector<ReduxProps, HistoricProps>(
@@ -74,6 +76,10 @@ export function Home() {
   const size = Dimensions.get('window').width * 0.7
 
   const dispatch = useDispatch()
+
+  const [topMusicalGenres, setTopMusicalGenres] = useState<
+    MusicalGenresDataProps[]
+  >([])
 
   const { getCurrentMusic } = useTrackPlayer()
 
@@ -111,16 +117,6 @@ export function Home() {
     (state) => state.trackListOffline,
   )
 
-  const topMusicalGenres = useMemo(() => {
-    const filterGenres = shuffleArray(
-      favoriteMusics.map((music) => music.genre),
-    )
-
-    const excludeDuplicates = [...new Set(filterGenres)]
-
-    return excludeDuplicates.slice(0, 5)
-  }, [favoriteMusics])
-
   const handleGetCurrentMusic = async () => {
     await getCurrentMusic()
   }
@@ -133,72 +129,71 @@ export function Home() {
     return historicOffline
   }, [historic, trackListOffline])
 
-  // const handleGetDataUser = useCallback(async () => {
-  //   try {
-  //     if (isConnected) {
-  //       let musics = [] as MusicProps[]
+  const handleGetDataUser = useCallback(async () => {
+    try {
+      if (isConnected) {
+        const userData = await api
+          .get('/me')
+          .then((response) => response.data as UserDataProps)
+        const recommendationData = await api
+          .get(`/me/recommendations/musics`)
+          .then((response) => response.data)
 
-  //       if (user?.favoritesMusics && user.favoritesMusics) {
-  //         const result = await handleGetFavoritesMusics(user.favoritesMusics)
-  //         musics = result
-  //         dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
-  //       } else {
-  //         const result = await handleGetMusicsNewUser()
-  //         musics = result
-  //         dispatch(handleSetFavoriteMusics({ favoriteMusics: result }))
-  //       }
+        if (userData.favoriteMusics) {
+          dispatch(
+            handleSetFavoriteMusics({
+              favoriteMusics: userData.favoriteMusics,
+            }),
+          )
+        }
 
-  //       if (user?.favoritesArtists) {
-  //         const result = await handleGetFavoritesArtists(user.favoritesArtists)
+        if (userData.favoriteArtists) {          
+          dispatch(
+            setFavoriteArtists({ favoriteArtists: userData.favoriteArtists }),
+          )
+        }
 
-  //         dispatch(setFavoriteArtists({ favoriteArtists: result }))
-  //       } else {
-  //         const result = await handleGetArtistsNewUser()
+        if (userData.favoriteMusics && userData.favoriteArtists) {
+          dispatch(
+            handleSetUser({
+              user: {
+                ...user,
+                favoriteArtists: userData.favoriteArtists,
+                favoriteMusics: userData.favoriteMusics,
+              },
+            }),
+          )
+        }
 
-  //         dispatch(setFavoriteArtists({ favoriteArtists: result }))
-  //       }
+        if (recommendationData.data) {
+          const inspiredMixes = recommendationData.data as MusicProps[]
+          const basedOnGenres = recommendationData.basedOnGenres
 
-  //       const excludesMusics = musics.map((item) => item.id)
+          dispatch(
+            setInspiredMixes({
+              musics: inspiredMixes,
+            }),
+          )
 
-  //       const filterGenres = shuffleArray(musics.map((music) => music.genre))
+          if (userData.favoriteGenres) {
+            setTopMusicalGenres(basedOnGenres)
+          }
+        }
 
-  //       const excludeGenres = [...new Set(filterGenres)]
-
-  //       const responseInspiredMixes = await handleGetInspiredMixes(
-  //         excludeGenres,
-  //         excludesMusics,
-  //       )
-
-  //       const responseUserPlaylist = await handleGetPlaylistByUserId(user.uid)
-
-  //       console.log(responseUserPlaylist)
-
-  //       dispatch(
-  //         setInspiredMixes({
-  //           musics: responseInspiredMixes,
-  //         }),
-  //       )
-
-  //       const responseReleses = await handleGetReleases()
-
-  //       dispatch(handleSetReleases({ releases: responseReleses }))
-
-  //       dispatch(handleSetNetStatus(true))
-  //     } else {
-  //       dispatch(handleSetNetStatus(false))
-  //     }
-  //   } catch (error) {
-  //     console.log(error, 'home')
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [
-  //   dispatch,
-  //   favoriteMusics,
-  //   isConnected,
-  //   topMusicalGenres,
-  //   user.favoritesArtists,
-  //   user.favoritesMusics,
-  // ])
+        dispatch(handleSetNetStatus(true))
+      } else {
+        dispatch(handleSetNetStatus(false))
+      }
+    } catch (error) {
+      console.log(error, 'home')
+    }
+  }, [
+    dispatch,
+    topMusicalGenres,
+    isConnected,
+    user.favoriteArtists,
+    user.favoriteMusics,
+  ])
 
   // const handleFetchNoticationsDB = useCallback(async () => {
   //   await handleGetNotifications()
@@ -216,15 +211,13 @@ export function Home() {
     if (isConnected === null) return
     if (isConnected) {
       // handleFetchNoticationsDB()
-      // handleGetDataUser()
+      handleGetDataUser()
     } else if (!isConnected) {
       dispatch(handleSetNetStatus(false))
       if (!ignoreAlert) {
         openModalErrNetwork()
       }
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ignoreAlert, isConnected])
 
   useEffect(() => {
@@ -249,27 +242,6 @@ export function Home() {
   }, [])
 
   // useEffect(() => {
-  //   const playbackStateListener = TrackPlayer.addEventListener(
-  //     Event.PlaybackState,
-  //     ({ state }) => {
-  //       if ([State.Playing].includes(state)) {
-  //         setTimeout(() => {
-  //           console.log(
-  //             'Música tocada por pelo menos 1 minuto:',
-  //             isCurrentMusic?.title,
-  //           )
-  //         }, 60 * 1000) // Verifica após 1 minu
-  //       }
-  //     },
-  //   )
-
-  //   return () => {
-  //     playbackStateListener.remove()
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [])
-
-  // useEffect(() => {
   //   const unsubscribe = messaging().onMessage(async () => {
   //     handleFetchNoticationsDB()
   //   })
@@ -277,42 +249,6 @@ export function Home() {
   //   return unsubscribe
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [])
-
-  // useEffect(() => {
-  //   async function handleGetDataUser() {
-  //     api.get(`/me`).then((response) => {
-  //       const userData = response.data as UserProps
-
-  //       console.log('User data fetched successfully:', userData)
-  //     })
-  //   }
-
-  //   handleGetDataUser()
-  // }, [user])
-
-  if (user.isActive !== true) {
-    return (
-      <View className="bg-gray-700 flex-1 items-center justify-center p-8">
-        <AnimatedLottieView
-          source={splash}
-          autoPlay
-          resizeMode="contain"
-          style={{ width: size, height: size }}
-        />
-        <Text className="font-nunito-bold text-lg text-white text-center">
-          Acesso não autorizado. Por favor, regularize o seu plano para
-          continuar.
-        </Text>
-        <Button
-          title="Sair da aplicação"
-          className="mt-8 rounded-md w-full"
-          onPress={() => {
-            BackHandler.exitApp()
-          }}
-        />
-      </View>
-    )
-  }
 
   return (
     <>
@@ -370,12 +306,12 @@ export function Home() {
           {isConnected && inspiredMixes.length > 0 && (
             <Section
               title={
-                user.favoritesMusics
+                user.favoriteMusics
                   ? 'Mixes inspirador por'
                   : 'Explore novas possibilidades'
               }
               description={
-                user.favoritesMusics
+                user.favoriteMusics
                   ? 'Descrubra faixas similiares aos seus hits favoritos'
                   : ''
               }
@@ -388,7 +324,7 @@ export function Home() {
           {isConnected && topMusicalGenres.length > 0 && (
             <Section
               title={
-                user?.favoritesMusics
+                user?.favoriteGenres
                   ? 'Os seus top gêneros musicais'
                   : 'Explore por gêneros musicais'
               }
@@ -398,10 +334,10 @@ export function Home() {
             </Section>
           )}
 
-          {isConnected && favoriteArtists.length > 0 && (
+          {isConnected && user.favoriteArtists && (
             <Section
               title={
-                user.favoritesArtists
+                user.favoriteArtists
                   ? 'Artistas que você ama'
                   : 'Explore por artistas'
               }

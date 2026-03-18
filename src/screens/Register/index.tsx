@@ -18,8 +18,6 @@ import { useState } from 'react'
 import { StackNavigationProps } from '@routes/routes'
 import { useNavigation } from '@react-navigation/native'
 import { useModal } from '@hooks/useModal'
-import { useDispatch } from 'react-redux'
-import { handleSetUser } from '@storage/modules/user/reducer'
 import { FormDataProps } from '@utils/Types/userProps'
 
 import { api } from '@services/api'
@@ -64,8 +62,6 @@ export function Register() {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const dispatch = useDispatch()
-
   function handleRegisterWithEmail(data: FormDataProps) {
     Keyboard.dismiss()
     setIsLoading(true)
@@ -75,42 +71,11 @@ export function Register() {
         email: data.email,
         name: data.name,
         password: data.password,
-        isActive: true,
       })
       .then(async () => {
-        const authResponse = await api.post('/sessions', {
-          email: data.email,
-          password: data.password,
-        })
-
-        setIsLoading(false)
-        dispatch(
-          handleSetUser({
-            user: {
-              name: authResponse.data.user.name,
-              email: authResponse.data.user.email,
-              photoUrl: authResponse.data.user.photoUrl,
-              role: authResponse.data.user.role,
-              id: authResponse.data.user.id,
-              isActive: authResponse.data.user.isActive,
-              isAuthenticated: authResponse.data.access_token,
-            },
-          }),
-        )
-
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: 'Home',
-              params: undefined,
-            },
-          ],
-        })
+        navigation.navigate('ConfirmCode', { email: data.email })
       })
       .catch((error) => {
-        setIsLoading(false)
-
         let message =
           'Desculpe, não foi possível concluir o cadastro neste momento. Por favor, tente novamente.'
 
@@ -133,6 +98,9 @@ export function Register() {
             title: 'OK',
           },
         })
+      })
+      .finally(() => {
+        setIsLoading(false)
       })
   }
 

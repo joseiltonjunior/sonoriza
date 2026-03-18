@@ -11,7 +11,7 @@ export const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const state = store.getState()
-  const token = state.user.user.isAuthenticated
+  const token = state.user.user.accessToken
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -32,8 +32,9 @@ api.interceptors.response.use(
             photoUrl: '',
             role: 'USER',
             id: '',
-            isActive: false,
-            isAuthenticated: null,
+            accountStatus: 'SUSPENDED',
+            accessToken: null,
+            refreshToken: null,
           },
         }),
       )

@@ -114,7 +114,7 @@ export function ControlCurrentMusic({ music }: ControlCurrentMusicProps) {
             className="font-nunito-regular text-white text-xs"
             style={{ color: fontColor }}
           >
-            {isCurrentMusic?.artists && isCurrentMusic.artists[0].name}
+            {isCurrentMusic?.artists && isCurrentMusic.artists[0].title}
           </Text>
         </View>
       </TouchableOpacity>
