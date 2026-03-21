@@ -25,6 +25,10 @@ import { handleSetUser } from '@storage/modules/user/reducer'
 import { api } from '@services/api'
 import { authSessionResponseProps } from '@utils/Types/authSessionProps'
 
+import installations from '@react-native-firebase/installations'
+import messaging from '@react-native-firebase/messaging'
+import DeviceInfo from 'react-native-device-info'
+
 interface FormDataProps {
   email: string
   password: string
@@ -83,15 +87,46 @@ export function SignIn() {
     }, []),
   )
 
+  async function getDevicePayload() {
+    const [deviceKey, deviceName, manufacturer] = await Promise.all([
+      installations().getId(),
+      DeviceInfo.getDeviceName(),
+      DeviceInfo.getManufacturer(),
+    ])
+
+    let fcmToken: string | null = null
+
+    try {
+      fcmToken = await messaging().getToken()
+    } catch {
+      fcmToken = null
+    }
+
+    return {
+      deviceKey,
+      platform: 'MOBILE',
+      deviceName,
+      manufacturer,
+      model: DeviceInfo.getModel(),
+      osName: DeviceInfo.getSystemName(),
+      osVersion: DeviceInfo.getSystemVersion(),
+      appVersion: DeviceInfo.getVersion(),
+      fcmToken,
+    }
+  }
+
   async function handleSignInWithEmail(data: FormDataProps) {
     Keyboard.dismiss()
     setIsLoading(true)
+
+    const device = await getDevicePayload()
 
     try {
       const authResponse = await api
         .post('/sessions', {
           email: data.email,
           password: data.password,
+          device,
         })
         .then((response) => response.data as authSessionResponseProps)
 

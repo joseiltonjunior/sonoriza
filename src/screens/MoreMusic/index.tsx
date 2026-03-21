@@ -56,8 +56,8 @@ export function MoreMusic() {
   // const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const { favoriteMusics } = useSelector<ReduxProps, FavoriteMusicsProps>(
-      (state) => state.favoriteMusics,
-    )
+    (state) => state.favoriteMusics,
+  )
 
   const { handleMusicSelected } = useTrackPlayer()
 
@@ -145,11 +145,7 @@ export function MoreMusic() {
   useEffect(() => {
     let updatedListMusics = [] as MusicProps[]
 
-    if (
-      type === 'favorites' &&
-      favoriteMusics &&
-      favoriteMusics.length > 0
-    ) {
+    if (type === 'favorites' && favoriteMusics && favoriteMusics.length > 0) {
       updatedListMusics = favoriteMusics
     } else if (type === 'historic') {
       updatedListMusics = historic

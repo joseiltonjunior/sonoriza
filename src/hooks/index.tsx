@@ -8,20 +8,23 @@ import '@config/ReactotronConfig'
 import { BottomModalProvider } from './useBottomModal'
 import { PlaylistModalProvider } from './usePlaylistModal'
 import { ToastProvider } from './useToast'
+import { SessionHeartbeatProvider } from './SessionHeartbeatProvider'
 
 export function Hooks({ children }: React.PropsWithChildren) {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <BottomModalProvider>
-          <ModalProvider>
-            <ToastProvider>
-              <PlaylistModalProvider>
-                <SideMenuProvider>{children}</SideMenuProvider>
-              </PlaylistModalProvider>
-            </ToastProvider>
-          </ModalProvider>
-        </BottomModalProvider>
+        <SessionHeartbeatProvider>
+          <BottomModalProvider>
+            <ModalProvider>
+              <ToastProvider>
+                <PlaylistModalProvider>
+                  <SideMenuProvider>{children}</SideMenuProvider>
+                </PlaylistModalProvider>
+              </ToastProvider>
+            </ModalProvider>
+          </BottomModalProvider>
+        </SessionHeartbeatProvider>
       </PersistGate>
     </Provider>
   )

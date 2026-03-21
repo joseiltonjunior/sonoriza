@@ -7,7 +7,7 @@ import {
   RefreshControl,
 } from 'react-native'
 import AnimatedLottieView from 'lottie-react-native'
-import splash from '@assets/access-denied.json'
+
 import bad from '@assets/bad.json'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -22,9 +22,8 @@ import {
 
 import {
   handleSetFavoriteMusics,
-  FavoriteMusicsProps,
+  // FavoriteMusicsProps,
 } from '@storage/modules/favoriteMusics/reducer'
-import { handleSetReleases } from '@storage/modules/releases/reducer'
 
 import { ReduxProps } from '@storage/index'
 
@@ -58,19 +57,19 @@ import {
   InspiredMixesProps,
   setInspiredMixes,
 } from '@storage/modules/inspiredMixes/reducer'
-import { shuffleArray } from '@utils/Types/shuffleArray'
+
 import { MusicProps } from '@utils/Types/musicProps'
 import { Button } from '@components/Button'
 
-import {
-  NotificationsProps,
-  setNotification,
-} from '@storage/modules/notifications/reducer'
+// import {
+//   NotificationsProps,
+//   setNotification,
+// } from '@storage/modules/notifications/reducer'
 
-import { setNewsNotifications } from '@storage/modules/newsNotifications/reducer'
+// import { setNewsNotifications } from '@storage/modules/newsNotifications/reducer'
 import { Header } from '@components/Header'
 
-import messaging from '@react-native-firebase/messaging'
+// import messaging from '@react-native-firebase/messaging'
 import { api } from '@services/api'
 import { MusicalGenresDataProps } from '@utils/Types/musicalGenresProps'
 import { UserDataProps } from '@utils/Types/userProps'
@@ -103,9 +102,9 @@ export function Home() {
     (state) => state.netInfo,
   )
 
-  const { notifications } = useSelector<ReduxProps, NotificationsProps>(
-    (state) => state.notifications,
-  )
+  // const { notifications } = useSelector<ReduxProps, NotificationsProps>(
+  //   (state) => state.notifications,
+  // )
 
   const { favoriteArtists } = useSelector<ReduxProps, FavoriteArtistsProps>(
     (state) => state.favoriteArtists,
@@ -117,9 +116,9 @@ export function Home() {
 
   const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
-  const { favoriteMusics } = useSelector<ReduxProps, FavoriteMusicsProps>(
-    (state) => state.favoriteMusics,
-  )
+  // const { favoriteMusics } = useSelector<ReduxProps, FavoriteMusicsProps>(
+  //   (state) => state.favoriteMusics,
+  // )
 
   const { trackListOffline } = useSelector<ReduxProps, TrackListOfflineProps>(
     (state) => state.trackListOffline,
@@ -189,13 +188,14 @@ export function Home() {
           }
         }
 
-        dispatch(handleSetNetStatus(true))        
+        dispatch(handleSetNetStatus(true))
       } else {
         dispatch(handleSetNetStatus(false))
       }
     } catch (error) {
       console.log(error, 'home')
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     dispatch,
     topMusicalGenres,
@@ -237,6 +237,7 @@ export function Home() {
         openModalErrNetwork()
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ignoreAlert, isConnected])
 
   useEffect(() => {
