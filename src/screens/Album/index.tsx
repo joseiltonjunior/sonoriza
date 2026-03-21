@@ -104,7 +104,7 @@ export function Album() {
             />
             <Text className="font-nunito-bold text-gray-300">Por</Text>
             <Text className="font-nunito-bold text-gray-300">
-              {artist.name}
+              {artist.title}
             </Text>
           </View>
 

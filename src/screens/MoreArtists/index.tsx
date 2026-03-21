@@ -24,7 +24,13 @@ import { UserProps } from '@storage/modules/user/reducer'
 import colors from 'tailwindcss/colors'
 
 import { Loading } from '@components/Loading'
-import { FavoriteArtistsProps, setFavoriteArtists } from '@storage/modules/favoriteArtists/reducer'
+import {
+  FavoriteArtistsProps,
+  setFavoriteArtists,
+} from '@storage/modules/favoriteArtists/reducer'
+import { api } from '@services/api'
+import { UserDataProps } from '@utils/Types/userProps'
+import { useToast } from '@hooks/useToast'
 
 export function MoreArtists() {
   const [listArtists, setListArtists] = useState<ArtistsDataProps[]>([])
@@ -35,11 +41,13 @@ export function MoreArtists() {
   const [isLoading, setIsLoading] = useState(false)
   const [isEndList, setIsEndList] = useState(false)
 
+  const { showToast } = useToast()
+
   // const { user } = useSelector<ReduxProps, UserProps>((state) => state.user)
 
   const { favoriteArtists } = useSelector<ReduxProps, FavoriteArtistsProps>(
-      (state) => state.favoriteArtists,
-    )
+    (state) => state.favoriteArtists,
+  )
 
   const navigation = useNavigation<StackNavigationProps>()
 
@@ -57,12 +65,36 @@ export function MoreArtists() {
     setIsLoading(true)
   }, [favoriteArtists, isLoading, isEndList, page])
 
-  const handleChangeFavoriteArtist = async (artist: ArtistsDataProps) => {
-    console.log('favoritar artistas')
+  async function handleFavoriteArtist(artistId: string) {
+    await api
+      .post(`/artists/${artistId}/like`)
+      .then(async (response) => {
+        const isFavorite = response.data as { liked: false; likesCount: 0 }
 
-    const filter = listArtists.filter((item) => item.id !== artist.id)
-    setListArtists(filter)
-    dispatch(setFavoriteArtists({ favoriteArtists: filter }))
+        const userUpdated = await api
+          .get('/me')
+          .then((response) => response.data as UserDataProps)
+
+        if (userUpdated.favoriteArtists) {
+          setListArtists(userUpdated.favoriteArtists)
+          dispatch(
+            setFavoriteArtists({
+              favoriteArtists: userUpdated.favoriteArtists,
+            }),
+          )
+        }
+
+        let message = ''
+
+        if (isFavorite.liked === false) {
+          message = 'Removido dos favoritos.'
+        } else {
+          message = 'Adicionado aos favoritos.'
+        }
+
+        showToast({ title: message })
+      })
+      .catch((err) => console.log(err, 'err'))
   }
 
   useEffect(() => {
@@ -126,7 +158,7 @@ export function MoreArtists() {
               {type === 'favorites' && (
                 <TouchableOpacity
                   onPress={() => {
-                    handleChangeFavoriteArtist(item)
+                    handleFavoriteArtist(item.id)
                   }}
                   activeOpacity={0.6}
                   className="p-4"
