@@ -1,5 +1,6 @@
-import TrackPlayer, { Event } from 'react-native-track-player'
+import TrackPlayer, { Event, State } from 'react-native-track-player'
 import { api } from './api'
+import { setHeartbeatPlaybackActive } from './sessionHeartbeat'
 
 const VIEW_THRESHOLD_SECONDS = 30
 const MAX_NATURAL_PROGRESS_STEP_SECONDS = 2.5
@@ -34,6 +35,17 @@ async function handleRegisterMusicView(trackId: string) {
 }
 
 export const PlaybackService = async function () {
+  TrackPlayer.getPlaybackState()
+    .then((state) => {
+      const isHeartbeatState =
+        state.state === State.Playing || state.state === State.Buffering
+
+      setHeartbeatPlaybackActive(isHeartbeatState)
+    })
+    .catch(() => {
+      setHeartbeatPlaybackActive(false)
+    })
+
   TrackPlayer.addEventListener(Event.RemotePlay, () => {
     TrackPlayer.play()
   })
@@ -56,7 +68,15 @@ export const PlaybackService = async function () {
 
   TrackPlayer.addEventListener(Event.RemoteStop, () => {
     resetViewSession()
+    setHeartbeatPlaybackActive(false)
     TrackPlayer.reset()
+  })
+
+  TrackPlayer.addEventListener(Event.PlaybackState, ({ state }) => {
+    const isHeartbeatState =
+      state === State.Playing || state === State.Buffering
+
+    setHeartbeatPlaybackActive(isHeartbeatState)
   })
 
   TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, (event) => {
@@ -106,10 +126,12 @@ export const PlaybackService = async function () {
 
   TrackPlayer.addEventListener(Event.PlaybackQueueEnded, () => {
     resetViewSession()
+    setHeartbeatPlaybackActive(false)
   })
 
   TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
     resetViewSession()
+    setHeartbeatPlaybackActive(false)
     console.log('Playback error', error)
   })
 }

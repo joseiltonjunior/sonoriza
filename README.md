@@ -73,7 +73,7 @@ BASE_API_URL="http://localhost:3333/"
 And run:
 
 ```bash
-adb reverse tcp:3333 tcp:3333
+adb reverse tcp:9090 tcp:9090
 ```
 
 ### 3) Start Metro

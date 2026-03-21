@@ -19,6 +19,10 @@ import axios from 'axios'
 import { ConfirmCodeDataProps } from '@utils/Types/confirmCodeProps'
 import { authSessionResponseProps } from '@utils/Types/authSessionProps'
 
+import installations from '@react-native-firebase/installations'
+import messaging from '@react-native-firebase/messaging'
+import DeviceInfo from 'react-native-device-info'
+
 const schema = z.object({
   code: z.string().min(6, '* mínimo 06 caracteres'),
 })
@@ -43,14 +47,45 @@ export function ConfirmCode() {
 
   const dispatch = useDispatch()
 
-  function handleConfirmCode(data: ConfirmCodeDataProps) {
+  async function getDevicePayload() {
+    const [deviceKey, deviceName, manufacturer] = await Promise.all([
+      installations().getId(),
+      DeviceInfo.getDeviceName(),
+      DeviceInfo.getManufacturer(),
+    ])
+
+    let fcmToken: string | null = null
+
+    try {
+      fcmToken = await messaging().getToken()
+    } catch {
+      fcmToken = null
+    }
+
+    return {
+      deviceKey,
+      platform: 'MOBILE',
+      deviceName,
+      manufacturer,
+      model: DeviceInfo.getModel(),
+      osName: DeviceInfo.getSystemName(),
+      osVersion: DeviceInfo.getSystemVersion(),
+      appVersion: DeviceInfo.getVersion(),
+      fcmToken,
+    }
+  }
+
+  async function handleConfirmCode(data: ConfirmCodeDataProps) {
     Keyboard.dismiss()
     setIsLoading(true)
+
+    const device = await getDevicePayload()
 
     api
       .post('/accounts/verify', {
         email,
         code: data.code,
+        device,
       })
       .then(async (response) => {
         const {
